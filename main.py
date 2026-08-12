@@ -137,28 +137,33 @@ async def on_message(message):
     text = message.content.strip().lower()
     game = games[channel_id]
 
-    # --- NỐI TỪ TIẾNG ANH (Có đếm số lượt bằng Tiếng Anh) ---
+    # --- NỐI TỪ TIẾNG ANH ---
     if game["mode"] == "en":
         words = text.split()
+        
+        # Nhắn tin trò chuyện nhiều từ -> Bỏ qua, không xóa, không đếm
         if len(words) != 1:
-            await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra sai lượt
         if game["last_player"] == message.author.id:
             await message.reply("Wait for another player! You can't play twice in a row!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra không có trong từ điển tiếng Anh
         if text not in dictionary_en:
             await message.reply("This word is not in the English dictionary!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra từ đã dùng
         if text in game["used_words"]:
             await message.reply("This word was already used!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra chữ cái đầu
         if game["last_word"] is not None:
             last_char = game["last_word"][-1]
             if text[0] != last_char:
@@ -166,6 +171,7 @@ async def on_message(message):
                 await safe_delete(message, delay=3)
                 return
 
+        # --- HỢP LỆ ---
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
@@ -182,25 +188,30 @@ async def on_message(message):
     # --- NỐI TỪ TIẾNG VIỆT ---
     if game["mode"] == "vi":
         words = text.split()
+        
+        # Nhắn tin trò chuyện không phải 2 từ -> Bỏ qua, không xóa, không đếm
         if len(words) != 2:
-            await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra sai lượt
         if game["last_player"] == message.author.id:
             await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra không có trong từ điển tiếng Việt
         if not is_valid_vietnamese_word(text):
             await message.reply("Từ này đéo có trong từ điển tiếng Việt!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra từ đã dùng
         if text in game["used_words"]:
             await message.reply("Từ này nối rồi con gà!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
+        # Kiểm tra từ nối tiếp
         if game["last_word"] is not None:
             prev_last = game["last_word"].split()[-1]
             if words[0] != prev_last:
@@ -208,13 +219,18 @@ async def on_message(message):
                 await safe_delete(message, delay=3)
                 return
 
+        # --- HỢP LỆ ---
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
         game["last_player"] = message.author.id
 
         await message.add_reaction("✅")
-        await message.reply(f"🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", mention_author=False, delete_after=5)
+        await message.reply(
+            f"🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
+            mention_author=False, 
+            delete_after=5
+        )
 
 keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
