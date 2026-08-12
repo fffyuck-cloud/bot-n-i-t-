@@ -10,18 +10,19 @@ from keep_alive import keep_alive
 dictionary_vi = set()
 dictionary_en = set()
 
-# Tải từ điển tiếng Việt (40.000+ từ)
+# Tải từ điển tiếng Việt đầy đủ (Fix 404)
 try:
-    url_vi = "https://raw.githubusercontent.com/duythinht/vietnamese-dictionary/master/words.txt"
+    url_vi = "https://raw.githubusercontent.com/hoangpham2607/vietnamese-dictionary/master/words.txt"
     ctx = ssl._create_unverified_context()
     req = urllib.request.Request(url_vi, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
         content = response.read().decode('utf-8')
         dictionary_vi = set(line.strip().lower() for line in content.splitlines() if line.strip())
+    print(f"Đã nạp {len(dictionary_vi)} từ tiếng Việt!")
 except Exception as e:
     print(f"Lỗi tải từ điển TV: {e}")
 
-# Tải từ điển tiếng Anh (370.000+ từ)
+# Tải từ điển tiếng Anh
 try:
     url_en = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
     ctx = ssl._create_unverified_context()
@@ -29,6 +30,7 @@ try:
     with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
         content = response.read().decode('utf-8')
         dictionary_en = set(line.strip().lower() for line in content.splitlines() if line.strip())
+    print(f"Đã nạp {len(dictionary_en)} từ tiếng Anh!")
 except Exception as e:
     print(f"Lỗi tải từ điển TA: {e}")
 
@@ -140,85 +142,35 @@ async def on_message(message):
     if game["mode"] == "en":
         words = text.split()
         
-        # Nhắn tin trò chuyện nhiều từ -> Bỏ qua, không xóa, không đếm
         if len(words) != 1:
             return
 
-        # Kiểm tra sai lượt
         if game["last_player"] == message.author.id:
+            await message.add_reaction("❌")
             await message.reply("Óc c mù , bố kêu thay phiên mà nói", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
-        # Kiểm tra không có trong từ điển tiếng Anh
         if text not in dictionary_en:
+            await message.add_reaction("❌")
             await message.reply("từ này là tiếng anh à thằng óc?", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
-        # Kiểm tra từ đã dùng
         if text in game["used_words"]:
+            await message.add_reaction("❌")
             await message.reply("Từ này sử dụng rồi m êiii", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
-        # Kiểm tra chữ cái đầu
         if game["last_word"] is not None:
             last_char = game["last_word"][-1]
             if text[0] != last_char:
+                await message.add_reaction("❌")
                 await message.reply(f"Mắt mù à, từ phải bắt đầu bằng chữ **{last_char.upper()}**!", delete_after=3)
                 await safe_delete(message, delay=3)
                 return
 
-        # --- HỢP LỆ ---
-        game["used_words"].add(text)
-        game["last_word"] = text
-        game["count"] += 1
-        game["last_player"] = message.author.id
-             await message.add_reaction("Screenshot20260812164751:1537034906394300486")
-        await message.reply(
-    f"<:Screenshot20260812164751:1537034906394300486> 🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
-    mention_author=False, 
-    delete_after=5
-)
-        )
-        return
-
-    # --- NỐI TỪ TIẾNG VIỆT ---
-    if game["mode"] == "vi":
-        words = text.split()
-        
-        # Nhắn tin trò chuyện không phải 2 từ -> Bỏ qua, không xóa, không đếm
-        if len(words) != 2:
-            return
-
-        # Kiểm tra sai lượt
-        if game["last_player"] == message.author.id:
-            await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!", delete_after=3)
-            await safe_delete(message, delay=3)
-            return
-
-        # Kiểm tra không có trong từ điển tiếng Việt
-        if not is_valid_vietnamese_word(text):
-            await message.reply("Từ này đéo có trong từ điển tiếng Việt!", delete_after=3)
-            await safe_delete(message, delay=3)
-            return
-
-        # Kiểm tra từ đã dùng
-        if text in game["used_words"]:
-            await message.reply("Từ này nối rồi con gà!", delete_after=3)
-            await safe_delete(message, delay=3)
-            return
-
-        # Kiểm tra từ nối tiếp
-        if game["last_word"] is not None:
-            prev_last = game["last_word"].split()[-1]
-            if words[0] != prev_last:
-                await message.reply(f"Từ phải bắt đầu bằng **{prev_last}**!", delete_after=3)
-                await safe_delete(message, delay=3)
-                return
-
-        # --- HỢP LỆ ---
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
@@ -226,10 +178,56 @@ async def on_message(message):
 
         await message.add_reaction("Screenshot20260812164751:1537034906394300486")
         await message.reply(
-    f"<:Screenshot20260812164751:1537034906394300486> 🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
-    mention_author=False, 
-    delete_after=5
-)
+            f"<:Screenshot20260812164751:1537034906394300486> 🎯 **Word #{game['count']}** | Next letter: **{text[-1].upper()}**", 
+            mention_author=False, 
+            delete_after=5
+        )
+        return
+
+    # --- NỐI TỪ TIẾNG VIỆT ---
+    if game["mode"] == "vi":
+        words = text.split()
+        
+        if len(words) != 2:
+            return
+
+        if game["last_player"] == message.author.id:
+            await message.add_reaction("❌")
+            await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!", delete_after=3)
+            await safe_delete(message, delay=3)
+            return
+
+        if not is_valid_vietnamese_word(text):
+            await message.add_reaction("❌")
+            await message.reply("Từ này đéo có trong từ điển tiếng Việt!", delete_after=3)
+            await safe_delete(message, delay=3)
+            return
+
+        if text in game["used_words"]:
+            await message.add_reaction("❌")
+            await message.reply("Từ này nối rồi con gà!", delete_after=3)
+            await safe_delete(message, delay=3)
+            return
+
+        if game["last_word"] is not None:
+            prev_last = game["last_word"].split()[-1]
+            if words[0] != prev_last:
+                await message.add_reaction("❌")
+                await message.reply(f"Từ phải bắt đầu bằng **{prev_last}**!", delete_after=3)
+                await safe_delete(message, delay=3)
+                return
+
+        game["used_words"].add(text)
+        game["last_word"] = text
+        game["count"] += 1
+        game["last_player"] = message.author.id
+
+        await message.add_reaction("Screenshot20260812164751:1537034906394300486")
+        await message.reply(
+            f"<:Screenshot20260812164751:1537034906394300486> 🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
+            mention_author=False, 
+            delete_after=5
+        )
 
 keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
