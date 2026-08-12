@@ -1,19 +1,30 @@
 import os
+import urllib.request
 import discord
 from discord.ext import commands
 from pyvi import ViTokenizer
 from keep_alive import keep_alive
 
-# Tải danh sách từ điển tiếng Việt từ file words.txt
+dictionary = set()
+
+# 1. Tự động tải từ điển Tiếng Việt chuẩn (40.000+ từ) từ internet khi boot
+try:
+    url = "https://raw.githubusercontent.com/duythinht/vietnamese-dictionary/master/words.txt"
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    with urllib.request.urlopen(req) as response:
+        content = response.read().decode('utf-8')
+        dictionary = set(line.strip().lower() for line in content.splitlines() if line.strip())
+    print(f"Đã nạp thành công {len(dictionary)} từ tiếng Việt!")
+except Exception as e:
+    print(f"Lỗi tải từ điển online: {e}")
+
+# 2. Đọc thêm từ file words.txt cá nhân (nếu bạn muốn bổ sung riêng)
 try:
     with open("words.txt", "r", encoding="utf-8") as f:
-        dictionary = set(line.strip().lower() for line in f if line.strip())
+        local_words = set(line.strip().lower() for line in f if line.strip())
+        dictionary.update(local_words)
 except FileNotFoundError:
-    dictionary = set()
-
-def is_valid_word(word):
-    # Kiểm tra xem từ nằm trong file words.txt không
-    return word.lower() in dictionary
+    pass
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -23,13 +34,15 @@ bot = commands.Bot(command_prefix="?", intents=intents)
 games = {}
 
 def is_valid_vietnamese_word(text):
-    """Kiểm tra xem cụm 2 từ có hợp lệ hay không."""
-    # 1. Kiểm tra trong file words.txt trước
-    if is_valid_word(text):
+    """Kiểm tra từ có nghĩa trong Tiếng Việt."""
+    text_clean = text.lower().strip()
+    
+    # Kiểm tra trong bộ từ điển 40.000 từ + file words.txt
+    if text_clean in dictionary:
         return True
     
-    # 2. Kiểm tra từ ghép bằng pyvi (chặn từ vô nghĩa)
-    tokenized = ViTokenizer.tokenize(text)
+    # Kiểm tra thêm bằng pyvi
+    tokenized = ViTokenizer.tokenize(text_clean)
     return "_" in tokenized
 
 @bot.event
@@ -96,7 +109,7 @@ async def on_message(message):
         await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!")
         return
 
-    # 2. Kiểm tra từ vô nghĩa
+    # 2. Kiểm tra từ chuẩn tiếng Việt
     if not is_valid_vietnamese_word(text):
         await message.reply("Từ này đéo có trong từ điển tiếng Việt!")
         return
@@ -122,8 +135,8 @@ async def on_message(message):
     await message.add_reaction("✅")
     await message.reply(f"🎯 **#{game['count']}**", mention_author=False)
 
-# Chạy Flask web server để mở Port cho Render
+# Chạy Flask web server cho Render
 keep_alive()
 
-# Chạy bot với Token lấy từ biến môi trường
+# Run bot
 bot.run(os.getenv("DISCORD_TOKEN"))
