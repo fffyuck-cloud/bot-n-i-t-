@@ -9,7 +9,7 @@ from keep_alive import keep_alive
 
 dictionary = set()
 
-# 1. Tải bộ từ điển online (thêm ssl context để không bị Render chặn)
+# 1. Tải bộ từ điển online
 try:
     url = "https://raw.githubusercontent.com/duythinht/vietnamese-dictionary/master/words.txt"
     ctx = ssl._create_unverified_context()
@@ -38,37 +38,24 @@ games = {}
 def is_valid_vietnamese_syllable(word):
     """Kiểm tra 1 từ đơn có phải là âm tiết Tiếng Việt chuẩn không."""
     word = word.lower().strip()
-    
-    # Chặn chữ lặp lại quá 2 lần (vd: caaaaaaa, iiiii)
     if re.search(r'(.)\1{2,}', word):
         return False
-        
-    # Tiếng Việt KHÔNG BAO GIỜ kết thúc bằng các chữ này (loại bỏ từ gõ lỗi Telex như: cas, caf, lax)
     if re.search(r'[sfrxzjwkbdghqvl]$', word):
         return False
-        
-    # Chỉ chấp nhận ký tự trong bảng chữ cái Tiếng Việt
     vn_pattern = r'^[a-àáảãạăằắẳẵặâầấẩẫậbcdđeèéẻẽẹêềếểễệghiìíỉĩịklmnoòóỏõọôồốổỗộơờớởỡợpqrstuùúủũụưừứửữựvxyỳýỷỹỵ]+$'
     return bool(re.match(vn_pattern, word))
 
 def is_valid_vietnamese_word(text):
     """Kiểm tra cụm 2 từ tiếng Việt hợp lệ."""
     text_clean = text.lower().strip()
-    
-    # 1. Khớp từ điển 40.000 từ
     if text_clean in dictionary:
         return True
-        
-    # 2. Khớp từ ghép pyvi
     tokenized = ViTokenizer.tokenize(text_clean)
     if "_" in tokenized:
         return True
-        
-    # 3. Kiểm tra cả 2 từ đơn có phải là âm tiết Tiếng Việt chuẩn không
     words = text_clean.split()
     if len(words) == 2:
         return is_valid_vietnamese_syllable(words[0]) and is_valid_vietnamese_syllable(words[1])
-        
     return False
 
 @bot.event
@@ -128,14 +115,14 @@ async def on_message(message):
 
     game = games[channel_id]
 
-    # 1. Kiểm tra luân phiên người chơi
+    # 1. Kiểm tra luân phiên người chơi (Tự xóa thông báo lỗi sau 3 giây)
     if game["last_player"] == message.author.id:
-        await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!")
+        await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!", delete_after=3)
         return
 
-    # 2. Kiểm tra từ hợp lệ
+    # 2. Kiểm tra từ hợp lệ (Tự xóa thông báo lỗi sau 3 giây)
     if not is_valid_vietnamese_word(text):
-        await message.reply("Từ này đéo có trong từ điển tiếng Việt!")
+        await message.reply("Từ này đéo có trong từ điển tiếng Việt!", delete_after=3)
         return
 
     # 3. Kiểm tra trùng lặp
@@ -156,8 +143,17 @@ async def on_message(message):
     game["count"] += 1
     game["last_player"] = message.author.id
 
+    next_start_word = words[-1] # Từ cần nối tiếp theo
+
     await message.add_reaction("✅")
-    await message.reply(f"🎯 **#{game['count']}**", mention_author=False)
+    
+    # Tin nhắn báo lượt + nhắc từ nối.
+    # delete_after=5 : Tự động xóa tin nhắn này sau 5 giây (nếu không muốn xóa thì bỏ delete_after=5 đi)
+    await message.reply(
+        f"🎯 **#{game['count']}** | Đến lượt đứa tiếp theo! Nối từ chữ: **{next_start_word}**", 
+        mention_author=False,
+        delete_after=5
+    )
 
 keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
