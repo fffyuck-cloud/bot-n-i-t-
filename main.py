@@ -175,12 +175,12 @@ async def on_message(message):
         game["last_word"] = text
         game["count"] += 1
         game["last_player"] = message.author.id
-
-        await message.add_reaction("Screenshot20260812164751:1537034906394300486")
+             await message.add_reaction("Screenshot20260812164751:1537034906394300486")
         await message.reply(
-            f"🎯 **Số #{game['count']}** | Từ tiếp theo:: **{text[-1].upper()}**", 
-            mention_author=False, 
-            delete_after=5
+    f"<:Screenshot20260812164751:1537034906394300486> 🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
+    mention_author=False, 
+    delete_after=5
+)
         )
         return
 
@@ -224,12 +224,12 @@ async def on_message(message):
         game["count"] += 1
         game["last_player"] = message.author.id
 
-        await message.add_reaction("✅")
+        await message.add_reaction("Screenshot20260812164751:1537034906394300486")
         await message.reply(
-            f"🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
-            mention_author=False, 
-            delete_after=5
-        )
+    f"<:Screenshot20260812164751:1537034906394300486> 🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
+    mention_author=False, 
+    delete_after=5
+)
 
 keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
