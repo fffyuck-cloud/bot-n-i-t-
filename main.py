@@ -1,12 +1,15 @@
 import os
-import re
 import ssl
+import json
 import urllib.request
 import random
 import discord
 from datetime import date
 from discord.ext import commands
 from keep_alive import keep_alive
+
+# Cấu hình Emoji Custom của bạn
+CUSTOM_EMOJI = "Screenshot20260812173722:1537047895310602300"
 
 dictionary_vi = set()
 dictionary_en = set()
@@ -53,6 +56,27 @@ try:
 except FileNotFoundError:
     pass
 
+# Xử lý Lưu / Đọc Kỷ Lục Highscore
+HIGHSCORE_FILE = "highscore.json"
+
+def load_highscore():
+    if os.path.exists(HIGHSCORE_FILE):
+        try:
+            with open(HIGHSCORE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {"vi": {"count": 0}, "en": {"count": 0}}
+    return {"vi": {"count": 0}, "en": {"count": 0}}
+
+def save_highscore(data):
+    try:
+        with open(HIGHSCORE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except Exception as e:
+        print(f"Lỗi lưu highscore: {e}")
+
+highscores = load_highscore()
+
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -74,11 +98,9 @@ def is_valid_vietnamese_word(text):
     if len(words) != 2:
         return False
     
-    # Kiểm tra từ có trong từ điển gốc
     if text_clean in dictionary_vi:
         return True
 
-    # Check 2 tiếng hợp lệ trong từ điển
     w1, w2 = words[0], words[1]
     is_w1_valid = any(w == w1 or w.startswith(w1 + " ") or w.endswith(" " + w1) for w in dictionary_vi)
     is_w2_valid = any(w == w2 or w.startswith(w2 + " ") or w.endswith(" " + w2) for w in dictionary_vi)
@@ -92,11 +114,19 @@ def check_has_next_vi(last_syllable, used_words):
             return True
     return True
 
+def update_highscore_if_needed(mode, count):
+    mode_key = "vi" if mode == "vi" else "en"
+    current_hs = highscores.get(mode_key, {}).get("count", 0)
+    if count > current_hs:
+        highscores[mode_key] = {"count": count}
+        save_highscore(highscores)
+        return True
+    return False
+
 @bot.event
 async def on_ready():
     print(f"{bot.user} bố online rồi các con")
 
-# Xử lý khi người dùng không có quyền Admin
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
@@ -117,6 +147,7 @@ async def custom_help(ctx):
     embed.add_field(name="`?daily`", value="Điểm danh nhận 3 lượt gợi ý mỗi ngày", inline=False)
     embed.add_field(name="`?hint`", value="Tốn 1 lượt gợi ý để xem từ có thể nối", inline=False)
     embed.add_field(name="`?top`", value="Xem Bảng Xếp Hạng người nối nhiều từ nhất ván hiện tại", inline=False)
+    embed.add_field(name="`?highscore`", value="Xem kỷ lục chuỗi nối dài nhất của Server", inline=False)
     embed.set_footer(text="Luật: Thay phiên nhau nối, không được tự nối 2 lần liên tiếp!")
     await ctx.send(embed=embed)
 
@@ -132,6 +163,16 @@ async def claim_daily(ctx):
     user_hints[user_id] = 3
     user_daily_claimed[user_id] = today_str
     await ctx.send(f"🎁 **{ctx.author.display_name}** đã điểm danh thành công và nhận **3 lượt gợi ý** cho ngày hôm nay!")
+
+@bot.command(name="highscore")
+async def show_highscore(ctx):
+    embed = discord.Embed(
+        title="🏆 KỶ LỤC CAO NHẤT SERVER",
+        color=discord.Color.gold()
+    )
+    embed.add_field(name="🇻🇳 Tiếng Việt", value=f"**{highscores.get('vi', {}).get('count', 0)}** từ", inline=False)
+    embed.add_field(name="🇬🇧 Tiếng Anh", value=f"**{highscores.get('en', {}).get('count', 0)}** từ", inline=False)
+    await ctx.send(embed=embed)
 
 @bot.command(name="noitu")
 @commands.has_permissions(administrator=True)
@@ -153,7 +194,7 @@ async def start_game_vi(ctx):
         "🎮 **Đã bắt trò chơi nối từ béo béo béo! (Tiếng Việt)**\n"
         "• Đéo được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
         "• Đúng chính xác 2 từ có nghĩa tiếng Việt.\n"
-        "• Gõ `?daily` điểm danh | `?hint` gợi ý | `?top` BXH | `?huynoitu` end."
+        "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
     )
 
 @bot.command(name="noituen")
@@ -175,7 +216,7 @@ async def start_game_en(ctx):
     await ctx.send(
         "🔤 **Nối từ tiếng anh béo béo đã xuất hiện!!!!**\n"
         "• Mỗi thằng chỉ được nối đúng 1 từ, thay phiên nhau mà nói.\n"
-        "• Gõ `?daily` điểm danh | `?hint` gợi ý | `?top` BXH | `?huynoitu` end."
+        "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
     )
 
 @bot.command(name="hint")
@@ -244,9 +285,12 @@ async def show_top(ctx):
 async def stop_game(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        total_count = games[channel_id]["count"]
+        game = games[channel_id]
+        total_count = game["count"]
+        is_new_hs = update_highscore_if_needed(game["mode"], total_count)
+        hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
         del games[channel_id]
-        await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con, trình độ m chắc chắc còn non: **{total_count}**")
+        await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con, trình độ m chắc chắc còn non: **{total_count}**{hs_msg}")
     else:
         await ctx.send("⚠️ Có trận đ đâu mà huỷ v thằng nqu")
 
@@ -291,6 +335,12 @@ async def on_message(message):
                 await safe_delete(message, delay=3)
                 return
 
+        # Thả custom emoji
+        try:
+            await message.add_reaction(CUSTOM_EMOJI)
+        except Exception:
+            pass
+
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
@@ -300,14 +350,11 @@ async def on_message(message):
         next_char = text[-1]
         has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
         if not has_next_word:
-            await message.reply(f"🏆 Hết từ nối chữ '{next_char.upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
+            is_new_hs = update_highscore_if_needed("en", game["count"])
+            hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
+            await message.reply(f"🏆 Hết từ nối chữ '{next_char.upper()}'. Tổng: **{game['count']}**.{hs_msg}\nReset game!", mention_author=False)
             game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
             return
-
-        await message.reply(
-            f"🎯 **Word #{game['count']}** | Next: **{text[-1].upper()}**", 
-            mention_author=False, delete_after=5
-        )
         return
 
     # --- NỐI TỪ TIẾNG VIỆT ---
@@ -338,6 +385,12 @@ async def on_message(message):
                 await safe_delete(message, delay=3)
                 return
 
+        # Thả custom emoji
+        try:
+            await message.add_reaction(CUSTOM_EMOJI)
+        except Exception:
+            pass
+
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
@@ -345,14 +398,11 @@ async def on_message(message):
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
         if not check_has_next_vi(words[-1], game["used_words"]):
-            await message.reply(f"🏆 Hết từ nối chữ '{words[-1].upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
+            is_new_hs = update_highscore_if_needed("vi", game["count"])
+            hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
+            await message.reply(f"🏆 Hết từ nối chữ '{words[-1].upper()}'. Tổng: **{game['count']}**.{hs_msg}\nReset game!", mention_author=False)
             game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
             return
-
-        await message.reply(
-            f"🎯 **#{game['count']}** | Nối: **{words[-1]}**", 
-            mention_author=False, delete_after=5
-        )
 
 try:
     keep_alive()
