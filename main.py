@@ -10,10 +10,10 @@ from keep_alive import keep_alive
 dictionary_vi = set()
 dictionary_en = set()
 
-# Tải từ điển tiếng Việt (Tự động chuyển link dự phòng)
+# Tải từ điển tiếng Việt (Tự động chuyển link dự phòng nếu lỗi)
 urls_vi = [
     "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
-    "https://raw.githubusercontent.com/Khang-NT/vietnamese-wordlist/master/words.txt",
+    "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt",
     "https://raw.githubusercontent.com/lanhn/vietnamese-wordlist/master/words.txt"
 ]
 
@@ -96,7 +96,7 @@ async def start_game_vi(ctx):
     }
     await ctx.send(
         "🎮 **Đã bắt trò chơi nối từ béo béo béo! (Tiếng Việt)**\n"
-        "• đéo được nối 2 lần liên tiếp , thay phiên nhau mà nối.\n"
+        "• Đéo được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
         "• Đúng chính xác 2 từ có nghĩa tiếng Việt.\n"
         "• Gõ `?huynoitu` để end."
     )
@@ -117,7 +117,7 @@ async def start_game_en(ctx):
     }
     await ctx.send(
         "🔤 **Nối từ tiếng anh béo béo đã xuất hiện!!!!**\n"
-        "• Mỗi thằng chỉ được nối đúng 1 từ , thay phiên nhau mà nói.\n"
+        "• Mỗi thằng chỉ được nối đúng 1 từ, thay phiên nhau mà nói.\n"
         "• Type `?huynoitu` to end."
     )
 
@@ -127,7 +127,7 @@ async def stop_game(ctx):
     if channel_id in games:
         total_count = games[channel_id]["count"]
         del games[channel_id]
-        await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con , trình độ m chắc chắc còn non: **{total_count}**")
+        await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con, trình độ m chắc chắc còn non: **{total_count}**")
     else:
         await ctx.send("❌ Có trận đ đâu mà huỷ v thằng nqu")
 
@@ -135,7 +135,6 @@ async def stop_game(ctx):
 async def on_message(message):
     if message.author.bot:
         return
-
     await bot.process_commands(message)
 
     channel_id = message.channel.id
@@ -148,19 +147,18 @@ async def on_message(message):
     # --- NỐI TỪ TIẾNG ANH ---
     if game["mode"] == "en":
         words = text.split()
-        
         if len(words) != 1:
             return
 
         if game["last_player"] == message.author.id:
             await message.add_reaction("❌")
-            await message.reply("Óc c mù , bố kêu thay phiên mà nói", delete_after=3)
+            await message.reply("Óc c mù, bố kêu thay phiên mà nói", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
         if text not in dictionary_en:
             await message.add_reaction("❌")
-            await message.reply("từ này là tiếng anh à thằng óc?", delete_after=3)
+            await message.reply("Từ này là tiếng anh à thằng óc?", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
@@ -183,39 +181,24 @@ async def on_message(message):
         game["count"] += 1
         game["last_player"] = message.author.id
 
-        await message.add_reaction("Screenshot20260812164751:1537034906394300486")
+        await message.add_reaction("Screenshot20260812172055:1537043520790073424")
 
-        # Kiểm tra còn từ tiếng Anh nào nối tiếp được không
         next_char = text[-1]
         has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
-
         if not has_next_word:
-            await message.reply(
-                f"🏆 **Đã hết từ tiếng Anh bắt đầu bằng chữ '{next_char.upper()}'!**\n"
-                f"🔥 Tổng chuỗi từ nối được: **{game['count']}** từ.\n"
-                f"🔄 Game sẽ tự động reset ván mới!",
-                mention_author=False
-            )
-            games[channel_id] = {
-                "mode": "en",
-                "last_word": None,
-                "count": 0,
-                "used_words": set(),
-                "last_player": None
-            }
+            await message.reply(f"🏆 Hết từ nối chữ '{next_char.upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
+            game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None})
             return
 
         await message.reply(
-            f"<:Screenshot20260812164751:1537034906394300486> 🎯 **Word #{game['count']}** | Next letter: **{text[-1].upper()}**", 
-            mention_author=False, 
-            delete_after=5
+            f"<:Screenshot20260812172055:1537043520790073424> 🎯 **Word #{game['count']}** | Next: **{text[-1].upper()}**", 
+            mention_author=False, delete_after=5
         )
         return
 
     # --- NỐI TỪ TIẾNG VIỆT ---
     if game["mode"] == "vi":
         words = text.split()
-        
         if len(words) != 2:
             return
 
@@ -250,32 +233,18 @@ async def on_message(message):
         game["count"] += 1
         game["last_player"] = message.author.id
 
-        await message.add_reaction("Screenshot20260812164751:1537034906394300486")
+        await message.add_reaction("Screenshot20260812172055:1537043520790073424")
 
-        # Kiểm tra còn từ tiếng Việt nào nối tiếp được không
         next_prefix = words[-1] + " "
         has_next_word = any(w.startswith(next_prefix) and w not in game["used_words"] for w in dictionary_vi)
-
         if not has_next_word:
-            await message.reply(
-                f"🏆 **Đã hết từ tiếng Việt bắt đầu bằng chữ '{words[-1].upper()}'!**\n"
-                f"🔥 Tổng chuỗi từ nối được: **{game['count']}** từ.\n"
-                f"🔄 Game sẽ tự động reset ván mới!",
-                mention_author=False
-            )
-            games[channel_id] = {
-                "mode": "vi",
-                "last_word": None,
-                "count": 0,
-                "used_words": set(),
-                "last_player": None
-            }
+            await message.reply(f"🏆 Hết từ nối chữ '{words[-1].upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
+            game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None})
             return
 
         await message.reply(
-            f"<:Screenshot20260812164751:1537034906394300486> 🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
-            mention_author=False, 
-            delete_after=5
+            f"<:Screenshot20260812172055:1537043520790073424> 🎯 **#{game['count']}** | Nối: **{words[-1]}**", 
+            mention_author=False, delete_after=5
         )
 
 keep_alive()
