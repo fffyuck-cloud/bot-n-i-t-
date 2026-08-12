@@ -10,17 +10,24 @@ from keep_alive import keep_alive
 dictionary_vi = set()
 dictionary_en = set()
 
-# Tải từ điển tiếng Việt đầy đủ (Fix 404)
-try:
-    url_vi = "https://raw.githubusercontent.com/hoangpham2607/vietnamese-dictionary/master/words.txt"
-    ctx = ssl._create_unverified_context()
-    req = urllib.request.Request(url_vi, headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
-        content = response.read().decode('utf-8')
-        dictionary_vi = set(line.strip().lower() for line in content.splitlines() if line.strip())
-    print(f"Đã nạp {len(dictionary_vi)} từ tiếng Việt!")
-except Exception as e:
-    print(f"Lỗi tải từ điển TV: {e}")
+# Tải từ điển tiếng Việt (Tự động chuyển link dự phòng)
+urls_vi = [
+    "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
+    "https://raw.githubusercontent.com/Khang-NT/vietnamese-wordlist/master/words.txt",
+    "https://raw.githubusercontent.com/lanhn/vietnamese-wordlist/master/words.txt"
+]
+
+for url_vi in urls_vi:
+    try:
+        ctx = ssl._create_unverified_context()
+        req = urllib.request.Request(url_vi, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+            content = response.read().decode('utf-8')
+            dictionary_vi = set(line.strip().lower() for line in content.splitlines() if line.strip())
+        print(f"Đã nạp thành công {len(dictionary_vi)} từ tiếng Việt!")
+        break
+    except Exception as e:
+        print(f"Thử link từ điển TV tiếp theo do lỗi: {e}")
 
 # Tải từ điển tiếng Anh
 try:
@@ -30,7 +37,7 @@ try:
     with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
         content = response.read().decode('utf-8')
         dictionary_en = set(line.strip().lower() for line in content.splitlines() if line.strip())
-    print(f"Đã nạp {len(dictionary_en)} từ tiếng Anh!")
+    print(f"Đã nạp thành công {len(dictionary_en)} từ tiếng Anh!")
 except Exception as e:
     print(f"Lỗi tải từ điển TA: {e}")
 
@@ -177,6 +184,27 @@ async def on_message(message):
         game["last_player"] = message.author.id
 
         await message.add_reaction("Screenshot20260812164751:1537034906394300486")
+
+        # Kiểm tra còn từ tiếng Anh nào nối tiếp được không
+        next_char = text[-1]
+        has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
+
+        if not has_next_word:
+            await message.reply(
+                f"🏆 **Đã hết từ tiếng Anh bắt đầu bằng chữ '{next_char.upper()}'!**\n"
+                f"🔥 Tổng chuỗi từ nối được: **{game['count']}** từ.\n"
+                f"🔄 Game sẽ tự động reset ván mới!",
+                mention_author=False
+            )
+            games[channel_id] = {
+                "mode": "en",
+                "last_word": None,
+                "count": 0,
+                "used_words": set(),
+                "last_player": None
+            }
+            return
+
         await message.reply(
             f"<:Screenshot20260812164751:1537034906394300486> 🎯 **Word #{game['count']}** | Next letter: **{text[-1].upper()}**", 
             mention_author=False, 
@@ -223,6 +251,27 @@ async def on_message(message):
         game["last_player"] = message.author.id
 
         await message.add_reaction("Screenshot20260812164751:1537034906394300486")
+
+        # Kiểm tra còn từ tiếng Việt nào nối tiếp được không
+        next_prefix = words[-1] + " "
+        has_next_word = any(w.startswith(next_prefix) and w not in game["used_words"] for w in dictionary_vi)
+
+        if not has_next_word:
+            await message.reply(
+                f"🏆 **Đã hết từ tiếng Việt bắt đầu bằng chữ '{words[-1].upper()}'!**\n"
+                f"🔥 Tổng chuỗi từ nối được: **{game['count']}** từ.\n"
+                f"🔄 Game sẽ tự động reset ván mới!",
+                mention_author=False
+            )
+            games[channel_id] = {
+                "mode": "vi",
+                "last_word": None,
+                "count": 0,
+                "used_words": set(),
+                "last_player": None
+            }
+            return
+
         await message.reply(
             f"<:Screenshot20260812164751:1537034906394300486> 🎯 **#{game['count']}** | Nối từ chữ: **{words[-1]}**", 
             mention_author=False, 
