@@ -8,8 +8,8 @@ from datetime import date
 from discord.ext import commands
 from keep_alive import keep_alive
 
-# Cấu hình Emoji Custom của bạn
-CUSTOM_EMOJI = "Screenshot20260812173722:1537047895310602300"
+# Cấu hình Custom Emoji chính xác của bạn
+CUSTOM_EMOJI = "Screenshot20260812172055:1537043520790073424"
 
 dictionary_vi = set()
 dictionary_en = set()
