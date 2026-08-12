@@ -89,12 +89,6 @@ games = {}
 user_hints = {}        
 user_daily_claimed = {} 
 
-async def safe_delete(message, delay=0):
-    try:
-        await message.delete(delay=delay)
-    except Exception:
-        pass
-
 def is_valid_vietnamese_word(text):
     text_clean = text.lower().strip()
     words = text_clean.split()
@@ -126,16 +120,21 @@ def update_highscore_if_needed(mode, count):
         return True
     return False
 
-# Hàm thả reaction số thứ tự
-async def add_number_reaction(message, count):
+# Hàm thả Reaction Tick xanh + Số đếm
+async def add_success_reactions(message, count):
     try:
+        await message.add_reaction("✅") # Thả tick xanh chuẩn
         if count in NUMBER_EMOJIS:
-            await message.add_reaction(NUMBER_EMOJIS[count])
-        else:
-            # Nếu vượt quá 10, thả icon ✅ kèm custom emoji
-            await message.add_reaction("✅")
-    except Exception:
-        pass
+            await message.add_reaction(NUMBER_EMOJIS[count]) # Thả số đếm
+    except Exception as e:
+        print(f"Lỗi thả reaction: {e}")
+
+# Hàm thả Reaction X đỏ khi làm sai
+async def add_fail_reaction(message):
+    try:
+        await message.add_reaction("❌") # Thả X đỏ
+    except Exception as e:
+        print(f"Lỗi thả reaction X: {e}")
 
 @bot.event
 async def on_ready():
@@ -328,25 +327,17 @@ async def on_message(message):
             return
 
         if game["last_player"] == message.author.id:
-            await message.reply("Óc c mù, bố kêu thay phiên mà nói", delete_after=3)
-            await safe_delete(message, delay=3)
+            await add_fail_reaction(message)
             return
 
-        if text not in dictionary_en:
-            await message.reply("Từ này là tiếng anh à thằng óc?", delete_after=3)
-            await safe_delete(message, delay=3)
-            return
-
-        if text in game["used_words"]:
-            await message.reply("Từ này sử dụng rồi m êiii", delete_after=3)
-            await safe_delete(message, delay=3)
+        if text not in dictionary_en or text in game["used_words"]:
+            await add_fail_reaction(message)
             return
 
         if game["last_word"] is not None:
             last_char = game["last_word"][-1]
             if text[0] != last_char:
-                await message.reply(f"Mắt mù à, từ phải bắt đầu bằng chữ **{last_char.upper()}**!", delete_after=3)
-                await safe_delete(message, delay=3)
+                await add_fail_reaction(message)
                 return
 
         game["used_words"].add(text)
@@ -355,8 +346,8 @@ async def on_message(message):
         game["last_player"] = message.author.id
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
-        # Thả emoji số thứ tự tương ứng
-        await add_number_reaction(message, game["count"])
+        # Thả Tick + Emoji số thứ tự
+        await add_success_reactions(message, game["count"])
 
         next_char = text[-1]
         has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
@@ -375,25 +366,17 @@ async def on_message(message):
             return
 
         if game["last_player"] == message.author.id:
-            await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!", delete_after=3)
-            await safe_delete(message, delay=3)
+            await add_fail_reaction(message)
             return
 
-        if not is_valid_vietnamese_word(text):
-            await message.reply("Từ này đéo có trong từ điển tiếng Việt!", delete_after=3)
-            await safe_delete(message, delay=3)
-            return
-
-        if text in game["used_words"]:
-            await message.reply("Từ này nối rồi con gà!", delete_after=3)
-            await safe_delete(message, delay=3)
+        if not is_valid_vietnamese_word(text) or text in game["used_words"]:
+            await add_fail_reaction(message)
             return
 
         if game["last_word"] is not None:
             prev_last = game["last_word"].split()[-1]
             if words[0] != prev_last:
-                await message.reply(f"Từ phải bắt đầu bằng **{prev_last}**!", delete_after=3)
-                await safe_delete(message, delay=3)
+                await add_fail_reaction(message)
                 return
 
         game["used_words"].add(text)
@@ -402,8 +385,8 @@ async def on_message(message):
         game["last_player"] = message.author.id
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
-        # Thả emoji số thứ tự tương ứng
-        await add_number_reaction(message, game["count"])
+        # Thả Tick + Emoji số thứ tự
+        await add_success_reactions(message, game["count"])
 
         if not check_has_next_vi(words[-1], game["used_words"]):
             is_new_hs = update_highscore_if_needed("vi", game["count"])
