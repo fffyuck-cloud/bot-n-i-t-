@@ -176,7 +176,7 @@ async def on_message(message):
         game["count"] += 1
         game["last_player"] = message.author.id
 
-        await message.add_reaction("✅")
+        await message.add_reaction("Screenshot20260812164751:1537034906394300486")
         await message.reply(
             f"🎯 **Số #{game['count']}** | Từ tiếp theo:: **{text[-1].upper()}**", 
             mention_author=False, 
