@@ -97,9 +97,9 @@ async def start_game_en(ctx):
         "last_player": None
     }
     await ctx.send(
-        "🔤 **English Word Chain Game Started!**\n"
-        "• Nối chữ cái cuối của từ trước (Ví dụ: appl**e** -> **e**lephan**t**).\n"
-        "• Chỉ dùng từ đơn Tiếng Anh hợp lệ.\n"
+        "🔤 **Nối từ tiếng anh béo béo béo đã bắt đầu!!**\n"
+        "• Nối chữ cái cuối của từ trước nghen mấy con (Ví dụ: appl**e** -> **e**lephan**t**).\n"
+        "• Chỉ dùng từ tiếng anh hợp lệ, k được thì tại m ngu.\n"
         "• Gõ `?huynoitu` để hủy."
     )
 
@@ -109,9 +109,9 @@ async def stop_game(ctx):
     if channel_id in games:
         total_count = games[channel_id]["count"]
         del games[channel_id]
-        await ctx.send(f"🛑 **Đã hủy trận!** Tổng số từ nối thành công: **{total_count}**")
+        await ctx.send(f"🛑 **Đã hủy con mẹ nó trận!** Tổng số từ nối thành công: **{total_count}**")
     else:
-        await ctx.send("❌ Kênh này hiện không có trận nào!")
+        await ctx.send("❌ Kênh này hiện đéo có trận nào đâu mấy thằng óc!")
 
 @bot.event
 async def on_message(message):
@@ -134,15 +134,15 @@ async def on_message(message):
             return
 
         if game["last_player"] == message.author.id:
-            await message.reply("Đợi người khác nối đi!", delete_after=3)
+            await message.reply("Đợi ng khác nối đi , k đợi thì cúc!", delete_after=3)
             return
 
         if text not in dictionary_en:
-            await message.reply("Từ này không có trong từ điển Tiếng Anh!", delete_after=3)
+            await message.reply("Từ này không có trong từ điển tiếng anh đâu . bố lạy con", delete_after=3)
             return
 
         if text in game["used_words"]:
-            await message.reply("Từ này đã dùng rồi!", delete_after=3)
+            await message.reply("Từ này đã dùng rồi hihi!", delete_after=3)
             return
 
         if game["last_word"] is not None:
