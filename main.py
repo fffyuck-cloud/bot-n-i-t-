@@ -153,7 +153,7 @@ async def get_hint(ctx):
     game = games[channel_id]
     
     if game["last_word"] is None:
-        await ctx.send("💡 Lượt đầu tiên đánh đại đi còn xin gợi ý!")
+        await ctx.send("💡 Lượt đầu tiên gợi ý!!")
         return
 
     if game["mode"] == "en":
@@ -163,7 +163,7 @@ async def get_hint(ctx):
             suggested = random.choice(valid_words)
             await ctx.send(f"💡 **Gợi ý Tiếng Anh:** Từ bắt đầu bằng **'{last_char.upper()}'** có thể dùng: **{suggested}**")
         else:
-            await ctx.send("💡 Hết từ nối rồi, chịu thua đi!")
+            await ctx.send("💡 Hết từ nối rồi, chịu thua đi hihi!")
 
     elif game["mode"] == "vi":
         prev_last = game["last_word"].split()[-1]
@@ -173,7 +173,7 @@ async def get_hint(ctx):
             suggested = random.choice(valid_words)
             await ctx.send(f"💡 **Gợi ý Tiếng Việt:** Từ bắt đầu bằng **'{prev_last}'** có thể dùng: **{suggested}**")
         else:
-            await ctx.send("💡 Hết từ nối rồi, chịu thua đi!")
+            await ctx.send("💡 Hết từ nối rồi , chịu thua đi hihi!")
 
 @bot.command(name="top")
 async def show_top(ctx):
@@ -184,7 +184,7 @@ async def show_top(ctx):
 
     scores = games[channel_id]["scores"]
     if not scores:
-        await ctx.send("📊 Chưa có ai ghi điểm trong ván này cả!")
+        await ctx.send("📊 Mấy thằng gà chưa ghi điểm được trong ván này đâuuu!")
         return
 
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -201,7 +201,7 @@ async def stop_game(ctx):
     if channel_id in games:
         total_count = games[channel_id]["count"]
         del games[channel_id]
-        await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con, trình độ m chắc chắc còn non: **{total_count}**")
+        await ctx.send(f"🛑 **Huỷ trận ahahahaaaaaaa: **{total_count}**")
     else:
         await ctx.send("<:Screenshot20260812173722:1537047895310602300> Có trận đ đâu mà huỷ v thằng nqu")
 
@@ -261,7 +261,7 @@ async def on_message(message):
         next_char = text[-1]
         has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
         if not has_next_word:
-            await message.reply(f"🏆 Hết từ nối chữ '{next_char.upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
+            await message.reply(f"🏆 Hết từ nối chữ, m thì tày rôi '{next_char.upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
             game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
             return
 
