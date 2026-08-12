@@ -166,7 +166,7 @@ async def on_message(message):
         if game["last_word"] is not None:
             last_char = game["last_word"][-1]
             if text[0] != last_char:
-                await message.reply(f"Từ tiếp theo: **{last_char.upper()}**!", delete_after=3)
+                await message.reply(f"Mắt mù à, từ phải bắt đầu bằng chữ **{last_char.upper()}**!", delete_after=3)
                 await safe_delete(message, delay=3)
                 return
 
@@ -178,7 +178,7 @@ async def on_message(message):
 
         await message.add_reaction("✅")
         await message.reply(
-            f"🎯 **Số #{game['count']}** | Next letter: **{text[-1].upper()}**", 
+            f"🎯 **Số #{game['count']}** | Từ tiếp theo:: **{text[-1].upper()}**", 
             mention_author=False, 
             delete_after=5
         )
