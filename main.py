@@ -6,13 +6,12 @@ import random
 import discord
 from datetime import date
 from discord.ext import commands
-from pyvi import ViTokenizer
 from keep_alive import keep_alive
 
 dictionary_vi = set()
 dictionary_en = set()
 
-# Tải từ điển tiếng Việt
+# Tải từ điển tiếng Việt chuẩn
 urls_vi = [
     "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
     "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt",
@@ -47,7 +46,7 @@ try:
 except Exception as e:
     print(f"Lỗi tải từ điển TA: {e}")
 
-# Đọc thêm file words.txt cá nhân
+# Đọc thêm file words.txt cá nhân nếu có
 try:
     with open("words.txt", "r", encoding="utf-8", errors="ignore") as f:
         dictionary_vi.update(set(line.strip().lower() for line in f if line.strip()))
@@ -69,47 +68,55 @@ async def safe_delete(message, delay=0):
     except Exception:
         pass
 
-def is_valid_vietnamese_syllable(word):
-    word = word.lower().strip()
-    if re.search(r'(.)\1{2,}', word) or re.search(r'[sfrxzjwkbdghqvl]$', word):
-        return False
-    vn_pattern = r'^[a-àáảãạăằắẳẵặâầấẩẫậbcdđeèéẻẽẹêềếểễệghiìíỉĩịklmnoòóỏõọôồốổỗộơờớởỡợpqrstuùúủũụưừứửữựvxyỳýỷỹỵ]+$'
-    return bool(re.match(vn_pattern, word))
-
 def is_valid_vietnamese_word(text):
     text_clean = text.lower().strip()
-    if text_clean in dictionary_vi or "_" in ViTokenizer.tokenize(text_clean):
-        return True
     words = text_clean.split()
-    if len(words) == 2:
-        return is_valid_vietnamese_syllable(words[0]) and is_valid_vietnamese_syllable(words[1])
-    return False
+    if len(words) != 2:
+        return False
+    
+    # Kiểm tra từ có trong từ điển gốc
+    if text_clean in dictionary_vi:
+        return True
+
+    # Check 2 tiếng hợp lệ trong từ điển
+    w1, w2 = words[0], words[1]
+    is_w1_valid = any(w == w1 or w.startswith(w1 + " ") or w.endswith(" " + w1) for w in dictionary_vi)
+    is_w2_valid = any(w == w2 or w.startswith(w2 + " ") or w.endswith(" " + w2) for w in dictionary_vi)
+    
+    return is_w1_valid and is_w2_valid
 
 def check_has_next_vi(last_syllable, used_words):
     prefix = last_syllable.lower().strip() + " "
     for w in dictionary_vi:
         if w.startswith(prefix) and w not in used_words:
             return True
-    # Mẹo dự phòng kiểm tra từ ghép âm đơn hợp lệ
     return True
 
 @bot.event
 async def on_ready():
     print(f"{bot.user} bố online rồi các con")
 
+# Xử lý khi người dùng không có quyền Admin
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("⚠️ Bạn phải là **Administrator** mới có quyền bắt đầu hoặc kết thúc trò chơi!")
+    else:
+        raise error
+
 @bot.command(name="help")
 async def custom_help(ctx):
     embed = discord.Embed(
         title="🎮 LỆNH VÀ LUẬT CHƠI NỐI TỪ",
         description="Chào mừng bạn đến với Bot Nối Từ béo béo béo!",
-        color=discord.Color.green()
+        color=discord.Color.from_rgb(255, 20, 147)
     )
-    embed.add_field(name="`?noitu`", value="Bắt đầu ván Nối Từ Tiếng Việt (2 từ)", inline=False)
-    embed.add_field(name="`?noituen`", value="Bắt đầu ván Nối Từ Tiếng Anh (1 từ)", inline=False)
+    embed.add_field(name="`?noitu` (Admin)", value="Bắt đầu ván Nối Từ Tiếng Việt (2 từ)", inline=False)
+    embed.add_field(name="`?noituen` (Admin)", value="Bắt đầu ván Nối Từ Tiếng Anh (1 từ)", inline=False)
+    embed.add_field(name="`?huynoitu` (Admin)", value="Hủy ván game đang chơi", inline=False)
     embed.add_field(name="`?daily`", value="Điểm danh nhận 3 lượt gợi ý mỗi ngày", inline=False)
     embed.add_field(name="`?hint`", value="Tốn 1 lượt gợi ý để xem từ có thể nối", inline=False)
     embed.add_field(name="`?top`", value="Xem Bảng Xếp Hạng người nối nhiều từ nhất ván hiện tại", inline=False)
-    embed.add_field(name="`?huynoitu`", value="Hủy ván game đang chơi", inline=False)
     embed.set_footer(text="Luật: Thay phiên nhau nối, không được tự nối 2 lần liên tiếp!")
     await ctx.send(embed=embed)
 
@@ -127,6 +134,7 @@ async def claim_daily(ctx):
     await ctx.send(f"🎁 **{ctx.author.display_name}** đã điểm danh thành công và nhận **3 lượt gợi ý** cho ngày hôm nay!")
 
 @bot.command(name="noitu")
+@commands.has_permissions(administrator=True)
 async def start_game_vi(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
@@ -149,6 +157,7 @@ async def start_game_vi(ctx):
     )
 
 @bot.command(name="noituen")
+@commands.has_permissions(administrator=True)
 async def start_game_en(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
@@ -175,12 +184,12 @@ async def get_hint(ctx):
     user_id = ctx.author.id
 
     if channel_id not in games:
-        await ctx.send("<:Screenshot20260812173722:1537047895310602300> Đã có game đ đâu mà gợi ý hả thằng nqu!")
+        await ctx.send("⚠️ Đã có game đ đâu mà gợi ý hả thằng nqu!")
         return
 
     hints_left = user_hints.get(user_id, 0)
     if hints_left <= 0:
-        await ctx.send("<:Screenshot20260812173722:1537047895310602300> Mệt mày quá! Bạn đã hết lượt gợi ý hôm nay rồi. Gõ `?daily` để nhận (nếu chưa điểm danh) hoặc đợi ngày mai!")
+        await ctx.send("⚠️ Mệt mày quá! Bạn đã hết lượt gợi ý hôm nay rồi. Gõ `?daily` để nhận (nếu chưa điểm danh) hoặc đợi ngày mai!")
         return
 
     game = games[channel_id]
@@ -214,7 +223,7 @@ async def get_hint(ctx):
 async def show_top(ctx):
     channel_id = ctx.channel.id
     if channel_id not in games:
-        await ctx.send("<:Screenshot20260812173722:1537047895310602300> Có trận đ đâu mà xem điểm!")
+        await ctx.send("⚠️ Có trận đ đâu mà xem điểm!")
         return
 
     scores = games[channel_id]["scores"]
@@ -231,6 +240,7 @@ async def show_top(ctx):
     await ctx.send(msg)
 
 @bot.command(name="huynoitu")
+@commands.has_permissions(administrator=True)
 async def stop_game(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
@@ -238,7 +248,7 @@ async def stop_game(ctx):
         del games[channel_id]
         await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con, trình độ m chắc chắc còn non: **{total_count}**")
     else:
-        await ctx.send("<:Screenshot20260812173722:1537047895310602300> Có trận đ đâu mà huỷ v thằng nqu")
+        await ctx.send("⚠️ Có trận đ đâu mà huỷ v thằng nqu")
 
 @bot.event
 async def on_message(message):
@@ -260,19 +270,16 @@ async def on_message(message):
             return
 
         if game["last_player"] == message.author.id:
-            await message.add_reaction("Screenshot20260812173722:1537047895310602300")
             await message.reply("Óc c mù, bố kêu thay phiên mà nói", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
         if text not in dictionary_en:
-            await message.add_reaction("Screenshot20260812173722:1537047895310602300")
             await message.reply("Từ này là tiếng anh à thằng óc?", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
         if text in game["used_words"]:
-            await message.add_reaction("Screenshot20260812173722:1537047895310602300")
             await message.reply("Từ này sử dụng rồi m êiii", delete_after=3)
             await safe_delete(message, delay=3)
             return
@@ -280,7 +287,6 @@ async def on_message(message):
         if game["last_word"] is not None:
             last_char = game["last_word"][-1]
             if text[0] != last_char:
-                await message.add_reaction("Screenshot20260812173722:1537047895310602300")
                 await message.reply(f"Mắt mù à, từ phải bắt đầu bằng chữ **{last_char.upper()}**!", delete_after=3)
                 await safe_delete(message, delay=3)
                 return
@@ -291,8 +297,6 @@ async def on_message(message):
         game["last_player"] = message.author.id
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
-        await message.add_reaction("Screenshot20260812172055:1537043520790073424")
-
         next_char = text[-1]
         has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
         if not has_next_word:
@@ -301,7 +305,7 @@ async def on_message(message):
             return
 
         await message.reply(
-            f"<:Screenshot20260812172055:1537043520790073424> 🎯 **Word #{game['count']}** | Next: **{text[-1].upper()}**", 
+            f"🎯 **Word #{game['count']}** | Next: **{text[-1].upper()}**", 
             mention_author=False, delete_after=5
         )
         return
@@ -313,19 +317,16 @@ async def on_message(message):
             return
 
         if game["last_player"] == message.author.id:
-            await message.add_reaction("Screenshot20260812173722:1537047895310602300")
             await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
         if not is_valid_vietnamese_word(text):
-            await message.add_reaction("Screenshot20260812173722:1537047895310602300")
             await message.reply("Từ này đéo có trong từ điển tiếng Việt!", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
         if text in game["used_words"]:
-            await message.add_reaction("Screenshot20260812173722:1537047895310602300")
             await message.reply("Từ này nối rồi con gà!", delete_after=3)
             await safe_delete(message, delay=3)
             return
@@ -333,7 +334,6 @@ async def on_message(message):
         if game["last_word"] is not None:
             prev_last = game["last_word"].split()[-1]
             if words[0] != prev_last:
-                await message.add_reaction("Screenshot20260812173722:1537047895310602300")
                 await message.reply(f"Từ phải bắt đầu bằng **{prev_last}**!", delete_after=3)
                 await safe_delete(message, delay=3)
                 return
@@ -344,17 +344,20 @@ async def on_message(message):
         game["last_player"] = message.author.id
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
-        await message.add_reaction("Screenshot20260812172055:1537043520790073424")
-
         if not check_has_next_vi(words[-1], game["used_words"]):
             await message.reply(f"🏆 Hết từ nối chữ '{words[-1].upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
             game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
             return
 
         await message.reply(
-            f"<:Screenshot20260812172055:1537043520790073424> 🎯 **#{game['count']}** | Nối: **{words[-1]}**", 
+            f"🎯 **#{game['count']}** | Nối: **{words[-1]}**", 
             mention_author=False, delete_after=5
         )
 
-keep_alive()
-bot.run(os.getenv("DISCORD_TOKEN"))
+try:
+    keep_alive()
+except Exception:
+    pass
+
+TOKEN = os.getenv("DISCORD_TOKEN", "DÁN_TOKEN_DISCORD_CỦA_BẠN_VÀO_ĐÂY")
+bot.run(TOKEN)
