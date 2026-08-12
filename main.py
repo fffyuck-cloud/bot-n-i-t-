@@ -4,6 +4,7 @@ import ssl
 import urllib.request
 import random
 import discord
+from datetime import date
 from discord.ext import commands
 from pyvi import ViTokenizer
 from keep_alive import keep_alive
@@ -59,6 +60,10 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="?", intents=intents, help_command=None)
 games = {}
 
+# Quản lý số lượt gợi ý và ngày điểm danh của từng user
+user_hints = {}        # {user_id: số_lượt_còn_lại}
+user_daily_claimed = {} # {user_id: "YYYY-MM-DD"}
+
 async def safe_delete(message, delay=0):
     try:
         await message.delete(delay=delay)
@@ -94,11 +99,25 @@ async def custom_help(ctx):
     )
     embed.add_field(name="`?noitu`", value="Bắt đầu ván Nối Từ Tiếng Việt (2 từ)", inline=False)
     embed.add_field(name="`?noituen`", value="Bắt đầu ván Nối Từ Tiếng Anh (1 từ)", inline=False)
-    embed.add_field(name="`?hint`", value="Bí từ quá thì gõ lệnh này để bot gợi ý", inline=False)
+    embed.add_field(name="`?daily`", value="Điểm danh nhận 3 lượt gợi ý mỗi ngày", inline=False)
+    embed.add_field(name="`?hint`", value="Tốn 1 lượt gợi ý để xem từ có thể nối", inline=False)
     embed.add_field(name="`?top`", value="Xem Bảng Xếp Hạng người nối nhiều từ nhất ván hiện tại", inline=False)
     embed.add_field(name="`?huynoitu`", value="Hủy ván game đang chơi", inline=False)
     embed.set_footer(text="Luật: Thay phiên nhau nối, không được tự nối 2 lần liên tiếp!")
     await ctx.send(embed=embed)
+
+@bot.command(name="daily")
+async def claim_daily(ctx):
+    user_id = ctx.author.id
+    today_str = str(date.today())
+
+    if user_daily_claimed.get(user_id) == today_str:
+        await ctx.send("⚠️ Hôm nay bạn đã điểm danh rồi, quay lại vào ngày mai nhé!")
+        return
+
+    user_hints[user_id] = 3
+    user_daily_claimed[user_id] = today_str
+    await ctx.send(f"🎁 **{ctx.author.display_name}** đã điểm danh thành công và nhận **3 lượt gợi ý** cho ngày hôm nay!")
 
 @bot.command(name="noitu")
 async def start_game_vi(ctx):
@@ -119,7 +138,7 @@ async def start_game_vi(ctx):
         "🎮 **Đã bắt trò chơi nối từ béo béo béo! (Tiếng Việt)**\n"
         "• Đéo được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
         "• Đúng chính xác 2 từ có nghĩa tiếng Việt.\n"
-        "• Gõ `?hint` để xin gợi ý | `?top` để xem BXH | `?huynoitu` để end."
+        "• Gõ `?daily` điểm danh | `?hint` gợi ý | `?top` BXH | `?huynoitu` end."
     )
 
 @bot.command(name="noituen")
@@ -140,40 +159,49 @@ async def start_game_en(ctx):
     await ctx.send(
         "🔤 **Nối từ tiếng anh béo béo đã xuất hiện!!!!**\n"
         "• Mỗi thằng chỉ được nối đúng 1 từ, thay phiên nhau mà nói.\n"
-        "• Gõ `?hint` để xin gợi ý | `?top` để xem BXH | `?huynoitu` để end."
+        "• Gõ `?daily` điểm danh | `?hint` gợi ý | `?top` BXH | `?huynoitu` end."
     )
 
 @bot.command(name="hint")
 async def get_hint(ctx):
     channel_id = ctx.channel.id
+    user_id = ctx.author.id
+
     if channel_id not in games:
         await ctx.send("<:Screenshot20260812173722:1537047895310602300> Đã có game đ đâu mà gợi ý hả thằng nqu!")
+        return
+
+    hints_left = user_hints.get(user_id, 0)
+    if hints_left <= 0:
+        await ctx.send("<:Screenshot20260812173722:1537047895310602300> Mệt mày quá! Bạn đã hết lượt gợi ý hôm nay rồi. Gõ `?daily` để nhận (nếu chưa điểm danh) hoặc đợi ngày mai!")
         return
 
     game = games[channel_id]
     
     if game["last_word"] is None:
-        await ctx.send("💡 Lượt đầu tiên gợi ý!!")
+        await ctx.send("💡 Lượt đầu tiên đánh đại đi còn xin gợi ý!")
         return
 
     if game["mode"] == "en":
         last_char = game["last_word"][-1]
         valid_words = [w for w in dictionary_en if w.startswith(last_char) and w not in game["used_words"]]
         if valid_words:
+            user_hints[user_id] -= 1
             suggested = random.choice(valid_words)
-            await ctx.send(f"💡 **Gợi ý Tiếng Anh:** Từ bắt đầu bằng **'{last_char.upper()}'** có thể dùng: **{suggested}**")
+            await ctx.send(f"💡 **Gợi ý Tiếng Anh:** Từ bắt đầu bằng **'{last_char.upper()}'** có thể dùng: **{suggested}**\n*(Bạn còn {user_hints[user_id]}/3 lượt gợi ý)*")
         else:
-            await ctx.send("💡 Hết từ nối rồi, chịu thua đi hihi!")
+            await ctx.send("💡 Hết từ nối rồi, chịu thua đi!")
 
     elif game["mode"] == "vi":
         prev_last = game["last_word"].split()[-1]
         prefix = prev_last + " "
         valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"]]
         if valid_words:
+            user_hints[user_id] -= 1
             suggested = random.choice(valid_words)
-            await ctx.send(f"💡 **Gợi ý Tiếng Việt:** Từ bắt đầu bằng **'{prev_last}'** có thể dùng: **{suggested}**")
+            await ctx.send(f"💡 **Gợi ý Tiếng Việt:** Từ bắt đầu bằng **'{prev_last}'** có thể dùng: **{suggested}**\n*(Bạn còn {user_hints[user_id]}/3 lượt gợi ý)*")
         else:
-            await ctx.send("💡 Hết từ nối rồi , chịu thua đi hihi!")
+            await ctx.send("💡 Hết từ nối rồi, chịu thua đi!")
 
 @bot.command(name="top")
 async def show_top(ctx):
@@ -184,7 +212,7 @@ async def show_top(ctx):
 
     scores = games[channel_id]["scores"]
     if not scores:
-        await ctx.send("📊 Mấy thằng gà chưa ghi điểm được trong ván này đâuuu!")
+        await ctx.send("📊 Chưa có ai ghi điểm trong ván này cả!")
         return
 
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -201,7 +229,7 @@ async def stop_game(ctx):
     if channel_id in games:
         total_count = games[channel_id]["count"]
         del games[channel_id]
-        await ctx.send(f"🛑 **Huỷ trận ahahahaaaaaaa: **{total_count}**")
+        await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con, trình độ m chắc chắc còn non: **{total_count}**")
     else:
         await ctx.send("<:Screenshot20260812173722:1537047895310602300> Có trận đ đâu mà huỷ v thằng nqu")
 
@@ -261,7 +289,7 @@ async def on_message(message):
         next_char = text[-1]
         has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
         if not has_next_word:
-            await message.reply(f"🏆 Hết từ nối chữ, m thì tày rôi '{next_char.upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
+            await message.reply(f"🏆 Hết từ nối chữ '{next_char.upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
             game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
             return
 
