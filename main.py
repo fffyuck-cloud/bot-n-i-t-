@@ -104,8 +104,7 @@ async def on_message(message):
 
     await message.add_reaction("✅")
     await message.reply(f"🎯 **#{game['count']}**", mention_author=False)
+from keep_alive import keep_alive
 import os
-
-# ... (giữ nguyên toàn bộ code ở giữa) ...
-
+keep_alive()  # Chạy Flask web server để mở Port cho Render
 bot.run(os.getenv("DISCORD_TOKEN"))
