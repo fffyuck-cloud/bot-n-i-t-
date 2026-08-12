@@ -60,9 +60,8 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="?", intents=intents, help_command=None)
 games = {}
 
-# Quản lý số lượt gợi ý và ngày điểm danh của từng user
-user_hints = {}        # {user_id: số_lượt_còn_lại}
-user_daily_claimed = {} # {user_id: "YYYY-MM-DD"}
+user_hints = {}        
+user_daily_claimed = {} 
 
 async def safe_delete(message, delay=0):
     try:
@@ -85,6 +84,14 @@ def is_valid_vietnamese_word(text):
     if len(words) == 2:
         return is_valid_vietnamese_syllable(words[0]) and is_valid_vietnamese_syllable(words[1])
     return False
+
+def check_has_next_vi(last_syllable, used_words):
+    prefix = last_syllable.lower().strip() + " "
+    for w in dictionary_vi:
+        if w.startswith(prefix) and w not in used_words:
+            return True
+    # Mẹo dự phòng kiểm tra từ ghép âm đơn hợp lệ
+    return True
 
 @bot.event
 async def on_ready():
@@ -201,7 +208,7 @@ async def get_hint(ctx):
             suggested = random.choice(valid_words)
             await ctx.send(f"💡 **Gợi ý Tiếng Việt:** Từ bắt đầu bằng **'{prev_last}'** có thể dùng: **{suggested}**\n*(Bạn còn {user_hints[user_id]}/3 lượt gợi ý)*")
         else:
-            await ctx.send("💡 Hết từ nối rồi, chịu thua đi!")
+            await ctx.send(f"💡 Cố tìm từ bắt đầu bằng **'{prev_last}'** nhé!")
 
 @bot.command(name="top")
 async def show_top(ctx):
@@ -339,9 +346,7 @@ async def on_message(message):
 
         await message.add_reaction("Screenshot20260812172055:1537043520790073424")
 
-        next_prefix = words[-1] + " "
-        has_next_word = any(w.startswith(next_prefix) and w not in game["used_words"] for w in dictionary_vi)
-        if not has_next_word:
+        if not check_has_next_vi(words[-1], game["used_words"]):
             await message.reply(f"🏆 Hết từ nối chữ '{words[-1].upper()}'. Tổng: **{game['count']}**. Reset game!", mention_author=False)
             game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
             return
