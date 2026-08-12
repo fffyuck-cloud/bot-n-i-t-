@@ -1,4 +1,6 @@
 import os
+import re
+import ssl
 import urllib.request
 import discord
 from discord.ext import commands
@@ -7,18 +9,19 @@ from keep_alive import keep_alive
 
 dictionary = set()
 
-# Tải bộ từ điển 40.000+ từ tiếng Việt chuẩn từ GitHub
+# 1. Tải bộ từ điển online (thêm ssl context để không bị Render chặn)
 try:
     url = "https://raw.githubusercontent.com/duythinht/vietnamese-dictionary/master/words.txt"
+    ctx = ssl._create_unverified_context()
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req) as response:
+    with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
         content = response.read().decode('utf-8')
         dictionary = set(line.strip().lower() for line in content.splitlines() if line.strip())
     print(f"Đã nạp thành công {len(dictionary)} từ tiếng Việt!")
 except Exception as e:
     print(f"Lỗi tải từ điển online: {e}")
 
-# Đọc thêm từ file words.txt cá nhân nếu có
+# 2. Đọc thêm từ file words.txt cá nhân nếu có
 try:
     with open("words.txt", "r", encoding="utf-8") as f:
         local_words = set(line.strip().lower() for line in f if line.strip())
@@ -32,17 +35,41 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="?", intents=intents)
 games = {}
 
+def is_valid_vietnamese_syllable(word):
+    """Kiểm tra 1 từ đơn có phải là âm tiết Tiếng Việt chuẩn không."""
+    word = word.lower().strip()
+    
+    # Chặn chữ lặp lại quá 2 lần (vd: caaaaaaa, iiiii)
+    if re.search(r'(.)\1{2,}', word):
+        return False
+        
+    # Tiếng Việt KHÔNG BAO GIỜ kết thúc bằng các chữ này (loại bỏ từ gõ lỗi Telex như: cas, caf, lax)
+    if re.search(r'[sfrxzjwkbdghqvl]$', word):
+        return False
+        
+    # Chỉ chấp nhận ký tự trong bảng chữ cái Tiếng Việt
+    vn_pattern = r'^[a-àáảãạăằắẳẵặâầấẩẫậbcdđeèéẻẽẹêềếểễệghiìíỉĩịklmnoòóỏõọôồốổỗộơờớởỡợpqrstuùúủũụưừứửữựvxyỳýỷỹỵ]+$'
+    return bool(re.match(vn_pattern, word))
+
 def is_valid_vietnamese_word(text):
-    """Chỉ chấp nhận từ có trong từ điển tiếng Việt chuẩn."""
+    """Kiểm tra cụm 2 từ tiếng Việt hợp lệ."""
     text_clean = text.lower().strip()
     
-    # 1. Khớp chính xác với từ điển 40.000 từ
+    # 1. Khớp từ điển 40.000 từ
     if text_clean in dictionary:
         return True
-    
+        
     # 2. Khớp từ ghép pyvi
     tokenized = ViTokenizer.tokenize(text_clean)
-    return "_" in tokenized
+    if "_" in tokenized:
+        return True
+        
+    # 3. Kiểm tra cả 2 từ đơn có phải là âm tiết Tiếng Việt chuẩn không
+    words = text_clean.split()
+    if len(words) == 2:
+        return is_valid_vietnamese_syllable(words[0]) and is_valid_vietnamese_syllable(words[1])
+        
+    return False
 
 @bot.event
 async def on_ready():
@@ -106,7 +133,7 @@ async def on_message(message):
         await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!")
         return
 
-    # 2. Kiểm tra từ có trong từ điển không
+    # 2. Kiểm tra từ hợp lệ
     if not is_valid_vietnamese_word(text):
         await message.reply("Từ này đéo có trong từ điển tiếng Việt!")
         return
