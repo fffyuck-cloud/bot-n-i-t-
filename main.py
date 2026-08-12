@@ -1,6 +1,19 @@
+import os
 import discord
 from discord.ext import commands
 from pyvi import ViTokenizer
+from keep_alive import keep_alive
+
+# Tải danh sách từ điển tiếng Việt từ file words.txt
+try:
+    with open("words.txt", "r", encoding="utf-8") as f:
+        dictionary = set(line.strip().lower() for line in f if line.strip())
+except FileNotFoundError:
+    dictionary = set()
+
+def is_valid_word(word):
+    # Kiểm tra xem từ nằm trong file words.txt không
+    return word.lower() in dictionary
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -11,8 +24,12 @@ games = {}
 
 def is_valid_vietnamese_word(text):
     """Kiểm tra xem cụm 2 từ có phải là từ ghép có nghĩa trong tiếng Việt hay không."""
+    # 1. Kiểm tra trong file từ điển words.txt trước
+    if is_valid_word(text):
+        return True
+    
+    # 2. Nếu không có trong file words.txt, kiểm tra bằng pyvi
     tokenized = ViTokenizer.tokenize(text)
-    # Nếu pyvi nối 2 từ bằng dấu gạch dưới (VD: "mèo_đen"), đó là từ có nghĩa
     return "_" in tokenized
 
 @bot.event
@@ -79,7 +96,7 @@ async def on_message(message):
         await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!")
         return
 
-    # 2. Kiểm tra từ vô nghĩa (mới thêm)
+    # 2. Kiểm tra từ vô nghĩa
     if not is_valid_vietnamese_word(text):
         await message.reply("Từ này đéo có trong từ điển tiếng Việt!")
         return
@@ -104,7 +121,9 @@ async def on_message(message):
 
     await message.add_reaction("✅")
     await message.reply(f"🎯 **#{game['count']}**", mention_author=False)
-from keep_alive import keep_alive
-import os
-keep_alive()  # Chạy Flask web server để mở Port cho Render
+
+# Chạy Flask web server để mở Port cho Render
+keep_alive()
+
+# Chạy bot với Token lấy từ biến môi trường
 bot.run(os.getenv("DISCORD_TOKEN"))
