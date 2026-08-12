@@ -8,8 +8,11 @@ from datetime import date
 from discord.ext import commands
 from keep_alive import keep_alive
 
-# Cấu hình Custom Emoji chính xác của bạn
-CUSTOM_EMOJI = "Screenshot20260812172055:1537043520790073424"
+# Danh sách emoji số từ 1 đến 10
+NUMBER_EMOJIS = {
+    1: "1️⃣", 2: "2️⃣", 3: "3️⃣", 4: "4️⃣", 5: "5️⃣",
+    6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
+}
 
 dictionary_vi = set()
 dictionary_en = set()
@@ -122,6 +125,17 @@ def update_highscore_if_needed(mode, count):
         save_highscore(highscores)
         return True
     return False
+
+# Hàm thả reaction số thứ tự
+async def add_number_reaction(message, count):
+    try:
+        if count in NUMBER_EMOJIS:
+            await message.add_reaction(NUMBER_EMOJIS[count])
+        else:
+            # Nếu vượt quá 10, thả icon ✅ kèm custom emoji
+            await message.add_reaction("✅")
+    except Exception:
+        pass
 
 @bot.event
 async def on_ready():
@@ -335,17 +349,14 @@ async def on_message(message):
                 await safe_delete(message, delay=3)
                 return
 
-        # Thả custom emoji
-        try:
-            await message.add_reaction(CUSTOM_EMOJI)
-        except Exception:
-            pass
-
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
         game["last_player"] = message.author.id
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
+
+        # Thả emoji số thứ tự tương ứng
+        await add_number_reaction(message, game["count"])
 
         next_char = text[-1]
         has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
@@ -385,17 +396,14 @@ async def on_message(message):
                 await safe_delete(message, delay=3)
                 return
 
-        # Thả custom emoji
-        try:
-            await message.add_reaction(CUSTOM_EMOJI)
-        except Exception:
-            pass
-
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
         game["last_player"] = message.author.id
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
+
+        # Thả emoji số thứ tự tương ứng
+        await add_number_reaction(message, game["count"])
 
         if not check_has_next_vi(words[-1], game["used_words"]):
             is_new_hs = update_highscore_if_needed("vi", game["count"])
