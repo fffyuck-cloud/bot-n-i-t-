@@ -23,14 +23,15 @@ bot = commands.Bot(command_prefix="?", intents=intents)
 games = {}
 
 def is_valid_vietnamese_word(text):
-    """Kiểm tra xem cụm 2 từ có phải là từ ghép có nghĩa trong tiếng Việt hay không."""
-    # 1. Kiểm tra trong file từ điển words.txt trước
+    """Kiểm tra xem cụm 2 từ có hợp lệ hay không."""
+    # 1. Kiểm tra trong file words.txt trước
     if is_valid_word(text):
         return True
     
-    # 2. Nếu không có trong file words.txt, kiểm tra bằng pyvi
+    # 2. Kiểm tra bằng pyvi hoặc chấp nhận cụm đúng 2 từ
     tokenized = ViTokenizer.tokenize(text)
-    return "_" in tokenized
+    words = text.split()
+    return "_" in tokenized or len(words) == 2
 
 @bot.event
 async def on_ready():
