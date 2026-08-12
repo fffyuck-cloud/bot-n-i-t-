@@ -107,9 +107,8 @@ async def start_game_en(ctx):
         "last_player": None
     }
     await ctx.send(
-        "🔤 **English Word Chain Game Started!**\n"
-        "• Match the last letter of the previous word.\n"
-        "• Only valid single English words allowed.\n"
+        "🔤 **Nối từ tiếng anh béo béo đã xuất hiện!!!!**\n"
+        "• Mỗi thằng chỉ được nối đúng 1 từ , thay phiên nhau mà nói.\n"
         "• Type `?huynoitu` to end."
     )
 
@@ -119,9 +118,9 @@ async def stop_game(ctx):
     if channel_id in games:
         total_count = games[channel_id]["count"]
         del games[channel_id]
-        await ctx.send(f"🛑 **Game Over!** Total valid words chained: **{total_count}**")
+        await ctx.send(f"🛑 **Thua rồi mấy thằng nhóc con , trình độ m chắc chắc còn non: **{total_count}**")
     else:
-        await ctx.send("❌ Kênh này hiện đéo có trận để huỷ đâu!")
+        await ctx.send("❌ Có trận đ đâu mà huỷ v thằng nqu")
 
 @bot.event
 async def on_message(message):
@@ -147,19 +146,19 @@ async def on_message(message):
 
         # Kiểm tra sai lượt
         if game["last_player"] == message.author.id:
-            await message.reply("Wait for another player! You can't play twice in a row!", delete_after=3)
+            await message.reply("Óc c mù , bố kêu thay phiên mà nói", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
         # Kiểm tra không có trong từ điển tiếng Anh
         if text not in dictionary_en:
-            await message.reply("This word is not in the English dictionary!", delete_after=3)
+            await message.reply("từ này là tiếng anh à thằng óc?", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
         # Kiểm tra từ đã dùng
         if text in game["used_words"]:
-            await message.reply("This word was already used!", delete_after=3)
+            await message.reply("Từ này sử dụng rồi m êiii", delete_after=3)
             await safe_delete(message, delay=3)
             return
 
@@ -167,7 +166,7 @@ async def on_message(message):
         if game["last_word"] is not None:
             last_char = game["last_word"][-1]
             if text[0] != last_char:
-                await message.reply(f"Word must start with letter **{last_char.upper()}**!", delete_after=3)
+                await message.reply(f"Từ tiếp theo: **{last_char.upper()}**!", delete_after=3)
                 await safe_delete(message, delay=3)
                 return
 
@@ -179,7 +178,7 @@ async def on_message(message):
 
         await message.add_reaction("✅")
         await message.reply(
-            f"🎯 **Word #{game['count']}** | Next letter: **{text[-1].upper()}**", 
+            f"🎯 **Số #{game['count']}** | Next letter: **{text[-1].upper()}**", 
             mention_author=False, 
             delete_after=5
         )
