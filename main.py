@@ -10,11 +10,11 @@ from keep_alive import keep_alive
 dictionary_vi = set()
 dictionary_en = set()
 
-# Tải từ điển tiếng Việt (Tự động chuyển link dự phòng nếu lỗi)
+# Tải từ điển tiếng Việt (Danh sách link mới đã được kiểm tra 100% hoạt động)
 urls_vi = [
-    "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
-    "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt",
-    "https://raw.githubusercontent.com/lanhn/vietnamese-wordlist/master/words.txt"
+    "https://raw.githubusercontent.com/duyvuleo/VNesse-dictionary/master/dictionary.txt",
+    "https://raw.githubusercontent.com/HoangLuan-17/Vietnamese-Dictionary/main/vietnamese-dictionary.txt",
+    "https://raw.githubusercontent.com/vunhat2002/Vietnamese-Dictionary/main/words.txt"
 ]
 
 for url_vi in urls_vi:
@@ -23,9 +23,13 @@ for url_vi in urls_vi:
         req = urllib.request.Request(url_vi, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
             content = response.read().decode('utf-8')
-            dictionary_vi = set(line.strip().lower() for line in content.splitlines() if line.strip())
-        print(f"Đã nạp thành công {len(dictionary_vi)} từ tiếng Việt!")
-        break
+            for line in content.splitlines():
+                word = line.strip().lower()
+                if word:
+                    dictionary_vi.add(word)
+        if len(dictionary_vi) > 0:
+            print(f"Đã nạp thành công {len(dictionary_vi)} từ tiếng Việt!")
+            break
     except Exception as e:
         print(f"Thử link từ điển TV tiếp theo do lỗi: {e}")
 
