@@ -1,4 +1,5 @@
 import os
+import re
 import urllib.request
 import discord
 from discord.ext import commands
@@ -7,7 +8,7 @@ from keep_alive import keep_alive
 
 dictionary = set()
 
-# 1. Tự động tải từ điển Tiếng Việt chuẩn (40.000+ từ) từ internet khi boot
+# Tải từ điển online khi khởi chạy
 try:
     url = "https://raw.githubusercontent.com/duythinht/vietnamese-dictionary/master/words.txt"
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -18,7 +19,7 @@ try:
 except Exception as e:
     print(f"Lỗi tải từ điển online: {e}")
 
-# 2. Đọc thêm từ file words.txt cá nhân (nếu bạn muốn bổ sung riêng)
+# Đọc thêm từ file words.txt cá nhân nếu có
 try:
     with open("words.txt", "r", encoding="utf-8") as f:
         local_words = set(line.strip().lower() for line in f if line.strip())
@@ -30,20 +31,32 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="?", intents=intents)
-
 games = {}
 
 def is_valid_vietnamese_word(text):
-    """Kiểm tra từ có nghĩa trong Tiếng Việt."""
+    """Kiểm tra cụm 2 từ có hợp lệ trong tiếng Việt hay không."""
     text_clean = text.lower().strip()
     
-    # Kiểm tra trong bộ từ điển 40.000 từ + file words.txt
+    # 1. Khớp từ điển
     if text_clean in dictionary:
         return True
     
-    # Kiểm tra thêm bằng pyvi
+    # 2. Khớp từ ghép pyvi
     tokenized = ViTokenizer.tokenize(text_clean)
-    return "_" in tokenized
+    if "_" in tokenized:
+        return True
+    
+    # 3. Kiểm tra cụm 2 từ đơn hợp lệ & chặn từ gõ nhảm (ví dụ: xiiiii)
+    words = text_clean.split()
+    if len(words) == 2:
+        # Bảng chữ cái tiếng Việt chuẩn
+        vn_pattern = r'^[a-àáảãạăằắẳẵặâầấẩẫậbcdđeèéẻẽẹêềếểễệghiìíỉĩịklmnoòóỏõọôồốổỗộơờớởỡợpqrstuùúủũụưừứửữựvxyỳýỷỹỵ\s]+$'
+        
+        # Chặn các từ chứa ký tự lạ hoặc lặp lại 1 chữ cái quá 2 lần (như iiiii, kkkk)
+        if re.match(vn_pattern, text_clean) and not re.search(r'(.)\1{2,}', text_clean):
+            return True
+            
+    return False
 
 @bot.event
 async def on_ready():
@@ -52,7 +65,6 @@ async def on_ready():
 @bot.command(name="noitu")
 async def start_game(ctx):
     channel_id = ctx.channel.id
-    
     if channel_id in games:
         await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi, phiền bố m mute!")
         return
@@ -74,7 +86,6 @@ async def start_game(ctx):
 @bot.command(name="huynoitu")
 async def stop_game(ctx):
     channel_id = ctx.channel.id
-    
     if channel_id in games:
         total_count = games[channel_id]["count"]
         del games[channel_id]
@@ -109,7 +120,7 @@ async def on_message(message):
         await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!")
         return
 
-    # 2. Kiểm tra từ chuẩn tiếng Việt
+    # 2. Kiểm tra từ vô nghĩa
     if not is_valid_vietnamese_word(text):
         await message.reply("Từ này đéo có trong từ điển tiếng Việt!")
         return
@@ -135,8 +146,5 @@ async def on_message(message):
     await message.add_reaction("✅")
     await message.reply(f"🎯 **#{game['count']}**", mention_author=False)
 
-# Chạy Flask web server cho Render
 keep_alive()
-
-# Run bot
 bot.run(os.getenv("DISCORD_TOKEN"))
