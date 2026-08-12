@@ -28,10 +28,9 @@ def is_valid_vietnamese_word(text):
     if is_valid_word(text):
         return True
     
-    # 2. Kiểm tra bằng pyvi hoặc chấp nhận cụm đúng 2 từ
+    # 2. Kiểm tra từ ghép bằng pyvi (chặn từ vô nghĩa)
     tokenized = ViTokenizer.tokenize(text)
-    words = text.split()
-    return "_" in tokenized or len(words) == 2
+    return "_" in tokenized
 
 @bot.event
 async def on_ready():
