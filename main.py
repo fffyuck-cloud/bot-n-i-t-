@@ -1,5 +1,4 @@
 import os
-import re
 import urllib.request
 import discord
 from discord.ext import commands
@@ -8,7 +7,7 @@ from keep_alive import keep_alive
 
 dictionary = set()
 
-# Tải từ điển online khi khởi chạy
+# Tải bộ từ điển 40.000+ từ tiếng Việt chuẩn từ GitHub
 try:
     url = "https://raw.githubusercontent.com/duythinht/vietnamese-dictionary/master/words.txt"
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -34,29 +33,16 @@ bot = commands.Bot(command_prefix="?", intents=intents)
 games = {}
 
 def is_valid_vietnamese_word(text):
-    """Kiểm tra cụm 2 từ có hợp lệ trong tiếng Việt hay không."""
+    """Chỉ chấp nhận từ có trong từ điển tiếng Việt chuẩn."""
     text_clean = text.lower().strip()
     
-    # 1. Khớp từ điển
+    # 1. Khớp chính xác với từ điển 40.000 từ
     if text_clean in dictionary:
         return True
     
     # 2. Khớp từ ghép pyvi
     tokenized = ViTokenizer.tokenize(text_clean)
-    if "_" in tokenized:
-        return True
-    
-    # 3. Kiểm tra cụm 2 từ đơn hợp lệ & chặn từ gõ nhảm (ví dụ: xiiiii)
-    words = text_clean.split()
-    if len(words) == 2:
-        # Bảng chữ cái tiếng Việt chuẩn
-        vn_pattern = r'^[a-àáảãạăằắẳẵặâầấẩẫậbcdđeèéẻẽẹêềếểễệghiìíỉĩịklmnoòóỏõọôồốổỗộơờớởỡợpqrstuùúủũụưừứửữựvxyỳýỷỹỵ\s]+$'
-        
-        # Chặn các từ chứa ký tự lạ hoặc lặp lại 1 chữ cái quá 2 lần (như iiiii, kkkk)
-        if re.match(vn_pattern, text_clean) and not re.search(r'(.)\1{2,}', text_clean):
-            return True
-            
-    return False
+    return "_" in tokenized
 
 @bot.event
 async def on_ready():
@@ -120,7 +106,7 @@ async def on_message(message):
         await message.reply("Đợi đứa khác nối đi thằng l..., đừng tự sướng!")
         return
 
-    # 2. Kiểm tra từ vô nghĩa
+    # 2. Kiểm tra từ có trong từ điển không
     if not is_valid_vietnamese_word(text):
         await message.reply("Từ này đéo có trong từ điển tiếng Việt!")
         return
