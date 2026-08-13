@@ -23,7 +23,7 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
-# DANH SÁCH BỊ CHẶN (Chỉ chặn duy nhất từ "ỉa")
+# DANH SÁCH BỊ CHẶN (Chỉ chặn từ "ỉa")
 BAD_WORDS = {"ỉa"}
 
 def contains_bad_word(text):
@@ -33,13 +33,34 @@ def contains_bad_word(text):
             return True
     return text.lower().strip() in BAD_WORDS
 
+# --- TẢI TỪ ĐIỂN CHUẨN TỪ GITHUB ---
 def prepare_dictionaries():
+    words_vi = set()
     words_en = set()
+    
+    urls_vi = [
+        "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
+        "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt"
+    ]
+    for url in urls_vi:
+        try:
+            ctx = ssl._create_unverified_context()
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+                content = response.read().decode('utf-8', errors='ignore')
+                for line in content.splitlines():
+                    word = line.strip().lower()
+                    # Chỉ lấy từ ghép 2 chữ chuẩn
+                    if word and len(word.split()) == 2 and not contains_bad_word(word):
+                        words_vi.add(word)
+        except Exception as e:
+            print(f"Lỗi tải từ điển TV từ {url}: {e}")
+
     try:
         url_en = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
         ctx = ssl._create_unverified_context()
         req = urllib.request.Request(url_en, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=5) as response:
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
             content = response.read().decode('utf-8', errors='ignore')
             words_en = set(
                 line.strip().lower() for line in content.splitlines() 
@@ -48,17 +69,19 @@ def prepare_dictionaries():
     except Exception as e:
         print(f"Lỗi tải từ điển TA: {e}")
 
+    # Từ điển dự phòng nếu không tải được web
+    if not words_vi:
+        words_vi = {"bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt"}
     if not words_en:
         words_en = {"apple", "banana", "cat", "dog", "elephant", "fish", "green"}
 
-    return words_en
+    return words_vi, words_en
 
-dictionary_en = prepare_dictionaries()
-dictionary_vi_samples = ["bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ăn cơm", "cơm sườn"]
+dictionary_vi, dictionary_en = prepare_dictionaries()
 
 VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
 
-# ĐÃ FIX: Cho phép thoải mái từ tiếng Việt miễn là đủ 2 từ và đúng chính tả tiếng Việt
+# BẮT BUỘC: Từ phải nằm trong từ điển Tiếng Việt!
 def is_valid_vietnamese_word(text):
     text_clean = text.lower().strip()
     words = text_clean.split()
@@ -66,7 +89,7 @@ def is_valid_vietnamese_word(text):
         return False
     if not VN_CHARS_REGEX.match(text_clean):
         return False
-    return True
+    return text_clean in dictionary_vi
 
 HIGHSCORE_FILE = "highscore.json"
 
@@ -132,7 +155,7 @@ async def check_and_send_streak(channel, count):
 
 @bot.event
 async def on_ready():
-    print(f"Bot {bot.user} đã sẵn sàng!")
+    print(f"Bot {bot.user} đã sẵn sàng! Kho TV có {len(dictionary_vi)} từ.")
 
 # --- 🎮 BẮT ĐẦU GAME NHIỀU NGƯỜI CHƠI ---
 @bot.command(name="noitu")
@@ -143,7 +166,7 @@ async def start_game_vi(ctx):
         await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
-    start_word = random.choice(dictionary_vi_samples)
+    start_word = random.choice(list(dictionary_vi))
     last_syllable = start_word.split()[-1]
 
     games[channel_id] = {
@@ -160,7 +183,7 @@ async def start_game_vi(ctx):
     embed1.add_field(name="Từ mở màn", value=f"**{start_word.upper()}**", inline=False)
     
     embed2 = discord.Embed(color=COLOR_PINK)
-    embed2.add_field(name="Từ tiếp theo", value=f"👉 Bắt đầu bằng tiếng **'{last_syllable}'** (Chỉ tính từ **2 chữ**)", inline=False)
+    embed2.add_field(name="Từ tiếp theo", value=f"👉 Bắt đầu bằng tiếng **'{last_syllable}'** (Bắt buộc từ chuẩn từ điển 2 chữ)", inline=False)
     embed2.set_footer(text="Không nối 2 lần liên tiếp | Gõ ?hint để xin gợi ý")
     
     msg = await ctx.send(embeds=[embed1, embed2])
@@ -205,7 +228,7 @@ async def start_game_vi_bot(ctx):
         await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
-    start_word = random.choice(dictionary_vi_samples)
+    start_word = random.choice(list(dictionary_vi))
     last_syllable = start_word.split()[-1]
 
     games[channel_id] = {
@@ -218,12 +241,12 @@ async def start_game_vi_bot(ctx):
         "scores": {}
     }
 
-    embed1 = discord.Embed(title="🤖 1v1 NỐI TỪ VỚI BOT", color=COLOR_BLACK)
+    embed1 = discord.Embed(title="🤖 1v1 NỐI TỪ CHUẨN VỚI BOT", color=COLOR_BLACK)
     embed1.add_field(name="Bot mở màn bằng từ", value=f"**{start_word.upper()}**", inline=False)
     
     embed2 = discord.Embed(color=COLOR_PINK)
-    embed2.add_field(name="Lượt của bạn", value=f"Hãy nhập từ 2 chữ bắt đầu bằng **'{last_syllable}'**", inline=False)
-    embed2.set_footer(text="✨ Bot sẽ tự động phản hồi ngay khi bạn nối đúng!")
+    embed2.add_field(name="Lượt của bạn", value=f"Hãy nhập từ 2 chữ có thật trong từ điển bắt đầu bằng **'{last_syllable}'**", inline=False)
+    embed2.set_footer(text="✨ Bot sẽ nối chuẩn từ điển với bạn tới khi hết từ!")
 
     msg = await ctx.send(embeds=[embed1, embed2])
     await add_success_reactions(msg, 1)
@@ -271,7 +294,7 @@ async def claim_daily(ctx):
     user_daily_claimed[user_id] = today_str
     
     embed1 = discord.Embed(title="🎁 ĐIỂM DANH HÀNG NGÀY", color=COLOR_BLACK)
-    embed2 = discord.Embed(description=f"Chúc mừng **{ctx.author.display_name}** nhận được **3 lượt gợi ý** `?hint` hômනය! ✨", color=COLOR_PINK)
+    embed2 = discord.Embed(description=f"Chúc mừng **{ctx.author.display_name}** nhận được **3 lượt gợi ý** `?hint` hôm nay! ✨", color=COLOR_PINK)
     await ctx.send(embeds=[embed1, embed2])
 
 @bot.command(name="hint")
@@ -302,9 +325,14 @@ async def get_hint(ctx):
 
     elif game["mode"] == "vi":
         prev_last = game["last_word"].split()[-1]
-        user_hints[user_id] -= 1
-        suggested = f"{prev_last} nhanh"
-        await ctx.send(f"💡 **Gợi ý TV:** Từ bắt đầu bằng **'{prev_last}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)*")
+        prefix = prev_last + " "
+        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w)]
+        if valid_words:
+            user_hints[user_id] -= 1
+            suggested = random.choice(valid_words)
+            await ctx.send(f"💡 **Gợi ý TV:** Từ bắt đầu bằng **'{prev_last}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)*")
+        else:
+            await ctx.send(f"💡 Hết từ chuẩn trong từ điển bắt đầu bằng **'{prev_last}'** rồi!")
 
 @bot.command(name="top")
 async def show_top(ctx):
@@ -362,24 +390,40 @@ async def stop_game(ctx):
     else:
         await ctx.send("Kênh này chưa có ván đấu nào!")
 
-# --- ⚙️ XỬ LÝ LƯỢT CHƠI (BOT vs NGƯỜI & CHẾ ĐỘ THƯỜNG) ---
+# --- ⚙️ BOT TÌM TỪ TỪ TỪ ĐIỂN VÀ PHẢN HỒI ---
 async def bot_make_turn(channel, game):
     if game["mode"] == "vi":
         prev_last = game["last_word"].split()[-1]
+        prefix = prev_last + " "
         
-        # ĐÃ FIX: Bot tự động tạo từ vô hạn bắt đầu bằng âm tiết cuối của bạn
-        bot_words_pool = ["hay", "tốt", "đẹp", "xinh", "vui", "buồn", "nhanh", "chậm", "sáng", "tối", "mới", "cũ", "xanh", "đỏ", "tím", "vàng"]
-        bot_word = f"{prev_last} {random.choice(bot_words_pool)}"
+        # Bot lọc các từ CHUẨN từ điển bắt đầu bằng âm tiết của bạn và chưa sử dụng
+        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w)]
         
-        game["used_words"].add(bot_word)
-        game["last_word"] = bot_word
-        game["count"] += 1
-        game["last_player"] = bot.user.id
-        
-        next_syllable = bot_word.split()[-1]
-        msg = await channel.send(f"🤖 **Bot:** `{bot_word.upper()}` *(Tổng: {game['count']} từ)* | Đến lượt bạn: **'{next_syllable}'**")
-        await add_success_reactions(msg, game["count"])
-        await check_and_send_streak(channel, game["count"])
+        if valid_words:
+            bot_word = random.choice(valid_words)
+            game["used_words"].add(bot_word)
+            game["last_word"] = bot_word
+            game["count"] += 1
+            game["last_player"] = bot.user.id
+            
+            next_syllable = bot_word.split()[-1]
+            msg = await channel.send(f"🤖 **Bot:** `{bot_word.upper()}` *(Tổng: {game['count']} từ)* | Đến lượt bạn: **'{next_syllable}'**")
+            await add_success_reactions(msg, game["count"])
+            await check_and_send_streak(channel, game["count"])
+        else:
+            # Hết từ trong từ điển -> Bạn thắng!
+            is_new_hs = update_highscore_if_needed("vi", game["count"])
+            embed1 = discord.Embed(title="🎉 BẠN ĐÃ THẮNG BOT!", color=COLOR_BLACK)
+            embed1.description = f"Bot đã cạn sạch từ chuẩn trong từ điển bắt đầu bằng **'{prev_last}'** rồi!\n🏆 Tổng số từ đạt được: **{game['count']}** từ."
+            
+            embed2 = discord.Embed(color=COLOR_PINK)
+            if is_new_hs:
+                embed2.add_field(name="Kỷ lục", value="✨ **KỶ LỤC MỚI SERVER!**", inline=False)
+            else:
+                embed2.description = "Đỉnh thật! Bạn đã hạ gục từ điển của bot!"
+                
+            await channel.send(embeds=[embed1, embed2])
+            del games[channel.id]
 
     elif game["mode"] == "en":
         last_char = game["last_word"][-1]
@@ -399,7 +443,7 @@ async def bot_make_turn(channel, game):
         else:
             is_new_hs = update_highscore_if_needed("en", game["count"])
             embed1 = discord.Embed(title="🎉 YOU BEAT THE BOT!", color=COLOR_BLACK)
-            embed1.description = f"Bot ran out of words!\n🏆 Total words: **{game['count']}**."
+            embed1.description = f"Bot ran out of dictionary words!\n🏆 Total words: **{game['count']}**."
             
             embed2 = discord.Embed(color=COLOR_PINK)
             if is_new_hs:
@@ -437,7 +481,7 @@ async def on_message(message):
             await message.reply(f"🚫 Từ này bị cấm nha! Nối tiếp từ: **'{prev_last}'**.", mention_author=False)
             return
 
-        # 2. Không nối 2 lần liên tiếp
+        # 2. Không nối 2 lần liên tiếp (ở chế độ nhiều người)
         if not game["vs_bot"] and game["last_player"] == message.author.id:
             await add_fail_reaction(message)
             await message.reply(f"Bạn không được nối 2 lần liên tiếp! Chờ người khác nối từ bắt đầu bằng **'{prev_last}'** nhé.", mention_author=False)
@@ -449,10 +493,10 @@ async def on_message(message):
             await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Nối tiếp từ bắt đầu bằng **'{prev_last}'** nha.", mention_author=False)
             return
 
-        # 4. Kiểm tra hợp lệ (Đã nới lỏng để không kén từ)
+        # 4. Kiểm tra từ chuẩn từ điển Tiếng Việt
         if not is_valid_vietnamese_word(text):
             await add_fail_reaction(message)
-            await message.reply(f"❌ **'{text}'** phải gồm đúng **2 từ** và dùng chữ cái tiếng Việt hợp lệ!", mention_author=False)
+            await message.reply(f"❌ **'{text}'** không có trong từ điển tiếng Việt! Nhập từ chuẩn khác nhé.", mention_author=False)
             return
 
         # 5. Khớp từ nối
