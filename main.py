@@ -25,9 +25,9 @@ NUMBER_EMOJIS = {
 
 # 🚫 DANH SÁCH TỪ BẬY / THÔ TỤC (Tự động chặn)
 BAD_WORDS = {
-    "lồn", "cặc", "đéo", "đm", "đmá", "dmm", "dm", "buồi", "cặt", "phò", 
-    "chịch", "xoạc", "địt", "đù", "vãi", "chó", "óc", "ngu",
-    "fuck", "shit", "bitch", "cunt", "dick", "pussy", "asshole"
+    "lồn", "cặc", "đéo", "", "", "dmm", "dm", "buồi", "cặt", "phò", 
+    "chịch", "", "địt", "kv ngu", "vãi", "chó", "kv xấu chai", "",
+    
 }
 
 def contains_bad_word(text):
@@ -157,8 +157,8 @@ async def add_fail_reaction(message):
 async def check_and_send_streak(channel, count):
     if count > 0 and count % 10 == 0:
         embed = discord.Embed(
-            title="🖤🩷 COMBO STREAK CỰC CHẤT! 🖤🩷",
-            description=f"💖 **XỊN XÒ!** Trận đấu đã cán mốc **{count} TỪ NỐI LIÊN TIẾP**!",
+            title=" COMBO STREAK CỰC CHẤT! ",
+            description=f"💖 **XỊN XÒ VÃI CẢ LỒN!** Trận đấu đã cán mốc **{count} TỪ NỐI LIÊN TIẾP**!",
             color=COLOR_HOT_PINK
         )
         embed.set_footer(text="✨ Đen Hồng trong khu vực của bạn! Tiếp tục giữ phong độ nhé!")
