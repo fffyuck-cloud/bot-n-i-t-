@@ -18,13 +18,11 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
-# Tải và khởi tạo từ điển
 def prepare_dictionaries():
     words_vi = set()
     syllables_vi = set()
     words_en = set()
     
-    # 1. Từ điển Tiếng Việt
     urls_vi = [
         "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
         "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt"
@@ -44,7 +42,6 @@ def prepare_dictionaries():
         except Exception as e:
             print(f"Lỗi tải từ điển TV: {e}")
 
-    # 2. Từ điển Tiếng Anh
     try:
         url_en = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
         ctx = ssl._create_unverified_context()
@@ -55,7 +52,6 @@ def prepare_dictionaries():
     except Exception as e:
         print(f"Lỗi tải từ điển TA: {e}")
 
-    print(f"-> Nạp thành công: {len(words_vi)} từ TV ghép, {len(syllables_vi)} tiếng đơn TV, {len(words_en)} từ TA.")
     return words_vi, syllables_vi, words_en
 
 dictionary_vi, syllables_vi, dictionary_en = prepare_dictionaries()
@@ -65,25 +61,14 @@ VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵ�
 def is_valid_vietnamese_word(text):
     text_clean = text.lower().strip()
     words = text_clean.split()
-    
     if len(words) != 2:
         return False
-
     if not VN_CHARS_REGEX.match(text_clean):
         return False
-
     if len(syllables_vi) > 100:
         if text_clean in dictionary_vi:
             return True
         return (words[0] in syllables_vi) and (words[1] in syllables_vi)
-
-    return True
-
-def check_has_next_vi(last_syllable, used_words):
-    prefix = last_syllable.lower().strip() + " "
-    for w in dictionary_vi:
-        if w.startswith(prefix) and w not in used_words:
-            return True
     return True
 
 HIGHSCORE_FILE = "highscore.json"
@@ -163,8 +148,8 @@ async def start_game_vi(ctx):
     }
     await ctx.send(
         "🎮 **Đã bắt trò chơi nối từ! (Tiếng Việt)**\n"
-        "• Không được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
-        "• Đúng chính xác 2 từ có nghĩa tiếng Việt.\n"
+        "• Chỉ tính tin nhắn có **đúng 2 chữ**.\n"
+        "• Không được nối 2 lần liên tiếp, hãy chờ người khác nối.\n"
         "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
     )
 
@@ -186,8 +171,7 @@ async def start_game_en(ctx):
     }
     await ctx.send(
         "🔤 **Đã bắt trò chơi nối từ! (Tiếng Anh)**\n"
-        "• Mỗi người chỉ được nối 1 từ tiếng Anh合 lệ.\n"
-        "• Không được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
+        "• Mỗi người nối 1 từ tiếng Anh hợp lệ.\n"
         "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
     )
 
@@ -221,7 +205,7 @@ async def get_hint(ctx):
     game = games[channel_id]
     
     if game["last_word"] is None:
-        await ctx.send("💡 Lượt đầu tiên đánh đại đi còn xin gợi ý!")
+        await ctx.send("💡 Lượt đầu tiên nhập đại từ 2 chữ đi còn xin gợi ý!")
         return
 
     if game["mode"] == "en":
@@ -299,30 +283,87 @@ async def on_message(message):
     text = message.content.strip().lower()
     game = games[channel_id]
 
+    # --- NỐI TỪ TIẾNG VIỆT ---
+    if game["mode"] == "vi":
+        words = text.split()
+        
+        # Bỏ qua tin nhắn không đúng 2 chữ
+        if len(words) != 2:
+            return
+
+        prev_last = game["last_word"].split()[-1] if game["last_word"] else None
+
+        # 1. Báo lỗi khi tự nối 2 lần liên tiếp
+        if game["last_player"] == message.author.id:
+            await add_fail_reaction(message)
+            if prev_last:
+                await message.reply(f"❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối từ tiếp theo bắt đầu bằng **'{prev_last}'**.", mention_author=False)
+            else:
+                await message.reply("❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối.", mention_author=False)
+            return
+
+        # 2. Kiểm tra từ trùng lặp
+        if text in game["used_words"]:
+            await add_fail_reaction(message)
+            if prev_last:
+                await message.reply(f"❌ Từ **'{text}'** đã được dùng rồi! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
+            return
+
+        # 3. Kiểm tra tính hợp lệ tiếng Việt
+        if not is_valid_vietnamese_word(text):
+            await add_fail_reaction(message)
+            if prev_last:
+                await message.reply(f"❌ **'{text}'** không phải từ tiếng Việt hợp lệ! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
+            return
+
+        # 4. Kiểm tra chữ đầu nối với chữ cuối từ trước
+        if prev_last and words[0] != prev_last:
+            await add_fail_reaction(message)
+            await message.reply(f"❌ Sai từ nối! Từ tiếp theo phải bắt đầu bằng từ **'{prev_last}'**.", mention_author=False)
+            return
+
+        # Nối đúng
+        game["used_words"].add(text)
+        game["last_word"] = text
+        game["count"] += 1
+        game["last_player"] = message.author.id
+        game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
+
+        await add_success_reactions(message, game["count"])
+        return
+
     # --- NỐI TỪ TIẾNG ANH ---
     if game["mode"] == "en":
         words = text.split()
         if len(words) != 1:
-            await add_fail_reaction(message)
             return
+
+        last_char = game["last_word"][-1] if game["last_word"] else None
 
         if game["last_player"] == message.author.id:
             await add_fail_reaction(message)
+            if last_char:
+                await message.reply(f"❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối từ bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            else:
+                await message.reply("❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối.", mention_author=False)
             return
 
         if len(dictionary_en) > 100 and text not in dictionary_en:
             await add_fail_reaction(message)
+            if last_char:
+                await message.reply(f"❌ **'{text}'** không có trong từ điển! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
         if text in game["used_words"]:
             await add_fail_reaction(message)
+            if last_char:
+                await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
-        if game["last_word"] is not None:
-            last_char = game["last_word"][-1]
-            if text[0] != last_char:
-                await add_fail_reaction(message)
-                return
+        if last_char and text[0] != last_char:
+            await add_fail_reaction(message)
+            await message.reply(f"❌ Sai chữ nối! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            return
 
         game["used_words"].add(text)
         game["last_word"] = text
@@ -331,50 +372,6 @@ async def on_message(message):
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
         await add_success_reactions(message, game["count"])
-
-        next_char = text[-1]
-        has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
-        if not has_next_word and len(dictionary_en) > 100:
-            is_new_hs = update_highscore_if_needed("en", game["count"])
-            hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
-            await message.reply(f"🏆 Hết từ nối bắt đầu bằng chữ '{next_char.upper()}'. Tổng: **{game['count']}** từ.{hs_msg}\nReset game!", mention_author=False)
-            game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
-        return
-
-    # --- NỐI TỪ TIẾNG VIỆT ---
-    if game["mode"] == "vi":
-        words = text.split()
-        if len(words) != 2:
-            await add_fail_reaction(message)
-            return
-
-        if game["last_player"] == message.author.id:
-            await add_fail_reaction(message)
-            return
-
-        if not is_valid_vietnamese_word(text) or text in game["used_words"]:
-            await add_fail_reaction(message)
-            return
-
-        if game["last_word"] is not None:
-            prev_last = game["last_word"].split()[-1]
-            if words[0] != prev_last:
-                await add_fail_reaction(message)
-                return
-
-        game["used_words"].add(text)
-        game["last_word"] = text
-        game["count"] += 1
-        game["last_player"] = message.author.id
-        game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
-
-        await add_success_reactions(message, game["count"])
-
-        if not check_has_next_vi(words[-1], game["used_words"]):
-            is_new_hs = update_highscore_if_needed("vi", game["count"])
-            hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
-            await message.reply(f"🏆 Hết từ nối bắt đầu bằng chữ '{words[-1].upper()}'. Tổng: **{game['count']}** từ.{hs_msg}\nReset game!", mention_author=False)
-            game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
         return
 
 try:
