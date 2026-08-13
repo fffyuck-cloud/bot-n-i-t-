@@ -35,7 +35,7 @@ def prepare_dictionaries():
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
                     word = line.strip().lower()
-                    if word:
+                    if word and len(word.split()) == 2:
                         words_vi.add(word)
                         for syllable in word.split():
                             syllables_vi.add(syllable)
@@ -48,9 +48,15 @@ def prepare_dictionaries():
         req = urllib.request.Request(url_en, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, context=ctx, timeout=5) as response:
             content = response.read().decode('utf-8', errors='ignore')
-            words_en = set(line.strip().lower() for line in content.splitlines() if line.strip())
+            words_en = set(line.strip().lower() for line in content.splitlines() if line.strip() and len(line.strip()) > 1)
     except Exception as e:
         print(f"Lỗi tải từ điển TA: {e}")
+
+    # Từ điển dự phòng nếu lỗi mạng
+    if not words_vi:
+        words_vi = {"con chó", "mèo con", "bàn học", "xe máy", "học sinh", "cây cảnh", "sách vở"}
+    if not words_en:
+        words_en = {"apple", "banana", "cat", "dog", "elephant", "fish", "green"}
 
     return words_vi, syllables_vi, words_en
 
@@ -138,20 +144,25 @@ async def start_game_vi(ctx):
         await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi!")
         return
 
+    # Random 1 từ mở màn tiếng Việt
+    start_word = random.choice(list(dictionary_vi))
+    last_syllable = start_word.split()[-1]
+
     games[channel_id] = {
         "mode": "vi",
-        "last_word": None,
-        "count": 0,
-        "used_words": set(),
-        "last_player": None,
+        "last_word": start_word,
+        "count": 1,
+        "used_words": {start_word},
+        "last_player": bot.user.id,
         "scores": {}
     }
-    await ctx.send(
-        "🎮 **Đã bắt trò chơi nối từ! (Tiếng Việt)**\n"
-        "• Chỉ tính tin nhắn có **đúng 2 chữ**.\n"
-        "• Không được nối 2 lần liên tiếp, hãy chờ người khác nối.\n"
-        "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
+
+    msg = await ctx.send(
+        f"🎮 **Đã bắt đầu trò chơi nối từ! (Tiếng Việt)**\n"
+        f"• Từ mở màn ngẫu nhiên của Bot: **{start_word.upper()}**\n"
+        f"👉 Mọi người hãy nối tiếp từ bắt đầu bằng: **'{last_syllable}'** (chỉ tính từ **2 chữ**)."
     )
+    await add_success_reactions(msg, 1)
 
 @bot.command(name="noituen")
 @commands.has_permissions(administrator=True)
@@ -161,19 +172,25 @@ async def start_game_en(ctx):
         await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi!")
         return
 
+    # Random 1 từ mở màn tiếng Anh
+    start_word = random.choice(list(dictionary_en))
+    last_char = start_word[-1]
+
     games[channel_id] = {
         "mode": "en",
-        "last_word": None,
-        "count": 0,
-        "used_words": set(),
-        "last_player": None,
+        "last_word": start_word,
+        "count": 1,
+        "used_words": {start_word},
+        "last_player": bot.user.id,
         "scores": {}
     }
-    await ctx.send(
-        "🔤 **Đã bắt trò chơi nối từ! (Tiếng Anh)**\n"
-        "• Mỗi người nối 1 từ tiếng Anh hợp lệ.\n"
-        "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
+
+    msg = await ctx.send(
+        f"🔤 **Đã bắt đầu trò chơi nối từ! (Tiếng Anh)**\n"
+        f"• Từ mở màn ngẫu nhiên của Bot: **{start_word.upper()}**\n"
+        f"👉 Mọi người hãy nối từ tiếp theo bắt đầu bằng chữ: **'{last_char.upper()}'**."
     )
+    await add_success_reactions(msg, 1)
 
 @bot.command(name="daily")
 async def claim_daily(ctx):
@@ -203,10 +220,6 @@ async def get_hint(ctx):
         return
 
     game = games[channel_id]
-    
-    if game["last_word"] is None:
-        await ctx.send("💡 Lượt đầu tiên nhập đại từ 2 chữ đi còn xin gợi ý!")
-        return
 
     if game["mode"] == "en":
         last_char = game["last_word"][-1]
@@ -286,43 +299,31 @@ async def on_message(message):
     # --- NỐI TỪ TIẾNG VIỆT ---
     if game["mode"] == "vi":
         words = text.split()
-        
-        # Bỏ qua tin nhắn không đúng 2 chữ
         if len(words) != 2:
             return
 
-        prev_last = game["last_word"].split()[-1] if game["last_word"] else None
+        prev_last = game["last_word"].split()[-1]
 
-        # 1. Báo lỗi khi tự nối 2 lần liên tiếp
         if game["last_player"] == message.author.id:
             await add_fail_reaction(message)
-            if prev_last:
-                await message.reply(f"❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối từ tiếp theo bắt đầu bằng **'{prev_last}'**.", mention_author=False)
-            else:
-                await message.reply("❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối.", mention_author=False)
+            await message.reply(f"❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối từ tiếp theo bắt đầu bằng **'{prev_last}'**.", mention_author=False)
             return
 
-        # 2. Kiểm tra từ trùng lặp
         if text in game["used_words"]:
             await add_fail_reaction(message)
-            if prev_last:
-                await message.reply(f"❌ Từ **'{text}'** đã được dùng rồi! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
+            await message.reply(f"❌ Từ **'{text}'** đã được dùng rồi! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
             return
 
-        # 3. Kiểm tra tính hợp lệ tiếng Việt
         if not is_valid_vietnamese_word(text):
             await add_fail_reaction(message)
-            if prev_last:
-                await message.reply(f"❌ **'{text}'** không phải từ tiếng Việt hợp lệ! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
+            await message.reply(f"❌ **'{text}'** không phải từ tiếng Việt hợp lệ! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
             return
 
-        # 4. Kiểm tra chữ đầu nối với chữ cuối từ trước
-        if prev_last and words[0] != prev_last:
+        if words[0] != prev_last:
             await add_fail_reaction(message)
             await message.reply(f"❌ Sai từ nối! Từ tiếp theo phải bắt đầu bằng từ **'{prev_last}'**.", mention_author=False)
             return
 
-        # Nối đúng
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
@@ -338,29 +339,24 @@ async def on_message(message):
         if len(words) != 1:
             return
 
-        last_char = game["last_word"][-1] if game["last_word"] else None
+        last_char = game["last_word"][-1]
 
         if game["last_player"] == message.author.id:
             await add_fail_reaction(message)
-            if last_char:
-                await message.reply(f"❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối từ bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
-            else:
-                await message.reply("❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối.", mention_author=False)
+            await message.reply(f"❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối từ bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
         if len(dictionary_en) > 100 and text not in dictionary_en:
             await add_fail_reaction(message)
-            if last_char:
-                await message.reply(f"❌ **'{text}'** không có trong từ điển! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"❌ **'{text}'** không có trong từ điển! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
         if text in game["used_words"]:
             await add_fail_reaction(message)
-            if last_char:
-                await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
-        if last_char and text[0] != last_char:
+        if text[0] != last_char:
             await add_fail_reaction(message)
             await message.reply(f"❌ Sai chữ nối! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
