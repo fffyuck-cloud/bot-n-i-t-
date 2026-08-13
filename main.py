@@ -14,7 +14,7 @@ COLOR_BLACK = 0x1A1A1A
 COLOR_PINK = 0xFF69B4   
 COLOR_HOT_PINK = 0xFF1493 
 
-# Custom Emoji của bạn
+# Custom Emoji
 CUSTOM_TICK = "Screenshot20260812172055:1537043520790073424"
 CUSTOM_CROSS = "Screenshot20260812173722:1537047895310602300"
 
@@ -23,7 +23,7 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
-# DANH SÁCH BỊ CHẶN (Chỉ chặn từ "ỉa")
+# BỘ TỪ BỊ CHẶN
 BAD_WORDS = {"ỉa"}
 
 def contains_bad_word(text):
@@ -33,55 +33,60 @@ def contains_bad_word(text):
             return True
     return text.lower().strip() in BAD_WORDS
 
-# --- TẢI TỪ ĐIỂN SIÊU TO KHỔNG LỒ TỪ NHIỀU NGUỒN ---
+# --- TẢI VÀ NẠP TỪ ĐIỂN TIẾNG VIỆT/TIẾNG ANH ---
 def prepare_dictionaries():
     words_vi = set()
     words_en = set()
     
-    # 5 Nguồn từ điển Tiếng Việt lớn nhất GitHub
+    # 1. Danh sách các từ ghép Tiếng Việt cơ bản cố định (Đảm bảo luôn luôn hoạt động)
+    COMMON_VI_WORDS = [
+        "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt", "phạt góc",
+        "học bài", "học tập", "học hành", "bài học", "bài tập", "tập viết", "viết sách", "sách vở", "vở kịch",
+        "kịch bản", "bản đồ", "đồ chơi", "chơi game", "góc sân", "sân trường", "trường học", "góc nhỏ",
+        "phạt đền", "góc nhìn", "thể thao", "bóng đá", "cầu thủ", "thủ môn", "môn học", "thời gian", "gian hàng"
+    ]
+    for w in COMMON_VI_WORDS:
+        words_vi.add(w.lower().strip())
+
+    # 2. Các nguồn từ điển chuẩn trên GitHub (File Text sạch)
     urls_vi = [
         "https://raw.githubusercontent.com/vinhjaxt/vietnamese-words/master/vietnamese-words.txt",
-        "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
-        "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt",
-        "https://raw.githubusercontent.com/Vietai/vietnamese-wordlists/master/words.txt",
-        "https://raw.githubusercontent.com/duyvuleo/VNcoreNLP/master/VnCoreNLP-1.1.1.jar" # fallback text list
+        "https://raw.githubusercontent.com/undertheseanlp/nlp/master/underthesea/word_tokenize/dicts/words.txt",
+        "https://raw.githubusercontent.com/stopwords-iso/stopwords-vi/master/stopwords-vi.txt"
     ]
     
     for url in urls_vi:
         try:
             ctx = ssl._create_unverified_context()
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, context=ctx, timeout=8) as response:
+            with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
-                    # FIX QUAN TRỌNG: Đổi gạch dưới '_' thành dấu cách ' '
                     word = line.strip().lower().replace("_", " ")
-                    
-                    # Chỉ lấy từ ghép đúng 2 chữ
+                    # Lấy từ ghép 2 tiếng
                     if word and len(word.split()) == 2 and not contains_bad_word(word):
                         words_vi.add(word)
         except Exception as e:
-            print(f"Lỗi tải từ điển TV từ {url}: {e}")
+            print(f"Lưu ý: Không thể nạp nguồn {url}: {e}")
 
+    # Tải Từ Điển Tiếng Anh
     try:
         url_en = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
         ctx = ssl._create_unverified_context()
         req = urllib.request.Request(url_en, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=8) as response:
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
             content = response.read().decode('utf-8', errors='ignore')
-            words_en = set(
-                line.strip().lower() for line in content.splitlines() 
-                if line.strip() and len(line.strip()) > 1 and not contains_bad_word(line.strip())
-            )
+            for line in content.splitlines():
+                w = line.strip().lower()
+                if w and len(w) > 1 and not contains_bad_word(w):
+                    words_en.add(w)
     except Exception as e:
-        print(f"Lỗi tải từ điển TA: {e}")
+        print(f"Lỗi tải từ điển Anh: {e}")
 
-    # Từ điển dự phòng
-    if not words_vi:
-        words_vi = {"bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt", "phạt góc"}
     if not words_en:
         words_en = {"apple", "banana", "cat", "dog", "elephant", "fish", "green"}
 
+    print(f"✅ Đã nạp tổng cộng: {len(words_vi)} từ Tiếng Việt và {len(words_en)} từ Tiếng Anh.")
     return words_vi, words_en
 
 dictionary_vi, dictionary_en = prepare_dictionaries()
@@ -143,8 +148,8 @@ async def add_success_reactions(message, count):
     try:
         if count in NUMBER_EMOJIS:
             await message.add_reaction(NUMBER_EMOJIS[count])
-    except Exception as e:
-        print(f"Lỗi thả emoji số: {e}")
+    except Exception:
+        pass
 
 async def add_fail_reaction(message):
     try:
@@ -161,9 +166,9 @@ async def check_and_send_streak(channel, count):
 
 @bot.event
 async def on_ready():
-    print(f"Bot {bot.user} đã sẵn sàng! Đã nạp thành công {len(dictionary_vi)} từ Tiếng Việt!")
+    print(f"Bot {bot.user} đã sẵn sàng hoạt động!")
 
-# --- 🎮 BẮT ĐẦU GAME NHIỀU NGƯỜI CHƠI ---
+# --- 🎮 LỆNH BẮT ĐẦU GAME ---
 @bot.command(name="noitu")
 @commands.has_permissions(administrator=True)
 async def start_game_vi(ctx):
@@ -286,7 +291,7 @@ async def start_game_en_bot(ctx):
     msg = await ctx.send(embeds=[embed1, embed2])
     await add_success_reactions(msg, 1)
 
-# --- 🎁 TIỆN ÍCH & LỆNH PHỤ ---
+# --- 🎁 TIỆN ÍCH PHỤ ---
 @bot.command(name="daily")
 async def claim_daily(ctx):
     user_id = ctx.author.id
@@ -338,7 +343,7 @@ async def get_hint(ctx):
             suggested = random.choice(valid_words)
             await ctx.send(f"💡 **Gợi ý TV:** Từ bắt đầu bằng **'{prev_last}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)*")
         else:
-            await ctx.send(f"💡 Hết từ chuẩn trong từ điển bắt đầu bằng **'{prev_last}'** rồi!")
+            await ctx.send(f"💡 Hết từ chuẩn bắt đầu bằng **'{prev_last}'** rồi!")
 
 @bot.command(name="top")
 async def show_top(ctx):
@@ -396,7 +401,7 @@ async def stop_game(ctx):
     else:
         await ctx.send("Kênh này chưa có ván đấu nào!")
 
-# --- ⚙️ BOT TÌM TỪ TỪ TỪ ĐIỂN VÀ PHẢN HỒI ---
+# --- ⚙️ BOT TỰ ĐỘNG NỐI TỪ VỚI NGƯỜI CHƠI ---
 async def bot_make_turn(channel, game):
     if game["mode"] == "vi":
         prev_last = game["last_word"].split()[-1]
@@ -418,7 +423,7 @@ async def bot_make_turn(channel, game):
         else:
             is_new_hs = update_highscore_if_needed("vi", game["count"])
             embed1 = discord.Embed(title="🎉 BẠN ĐÃ THẮNG BOT!", color=COLOR_BLACK)
-            embed1.description = f"Bot đã cạn sạch từ chuẩn trong từ điển bắt đầu bằng **'{prev_last}'** rồi!\n🏆 Tổng số từ đạt được: **{game['count']}** từ."
+            embed1.description = f"Bot đã cạn sạch từ bắt đầu bằng **'{prev_last}'** rồi!\n🏆 Tổng số từ đạt được: **{game['count']}** từ."
             
             embed2 = discord.Embed(color=COLOR_PINK)
             if is_new_hs:
@@ -458,6 +463,7 @@ async def bot_make_turn(channel, game):
             await channel.send(embeds=[embed1, embed2])
             del games[channel.id]
 
+# --- 📩 XỬ LÝ TIN NHẮN TỪ NGƯỜI CHƠI ---
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -471,7 +477,7 @@ async def on_message(message):
     text = message.content.strip().lower()
     game = games[channel_id]
 
-    # --- NỐI TỪ TIẾNG VIỆT ---
+    # --- LỰA CHỌN TIẾNG VIỆT ---
     if game["mode"] == "vi":
         words = text.split()
         if len(words) != 2:
@@ -479,37 +485,37 @@ async def on_message(message):
 
         prev_last = game["last_word"].split()[-1]
 
-        # 1. Chặn từ "ỉa"
+        # 1. Kiểm tra từ cấm
         if contains_bad_word(text):
             await add_fail_reaction(message)
             await message.reply(f"🚫 Từ này bị cấm nha! Nối tiếp từ: **'{prev_last}'**.", mention_author=False)
             return
 
-        # 2. Không nối 2 lần liên tiếp (ở chế độ nhiều người)
+        # 2. Không được nối 2 lần liên tiếp (ở chế độ nhiều người)
         if not game["vs_bot"] and game["last_player"] == message.author.id:
             await add_fail_reaction(message)
             await message.reply(f"Bạn không được nối 2 lần liên tiếp! Chờ người khác nối từ bắt đầu bằng **'{prev_last}'** nhé.", mention_author=False)
             return
 
-        # 3. Trùng từ
+        # 3. Kiểm tra trùng từ
         if text in game["used_words"]:
             await add_fail_reaction(message)
             await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Nối tiếp từ bắt đầu bằng **'{prev_last}'** nha.", mention_author=False)
             return
 
-        # 4. Kiểm tra từ chuẩn từ điển Tiếng Việt
-        if not is_valid_vietnamese_word(text):
-            await add_fail_reaction(message)
-            await message.reply(f"❌ **'{text}'** không có trong từ điển tiếng Việt! Nhập từ chuẩn khác nhé.", mention_author=False)
-            return
-
-        # 5. Khớp từ nối
+        # 4. Kiểm tra khớp tiếng đầu
         if words[0] != prev_last:
             await add_fail_reaction(message)
             await message.reply(f"❌ Sai từ nối rồi! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
             return
 
-        # Nối thành công!
+        # 5. Kiểm tra từ điển
+        if not is_valid_vietnamese_word(text):
+            await add_fail_reaction(message)
+            await message.reply(f"❌ **'{text}'** không có trong từ điển tiếng Việt! Nhập từ chuẩn khác nhé.", mention_author=False)
+            return
+
+        # Nối từ thành công!
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
@@ -523,7 +529,7 @@ async def on_message(message):
             await bot_make_turn(message.channel, game)
         return
 
-    # --- NỐI TỪ TIẾNG ANH ---
+    # --- LỰA CHỌN TIẾNG ANH ---
     if game["mode"] == "en":
         words = text.split()
         if len(words) != 1:
@@ -541,11 +547,6 @@ async def on_message(message):
             await message.reply(f"You can't play twice in a row! Wait for others to match **'{last_char.upper()}'**.", mention_author=False)
             return
 
-        if len(dictionary_en) > 100 and text not in dictionary_en:
-            await add_fail_reaction(message)
-            await message.reply(f"❌ **'{text}'** không có trong từ điển! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
-            return
-
         if text in game["used_words"]:
             await add_fail_reaction(message)
             await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Nối tiếp chữ **'{last_char.upper()}'** nha.", mention_author=False)
@@ -554,6 +555,11 @@ async def on_message(message):
         if text[0] != last_char:
             await add_fail_reaction(message)
             await message.reply(f"❌ Sai chữ nối! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            return
+
+        if len(dictionary_en) > 100 and text not in dictionary_en:
+            await add_fail_reaction(message)
+            await message.reply(f"❌ **'{text}'** không có trong từ điển! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
         game["used_words"].add(text)
