@@ -4,6 +4,7 @@ import json
 import urllib.request
 import random
 import re
+import unicodedata
 import discord
 from datetime import date
 from discord.ext import commands
@@ -22,39 +23,54 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
-BAD_WORDS = {"ỉa"}
+# --- 🛠️ HÀM CHUẨN HÓA UNICODE TRIỆT ĐỂ (NFC) ---
+def norm(text: str) -> str:
+    """Chuyển toàn bộ chuỗi về NFC Unicode, viết thường và xóa khoảng trắng thừa."""
+    if not text:
+        return ""
+    # Chuẩn hóa về NFC
+    text = unicodedata.normalize('NFC', str(text).lower().strip())
+    # Xóa nhiều khoảng trắng liên tiếp thành 1 khoảng trắng
+    return re.sub(r'\s+', ' ', text)
+
+BAD_WORDS = {norm("ỉa")}
 DEAD_END_WORDS = {
-    "vậy", "sao", "mà", "thì", "là", "nhé", "à", "nhỉ", "nè", "đâu", "đó",
-    "nào", "đấy", "ư", "hử", "nha", "nghen", "ha", "kìa", "này", "chứ", "rồi",
-    "chăng", "chứ", "vơi", "vâng", "ôi", "uôi", "hế", "hèn"
+    norm(w) for w in [
+        "vậy", "sao", "mà", "thì", "là", "nhé", "à", "nhỉ", "nè", "đâu", "đó",
+        "nào", "đấy", "ư", "hử", "nha", "nghen", "ha", "kìa", "này", "chứ", "rồi",
+        "chăng", "vơi", "vâng", "ôi", "uôi", "hế", "hèn"
+    ]
 }
 
 EASY_VI_WORDS = [
-    "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt", "phạt góc",
-    "học bài", "học tập", "học hành", "bài học", "bài tập", "tập viết", "viết sách", "sách vở", "vở kịch",
-    "kịch bản", "bản đồ", "đồ chơi", "chơi game", "góc sân", "sân trường", "trường học", "góc nhỏ",
-    "phạt đền", "góc nhìn", "thể thao", "bóng đá", "cầu thủ", "thủ môn", "môn học", "thời gian", "gian hàng",
-    "mặt trời", "mặt đất", "thời tiết", "máy tính", "điện thoại", "xe máy", "xe đạp", "bạn bè", "thầy cô",
-    "gia đình", "âm nhạc", "ca sĩ", "bài hát", "mưa rào", "nắng ấm", "cây xanh", "hoa hồng", "quần áo",
-    "màu sắc", "vui vẻ", "hạnh phúc", "thành công", "cố gắng", "nỗ lực", "học hỏi", "kiến thức", "tương lai"
+    "đá banh", "đá bóng", "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", 
+    "chép phạt", "phạt góc", "học bài", "học tập", "học hành", "bài học", "bài tập", "tập viết", 
+    "viết sách", "sách vở", "vở kịch", "kịch bản", "bản đồ", "đồ chơi", "chơi game", "góc sân", 
+    "sân trường", "trường học", "góc nhỏ", "phạt đền", "góc nhìn", "thể thao", "bóng đá", "cầu thủ", 
+    "thủ môn", "môn học", "thời gian", "gian hàng", "mặt trời", "mặt đất", "thời tiết", "máy tính", 
+    "điện thoại", "xe máy", "xe đạp", "bạn bè", "thầy cô", "gia đình", "âm nhạc", "ca sĩ", "bài hát", 
+    "mưa rào", "nắng ấm", "cây xanh", "hoa hồng", "quần áo", "màu sắc", "vui vẻ", "hạnh phúc", 
+    "thành công", "cố gắng", "nỗ lực", "học hỏi", "kiến thức", "tương lai"
 ]
 
 def contains_bad_word(text):
-    words = text.lower().strip().split()
+    text_clean = norm(text)
+    words = text_clean.split()
     for word in words:
         if word in BAD_WORDS:
             return True
-    return text.lower().strip() in BAD_WORDS
+    return text_clean in BAD_WORDS
 
 def is_dead_end_word(word):
-    syllables = word.lower().strip().split()
+    word_clean = norm(word)
+    syllables = word_clean.split()
     if len(syllables) == 2 and syllables[-1] in DEAD_END_WORDS:
         return True
     return False
 
 # --- TẢI VÀ NẠP TỪ ĐIỂN ---
 def prepare_dictionaries():
-    words_vi = set(w.lower().strip() for w in EASY_VI_WORDS)
+    words_vi = set(norm(w) for w in EASY_VI_WORDS)
     words_en = set()
 
     urls_vi = [
@@ -70,7 +86,7 @@ def prepare_dictionaries():
             with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
-                    word = line.strip().lower().replace("_", " ")
+                    word = norm(line.replace("_", " "))
                     if word and len(word.split()) == 2 and not contains_bad_word(word):
                         words_vi.add(word)
         except Exception as e:
@@ -83,7 +99,7 @@ def prepare_dictionaries():
         with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
             content = response.read().decode('utf-8', errors='ignore')
             for line in content.splitlines():
-                w = line.strip().lower()
+                w = norm(line)
                 if w and len(w) > 1 and not contains_bad_word(w):
                     words_en.add(w)
     except Exception as e:
@@ -92,14 +108,14 @@ def prepare_dictionaries():
     if not words_en:
         words_en = {"apple", "banana", "cat", "dog", "elephant", "fish", "green"}
 
-    print(f"✅ Đã nạp thành công: {len(words_vi)} từ Tiếng Việt và {len(words_en)} từ Tiếng Anh.")
+    print(f"✅ Đã nạp thành công: {len(words_vi)} từ Tiếng Việt và {len(words_en)} từ Tiếng Anh (Đã chuẩn hóa NFC).")
     return words_vi, words_en
 
 dictionary_vi, dictionary_en = prepare_dictionaries()
 VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
 
 def is_valid_vietnamese_word(text):
-    text_clean = text.lower().strip()
+    text_clean = norm(text)
     words = text_clean.split()
     if len(words) != 2 or not VN_CHARS_REGEX.match(text_clean):
         return False
@@ -108,16 +124,20 @@ def is_valid_vietnamese_word(text):
 def pick_random_vi_word(prefix=None, used_words=None):
     if used_words is None:
         used_words = set()
+    else:
+        used_words = {norm(w) for w in used_words}
+
+    prefix_norm = norm(prefix) if prefix else None
 
     easy_candidates = [
         w for w in EASY_VI_WORDS
-        if (not prefix or w.startswith(prefix + " ")) 
-        and w not in used_words and not is_dead_end_word(w) and not contains_bad_word(w)
+        if (not prefix_norm or norm(w).startswith(prefix_norm + " ")) 
+        and norm(w) not in used_words and not is_dead_end_word(w) and not contains_bad_word(w)
     ]
     all_candidates = [
         w for w in dictionary_vi
-        if (not prefix or w.startswith(prefix + " ")) 
-        and w not in used_words and not is_dead_end_word(w) and not contains_bad_word(w)
+        if (not prefix_norm or norm(w).startswith(prefix_norm + " ")) 
+        and norm(w) not in used_words and not is_dead_end_word(w) and not contains_bad_word(w)
     ]
 
     if not all_candidates:
@@ -170,7 +190,7 @@ def update_highscore_if_needed(mode, count):
         return True
     return False
 
-# --- NÚT BẤM INTERACTIVE UI (KHÔNG CÓ NÚT ĐẦU HÀNG) ---
+# --- NÚT BẤM INTERACTIVE UI ---
 class GameControlButtons(discord.ui.View):
     def __init__(self, channel_id):
         super().__init__(timeout=None)
@@ -191,7 +211,7 @@ class GameControlButtons(discord.ui.View):
 
         game = games[channel_id]
         if game["mode"] in ["vi", "vi_pvp"]:
-            prev_last = game["last_word"].split()[-1]
+            prev_last = norm(game["last_word"].split()[-1])
             suggested = pick_random_vi_word(prefix=prev_last, used_words=game["used_words"])
             if suggested:
                 user_hints[user_id] -= 1
@@ -199,8 +219,8 @@ class GameControlButtons(discord.ui.View):
             else:
                 await interaction.response.send_message(f"💡 Hết từ chuẩn bắt đầu bằng **'{prev_last}'** rồi!", ephemeral=True)
         elif game["mode"] == "en":
-            last_char = game["last_word"][-1]
-            valid_words = [w for w in dictionary_en if w.startswith(last_char) and w not in game["used_words"]]
+            last_char = norm(game["last_word"])[-1]
+            valid_words = [w for w in dictionary_en if norm(w).startswith(last_char) and norm(w) not in game["used_words"]]
             if valid_words:
                 user_hints[user_id] -= 1
                 suggested = random.choice(valid_words)
@@ -281,7 +301,7 @@ async def check_and_send_streak(channel, count):
 async def on_ready():
     print(f"Bot {bot.user} đã sẵn sàng hoạt động!")
 
-# --- 🎮 LỆNH BẮT ĐẦU GAME BOT & MULTIPLAYER ---
+# --- 🎮 LỆNH BẮT ĐẦU GAME ---
 @bot.command(name="noitu")
 @commands.has_permissions(administrator=True)
 async def start_game_vi(ctx):
@@ -290,7 +310,7 @@ async def start_game_vi(ctx):
         await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
-    start_word = pick_random_vi_word() or random.choice(EASY_VI_WORDS)
+    start_word = norm(pick_random_vi_word() or random.choice(EASY_VI_WORDS))
     last_syllable = start_word.split()[-1]
 
     games[channel_id] = {
@@ -314,7 +334,7 @@ async def start_game_vi_bot(ctx):
         await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
-    start_word = pick_random_vi_word() or random.choice(EASY_VI_WORDS)
+    start_word = norm(pick_random_vi_word() or random.choice(EASY_VI_WORDS))
     last_syllable = start_word.split()[-1]
 
     games[channel_id] = {
@@ -353,7 +373,7 @@ async def pvp_challenge(ctx, opponent: discord.Member):
     await view.wait()
 
     if view.accepted:
-        start_word = pick_random_vi_word() or random.choice(EASY_VI_WORDS)
+        start_word = norm(pick_random_vi_word() or random.choice(EASY_VI_WORDS))
         last_syllable = start_word.split()[-1]
         
         games[channel_id] = {
@@ -420,24 +440,24 @@ async def stop_game(ctx):
 
 # --- ⚙️ LƯỢT ĐI CỦA BOT ---
 async def bot_make_turn(channel, game):
-    prev_last = game["last_word"].split()[-1]
+    prev_last = norm(game["last_word"].split()[-1])
     bot_word = pick_random_vi_word(prefix=prev_last, used_words=game["used_words"])
     
     if bot_word:
-        game["used_words"].add(bot_word)
-        game["last_word"] = bot_word
+        bot_word_norm = norm(bot_word)
+        game["used_words"].add(bot_word_norm)
+        game["last_word"] = bot_word_norm
         game["count"] += 1
         game["last_player"] = bot.user.id
         
-        next_syllable = bot_word.split()[-1]
+        next_syllable = bot_word_norm.split()[-1]
         view = GameControlButtons(channel.id)
-        msg = await channel.send(f"🤖 **Bot:** `{bot_word.upper()}` *(Tổng: {game['count']} từ)* | Đến lượt bạn: **'{next_syllable}'**", view=view)
+        msg = await channel.send(f"🤖 **Bot:** `{bot_word_norm.upper()}` *(Tổng: {game['count']} từ)* | Đến lượt bạn: **'{next_syllable}'**", view=view)
         await add_success_reactions(msg, game["count"])
         await check_and_send_streak(channel, game["count"])
     else:
         is_new_hs = update_highscore_if_needed("vi", game["count"])
         
-        # Cập nhật trận thắng cho người chơi gần nhất
         last_player_id = game.get("last_human_player")
         if last_player_id:
             update_user_stats(last_player_id, win=True)
@@ -457,23 +477,22 @@ async def on_message(message):
     if channel_id not in games or message.content.startswith("?"):
         return
 
-    text = message.content.strip().lower()
+    # Chuẩn hóa tin nhắn nhập vào của người chơi
+    text = norm(message.content)
     game = games[channel_id]
 
     # --- CHẾ ĐỘ 1v1 PvP ĐỐI KHÁNG ---
     if game["mode"] == "vi_pvp":
         if message.author.id != game["turn"]:
-            return  # Không phải lượt của người này
+            return
 
         words = text.split()
-        prev_last = game["last_word"].split()[-1]
+        prev_last = norm(game["last_word"].split()[-1])
         opponent_id = game["p2"] if message.author.id == game["p1"] else game["p1"]
 
-        # Kiểm tra tính hợp lệ của từ
         if len(words) != 2 or words[0] != prev_last or text in game["used_words"] or not is_valid_vietnamese_word(text) or contains_bad_word(text):
             await add_fail_reaction(message)
             
-            # Người đi sai thua trận
             update_user_stats(message.author.id, added_words=game["scores"].get(message.author.id, 0), loss=True)
             update_user_stats(opponent_id, added_words=game["scores"].get(opponent_id, 0), win=True)
 
@@ -487,12 +506,11 @@ async def on_message(message):
             del games[channel_id]
             return
 
-        # Nối từ hợp lệ trong PvP
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
-        game["turn"] = opponent_id  # Chuyển lượt sang đối phương
+        game["turn"] = opponent_id
 
         update_user_stats(message.author.id, added_words=1)
         await add_success_reactions(message, game["count"])
@@ -507,7 +525,7 @@ async def on_message(message):
     if game["mode"] == "vi":
         words = text.split()
         if len(words) != 2: return
-        prev_last = game["last_word"].split()[-1]
+        prev_last = norm(game["last_word"].split()[-1])
 
         if contains_bad_word(text) or words[0] != prev_last or text in game["used_words"] or not is_valid_vietnamese_word(text):
             await add_fail_reaction(message)
@@ -517,7 +535,6 @@ async def on_message(message):
                 del games[channel_id]
             return
 
-        # Nối từ thành công
         game["used_words"].add(text)
         game["last_word"] = text
         game["count"] += 1
