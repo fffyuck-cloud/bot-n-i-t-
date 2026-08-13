@@ -23,12 +23,8 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
-# 🚫 DANH SÁCH TỪ BẬY / THÔ TỤC (Tự động chặn)
-BAD_WORDS = {
-    "lồn", "cặc", "đéo", "", "", "dmm", "dm", "buồi", "cặt", "phò", 
-    "chịch", "", "địt", "kv ngu", "vãi", "chó", "kv xấu chai", "",
-    
-}
+# 🚫 DANH SÁCH BỊ CHẶN (Chỉ chặn duy nhất từ "ỉa")
+BAD_WORDS = {"ỉa"}
 
 def contains_bad_word(text):
     words = text.lower().strip().split()
@@ -157,8 +153,8 @@ async def add_fail_reaction(message):
 async def check_and_send_streak(channel, count):
     if count > 0 and count % 10 == 0:
         embed = discord.Embed(
-            title=" COMBO STREAK CỰC CHẤT! ",
-            description=f"💖 **XỊN XÒ VÃI CẢ LỒN!** Trận đấu đã cán mốc **{count} TỪ NỐI LIÊN TIẾP**!",
+            title="🖤🩷 COMBO STREAK CỰC CHẤT! 🖤🩷",
+            description=f"💖 **XỊN XÒ!** Trận đấu đã cán mốc **{count} TỪ NỐI LIÊN TIẾP**!",
             color=COLOR_HOT_PINK
         )
         embed.set_footer(text="✨ Đen Hồng trong khu vực của bạn! Tiếp tục giữ phong độ nhé!")
@@ -463,10 +459,10 @@ async def on_message(message):
 
         prev_last = game["last_word"].split()[-1]
 
-        # 1. Chặn từ bậy
+        # 1. Chặn duy nhất từ "ỉa"
         if contains_bad_word(text):
             await add_fail_reaction(message)
-            await message.reply(f"🚫 Từ bậy không được tính nha! Nối tiếp từ: **'{prev_last}'**.", mention_author=False)
+            await message.reply(f"🚫 Từ này bị cấm nha! Nối tiếp từ: **'{prev_last}'**.", mention_author=False)
             return
 
         # 2. Không nối 2 lần liên tiếp
@@ -517,12 +513,12 @@ async def on_message(message):
 
         if contains_bad_word(text):
             await add_fail_reaction(message)
-            await message.reply(f"🚫 Từ bậy không được tính nha! Nối tiếp chữ: **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"🚫 Từ này bị cấm nha thằng lồn! Nối tiếp chữ: **'{last_char.upper()}'**.", mention_author=False)
             return
 
         if not game["vs_bot"] and game["last_player"] == message.author.id:
             await add_fail_reaction(message)
-            await message.reply(f"🖤 You can't play twice in a row! Wait for others to match **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"🖤 Đợi ng mà nối, thằng óc c mù **'{last_char.upper()}'**.", mention_author=False)
             return
 
         if len(dictionary_en) > 100 and text not in dictionary_en:
@@ -532,12 +528,12 @@ async def on_message(message):
 
         if text in game["used_words"]:
             await add_fail_reaction(message)
-            await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Nối tiếp chữ **'{last_char.upper()}'** nha.", mention_author=False)
+            await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Nối tiếp chữ **'{last_char.upper()}'** nha l.", mention_author=False)
             return
 
         if text[0] != last_char:
             await add_fail_reaction(message)
-            await message.reply(f"❌ Sai chữ nối! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"❌ Sai chữ nối rồi ngu! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
         game["used_words"].add(text)
