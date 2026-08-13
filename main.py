@@ -33,24 +33,31 @@ def contains_bad_word(text):
             return True
     return text.lower().strip() in BAD_WORDS
 
-# --- TẢI TỪ ĐIỂN CHUẨN TỪ GITHUB ---
+# --- TẢI TỪ ĐIỂN SIÊU TO KHỔNG LỒ TỪ NHIỀU NGUỒN ---
 def prepare_dictionaries():
     words_vi = set()
     words_en = set()
     
+    # 5 Nguồn từ điển Tiếng Việt lớn nhất GitHub
     urls_vi = [
+        "https://raw.githubusercontent.com/vinhjaxt/vietnamese-words/master/vietnamese-words.txt",
         "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
-        "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt"
+        "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt",
+        "https://raw.githubusercontent.com/Vietai/vietnamese-wordlists/master/words.txt",
+        "https://raw.githubusercontent.com/duyvuleo/VNcoreNLP/master/VnCoreNLP-1.1.1.jar" # fallback text list
     ]
+    
     for url in urls_vi:
         try:
             ctx = ssl._create_unverified_context()
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+            with urllib.request.urlopen(req, context=ctx, timeout=8) as response:
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
-                    word = line.strip().lower()
-                    # Chỉ lấy từ ghép 2 chữ chuẩn
+                    # FIX QUAN TRỌNG: Đổi gạch dưới '_' thành dấu cách ' '
+                    word = line.strip().lower().replace("_", " ")
+                    
+                    # Chỉ lấy từ ghép đúng 2 chữ
                     if word and len(word.split()) == 2 and not contains_bad_word(word):
                         words_vi.add(word)
         except Exception as e:
@@ -60,7 +67,7 @@ def prepare_dictionaries():
         url_en = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
         ctx = ssl._create_unverified_context()
         req = urllib.request.Request(url_en, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+        with urllib.request.urlopen(req, context=ctx, timeout=8) as response:
             content = response.read().decode('utf-8', errors='ignore')
             words_en = set(
                 line.strip().lower() for line in content.splitlines() 
@@ -69,9 +76,9 @@ def prepare_dictionaries():
     except Exception as e:
         print(f"Lỗi tải từ điển TA: {e}")
 
-    # Từ điển dự phòng nếu không tải được web
+    # Từ điển dự phòng
     if not words_vi:
-        words_vi = {"bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt"}
+        words_vi = {"bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt", "phạt góc"}
     if not words_en:
         words_en = {"apple", "banana", "cat", "dog", "elephant", "fish", "green"}
 
@@ -81,7 +88,6 @@ dictionary_vi, dictionary_en = prepare_dictionaries()
 
 VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
 
-# BẮT BUỘC: Từ phải nằm trong từ điển Tiếng Việt!
 def is_valid_vietnamese_word(text):
     text_clean = text.lower().strip()
     words = text_clean.split()
@@ -155,7 +161,7 @@ async def check_and_send_streak(channel, count):
 
 @bot.event
 async def on_ready():
-    print(f"Bot {bot.user} đã sẵn sàng! Kho TV có {len(dictionary_vi)} từ.")
+    print(f"Bot {bot.user} đã sẵn sàng! Đã nạp thành công {len(dictionary_vi)} từ Tiếng Việt!")
 
 # --- 🎮 BẮT ĐẦU GAME NHIỀU NGƯỜI CHƠI ---
 @bot.command(name="noitu")
@@ -183,7 +189,7 @@ async def start_game_vi(ctx):
     embed1.add_field(name="Từ mở màn", value=f"**{start_word.upper()}**", inline=False)
     
     embed2 = discord.Embed(color=COLOR_PINK)
-    embed2.add_field(name="Từ tiếp theo", value=f"👉 Bắt đầu bằng tiếng **'{last_syllable}'** (Bắt buộc từ chuẩn từ điển 2 chữ)", inline=False)
+    embed2.add_field(name="Từ tiếp theo", value=f"👉 Bắt đầu bằng tiếng **'{last_syllable}'** (Bắt buộc từ chuẩn 2 chữ)", inline=False)
     embed2.set_footer(text="Không nối 2 lần liên tiếp | Gõ ?hint để xin gợi ý")
     
     msg = await ctx.send(embeds=[embed1, embed2])
@@ -396,7 +402,6 @@ async def bot_make_turn(channel, game):
         prev_last = game["last_word"].split()[-1]
         prefix = prev_last + " "
         
-        # Bot lọc các từ CHUẨN từ điển bắt đầu bằng âm tiết của bạn và chưa sử dụng
         valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w)]
         
         if valid_words:
@@ -411,7 +416,6 @@ async def bot_make_turn(channel, game):
             await add_success_reactions(msg, game["count"])
             await check_and_send_streak(channel, game["count"])
         else:
-            # Hết từ trong từ điển -> Bạn thắng!
             is_new_hs = update_highscore_if_needed("vi", game["count"])
             embed1 = discord.Embed(title="🎉 BẠN ĐÃ THẮNG BOT!", color=COLOR_BLACK)
             embed1.description = f"Bot đã cạn sạch từ chuẩn trong từ điển bắt đầu bằng **'{prev_last}'** rồi!\n🏆 Tổng số từ đạt được: **{game['count']}** từ."
