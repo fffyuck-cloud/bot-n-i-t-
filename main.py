@@ -156,7 +156,7 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("⚠️ Bạn phải là **Administrator** mới có quyền bắt đầu hoặc kết thúc trò chơi!")
+        await ctx.send("⚠️ Bạn phải là **Administrator** mới có quyền bắt đầu hoặc kết thúc trò chơi! , có trình k mà chơi ahihi")
     else:
         raise error
 
@@ -183,7 +183,7 @@ async def claim_daily(ctx):
     today_str = str(date.today())
 
     if user_daily_claimed.get(user_id) == today_str:
-        await ctx.send("⚠️ Hôm nay bạn đã điểm danh rồi, quay lại vào ngày mai nhé!")
+        await ctx.send("⚠️ Hôm nay bạn đã điểm danh rồi, quay lại vào ngày mai nhé! , k chờ bố m mute đến hôm sau")
         return
 
     user_hints[user_id] = 3
@@ -205,7 +205,7 @@ async def show_highscore(ctx):
 async def start_game_vi(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi!")
+        await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi! , phiến bố xẻo dái")
         return
 
     games[channel_id] = {
@@ -219,7 +219,7 @@ async def start_game_vi(ctx):
     await ctx.send(
         "🎮 **Đã bắt trò chơi nối từ! (Tiếng Việt)**\n"
         "• Không được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
-        "• Đúng chính xác 2 từ có nghĩa tiếng Việt.\n"
+        "• Đúng chính xác 2 từ có nghĩa tiếng Việt , k tại m dốt hihi.\n"
         "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
     )
 
@@ -228,7 +228,7 @@ async def start_game_vi(ctx):
 async def start_game_en(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi!")
+        await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi! , phiến bố cắt dái")
         return
 
     games[channel_id] = {
@@ -251,7 +251,7 @@ async def get_hint(ctx):
     user_id = ctx.author.id
 
     if channel_id not in games:
-        await ctx.send("⚠️ Đã có game đâu mà gợi ý!")
+        await ctx.send("⚠️ Đã có game đ đâu mà gợi ý thằng óc c!")
         return
 
     hints_left = user_hints.get(user_id, 0)
@@ -290,7 +290,7 @@ async def get_hint(ctx):
 async def show_top(ctx):
     channel_id = ctx.channel.id
     if channel_id not in games:
-        await ctx.send("⚠️ Chưa có trận đấu nào đang diễn ra!")
+        await ctx.send("⚠️ Có trận đấu đéo!")
         return
 
     scores = games[channel_id]["scores"]
@@ -316,9 +316,9 @@ async def stop_game(ctx):
         is_new_hs = update_highscore_if_needed(game["mode"], total_count)
         hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
         del games[channel_id]
-        await ctx.send(f"🛑 Trận đấu đã dừng! Tổng số từ nối được: **{total_count}**{hs_msg}")
+        await ctx.send(f"🛑 Trận đấu đã dừng con mẹ nó rồi! Tổng số từ nối được: **{total_count}**{hs_msg}")
     else:
-        await ctx.send("⚠️ Kênh này chưa có ván đấu nào!")
+        await ctx.send("⚠️ Kênh này chưa có ván đấu nào đầu óc l!")
 
 @bot.event
 async def on_message(message):
