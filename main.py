@@ -18,6 +18,21 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
+# 🚫 DANH SÁCH TỪ BẬY / THÔ TỤC (Tự động chặn)
+BAD_WORDS = {
+    "lồn", "cặc", "đéo", "đm", "đmá", "dmm", "dm", "buồi", "cặt", "phò", 
+    "chịch", "xoạc", "địt", "đù", "vãi", "chó", "óc", "ngu",
+    "fuck", "shit", "bitch", "cunt", "dick", "pussy", "asshole"
+}
+
+def contains_bad_word(text):
+    """Kiểm tra xem câu/từ có chứa từ bậy hay không"""
+    words = text.lower().strip().split()
+    for word in words:
+        if word in BAD_WORDS:
+            return True
+    return text.lower().strip() in BAD_WORDS
+
 def prepare_dictionaries():
     words_vi = set()
     syllables_vi = set()
@@ -35,7 +50,7 @@ def prepare_dictionaries():
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
                     word = line.strip().lower()
-                    if word and len(word.split()) == 2:
+                    if word and len(word.split()) == 2 and not contains_bad_word(word):
                         words_vi.add(word)
                         for syllable in word.split():
                             syllables_vi.add(syllable)
@@ -48,13 +63,16 @@ def prepare_dictionaries():
         req = urllib.request.Request(url_en, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, context=ctx, timeout=5) as response:
             content = response.read().decode('utf-8', errors='ignore')
-            words_en = set(line.strip().lower() for line in content.splitlines() if line.strip() and len(line.strip()) > 1)
+            words_en = set(
+                line.strip().lower() for line in content.splitlines() 
+                if line.strip() and len(line.strip()) > 1 and not contains_bad_word(line.strip())
+            )
     except Exception as e:
         print(f"Lỗi tải từ điển TA: {e}")
 
-    # Từ điển dự phòng nếu lỗi mạng
+    # Từ điển dự phòng
     if not words_vi:
-        words_vi = {"con chó", "mèo con", "bàn học", "xe máy", "học sinh", "cây cảnh", "sách vở"}
+        words_vi = {"mèo con", "bàn học", "xe máy", "học sinh", "cây cảnh", "sách vở"}
     if not words_en:
         words_en = {"apple", "banana", "cat", "dog", "elephant", "fish", "green"}
 
@@ -144,7 +162,6 @@ async def start_game_vi(ctx):
         await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi!")
         return
 
-    # Random 1 từ mở màn tiếng Việt
     start_word = random.choice(list(dictionary_vi))
     last_syllable = start_word.split()[-1]
 
@@ -172,7 +189,6 @@ async def start_game_en(ctx):
         await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi!")
         return
 
-    # Random 1 từ mở màn tiếng Anh
     start_word = random.choice(list(dictionary_en))
     last_char = start_word[-1]
 
@@ -223,7 +239,7 @@ async def get_hint(ctx):
 
     if game["mode"] == "en":
         last_char = game["last_word"][-1]
-        valid_words = [w for w in dictionary_en if w.startswith(last_char) and w not in game["used_words"]]
+        valid_words = [w for w in dictionary_en if w.startswith(last_char) and w not in game["used_words"] and not contains_bad_word(w)]
         if valid_words:
             user_hints[user_id] -= 1
             suggested = random.choice(valid_words)
@@ -234,7 +250,7 @@ async def get_hint(ctx):
     elif game["mode"] == "vi":
         prev_last = game["last_word"].split()[-1]
         prefix = prev_last + " "
-        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"]]
+        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w)]
         if valid_words:
             user_hints[user_id] -= 1
             suggested = random.choice(valid_words)
@@ -304,6 +320,12 @@ async def on_message(message):
 
         prev_last = game["last_word"].split()[-1]
 
+        # 🚫 Kiểm tra từ bậy/thô tục
+        if contains_bad_word(text):
+            await add_fail_reaction(message)
+            await message.reply(f"🚫 Từ ngữ bậy bạ/không phù hợp không được tính! Từ tiếp theo phải bắt đầu bằng **'{prev_last}'**.", mention_author=False)
+            return
+
         if game["last_player"] == message.author.id:
             await add_fail_reaction(message)
             await message.reply(f"❌ Bạn không được nối 2 lần liên tiếp! Hãy chờ người khác nối từ tiếp theo bắt đầu bằng **'{prev_last}'**.", mention_author=False)
@@ -340,6 +362,12 @@ async def on_message(message):
             return
 
         last_char = game["last_word"][-1]
+
+        # 🚫 Kiểm tra từ bậy/thô tục
+        if contains_bad_word(text):
+            await add_fail_reaction(message)
+            await message.reply(f"🚫 Từ ngữ bậy bạ/không phù hợp không được tính! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            return
 
         if game["last_player"] == message.author.id:
             await add_fail_reaction(message)
