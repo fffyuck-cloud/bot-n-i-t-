@@ -24,7 +24,7 @@ def prepare_dictionaries():
     syllables_vi = set()
     words_en = set()
     
-    # 1. Thử tải từ điển Tiếng Việt từ GitHub
+    # 1. Từ điển Tiếng Việt
     urls_vi = [
         "https://raw.githubusercontent.com/vietnamese-wordlist/vietnamese-wordlist/master/words.txt",
         "https://raw.githubusercontent.com/Khang-NT/vietnamese-dictionary/master/words.txt"
@@ -42,9 +42,9 @@ def prepare_dictionaries():
                         for syllable in word.split():
                             syllables_vi.add(syllable)
         except Exception as e:
-            print(f"Không tải được từ điển online ({url}): {e}")
+            print(f"Không tải được từ điển TV online ({url}): {e}")
 
-    # 2. Tải từ điển Tiếng Anh
+    # 2. Từ điển Tiếng Anh
     try:
         url_en = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
         ctx = ssl._create_unverified_context()
@@ -55,33 +55,28 @@ def prepare_dictionaries():
     except Exception as e:
         print(f"Không tải được từ điển TA: {e}")
 
-    print(f"-> Đã nạp: {len(words_vi)} từ TV ghép, {len(syllables_vi)} tiếng đơn TV, {len(words_en)} từ TA.")
+    print(f"-> Nạp thành công: {len(words_vi)} từ TV ghép, {len(syllables_vi)} tiếng đơn TV, {len(words_en)} từ TA.")
     return words_vi, syllables_vi, words_en
 
 dictionary_vi, syllables_vi, dictionary_en = prepare_dictionaries()
 
-# Kiểm tra cấu trúc vần/ký tự tiếng Việt cơ bản (Fallback dự phòng)
 VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
 
 def is_valid_vietnamese_word(text):
     text_clean = text.lower().strip()
     words = text_clean.split()
     
-    # Bắt buộc đúng 2 từ
     if len(words) != 2:
         return False
 
-    # Kiểm tra ký tự tiếng Việt hợp lệ
     if not VN_CHARS_REGEX.match(text_clean):
         return False
 
-    # Nếu từ điển online tải thành công -> kiểm tra theo từ điển
     if len(syllables_vi) > 100:
         if text_clean in dictionary_vi:
             return True
         return (words[0] in syllables_vi) and (words[1] in syllables_vi)
 
-    # Nếu từ điển rỗng (do lỗi mạng) -> Chấp nhận mọi cụm 2 từ tiếng Việt có ký tự hợp lệ
     return True
 
 HIGHSCORE_FILE = "highscore.json"
@@ -166,6 +161,110 @@ async def start_game_vi(ctx):
         "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
     )
 
+@bot.command(name="noituen")
+@commands.has_permissions(administrator=True)
+async def start_game_en(ctx):
+    channel_id = ctx.channel.id
+    if channel_id in games:
+        await ctx.send("⚠️ Kênh này đang có trận diễn ra rồi!")
+        return
+
+    games[channel_id] = {
+        "mode": "en",
+        "last_word": None,
+        "count": 0,
+        "used_words": set(),
+        "last_player": None,
+        "scores": {}
+    }
+    await ctx.send(
+        "🔤 **Đã bắt trò chơi nối từ! (Tiếng Anh)**\n"
+        "• Mỗi người chỉ được nối 1 từ tiếng Anh hợp lệ.\n"
+        "• Không được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
+        "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
+    )
+
+@bot.command(name="daily")
+async def claim_daily(ctx):
+    user_id = ctx.author.id
+    today_str = str(date.today())
+
+    if user_daily_claimed.get(user_id) == today_str:
+        await ctx.send("⚠️ Hôm nay bạn đã điểm danh rồi, quay lại vào ngày mai nhé!")
+        return
+
+    user_hints[user_id] = 3
+    user_daily_claimed[user_id] = today_str
+    await ctx.send(f"🎁 **{ctx.author.display_name}** đã điểm danh thành công và nhận **3 lượt gợi ý** cho ngày hôm nay!")
+
+@bot.command(name="hint")
+async def get_hint(ctx):
+    channel_id = ctx.channel.id
+    user_id = ctx.author.id
+
+    if channel_id not in games:
+        await ctx.send("⚠️ Chưa có game đang chạy!")
+        return
+
+    hints_left = user_hints.get(user_id, 0)
+    if hints_left <= 0:
+        await ctx.send("⚠️ Bạn đã hết lượt gợi ý hôm nay rồi. Gõ `?daily` để nhận lượt mới!")
+        return
+
+    game = games[channel_id]
+    
+    if game["last_word"] is None:
+        await ctx.send("💡 Lượt đầu tiên đánh đại đi còn xin gợi ý!")
+        return
+
+    if game["mode"] == "en":
+        last_char = game["last_word"][-1]
+        valid_words = [w for w in dictionary_en if w.startswith(last_char) and w not in game["used_words"]]
+        if valid_words:
+            user_hints[user_id] -= 1
+            suggested = random.choice(valid_words)
+            await ctx.send(f"💡 **Gợi ý TA:** Từ bắt đầu bằng **'{last_char.upper()}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)*")
+        else:
+            await ctx.send("💡 Hết từ nối rồi!")
+
+    elif game["mode"] == "vi":
+        prev_last = game["last_word"].split()[-1]
+        prefix = prev_last + " "
+        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"]]
+        if valid_words:
+            user_hints[user_id] -= 1
+            suggested = random.choice(valid_words)
+            await ctx.send(f"💡 **Gợi ý TV:** Từ bắt đầu bằng **'{prev_last}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)*")
+        else:
+            await ctx.send(f"💡 Cố tìm từ bắt đầu bằng **'{prev_last}'** nhé!")
+
+@bot.command(name="top")
+async def show_top(ctx):
+    channel_id = ctx.channel.id
+    if channel_id not in games:
+        await ctx.send("⚠️ Chưa có trận đấu nào đang diễn ra!")
+        return
+
+    scores = games[channel_id]["scores"]
+    if not scores:
+        await ctx.send("📊 Chưa có ai ghi điểm trong ván này!")
+        return
+
+    sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    msg = "🏆 **BẢNG XẾP HẠNG VÁN HIỆN TẠI** 🏆\n"
+    for idx, (user_id, count) in enumerate(sorted_scores, 1):
+        user = await bot.fetch_user(user_id)
+        msg += f"**#{idx}** {user.display_name}: **{count}** từ\n"
+
+    await ctx.send(msg)
+
+@bot.command(name="highscore")
+async def show_highscore(ctx):
+    embed = discord.Embed(title="🏆 KỶ LỤC CAO NHẤT SERVER", color=discord.Color.gold())
+    embed.add_field(name="🇻🇳 Tiếng Việt", value=f"**{highscores.get('vi', {}).get('count', 0)}** từ", inline=False)
+    embed.add_field(name="🇬🇧 Tiếng Anh", value=f"**{highscores.get('en', {}).get('count', 0)}** từ", inline=False)
+    await ctx.send(embed=embed)
+
 @bot.command(name="huynoitu")
 @commands.has_permissions(administrator=True)
 async def stop_game(ctx):
@@ -193,23 +292,54 @@ async def on_message(message):
     text = message.content.strip().lower()
     game = games[channel_id]
 
-    # NỐI TỪ TIẾNG VIỆT
+    # --- NỐI TỪ TIẾNG ANH ---
+    if game["mode"] == "en":
+        words = text.split()
+        if len(words) != 1:
+            return
+
+        if game["last_player"] == message.author.id:
+            await add_fail_reaction(message)
+            return
+
+        # Kiểm tra từ điển TA (nếu từ điển tải thành công) hoặc check từ chưa dùng
+        if len(dictionary_en) > 100 and text not in dictionary_en:
+            await add_fail_reaction(message)
+            return
+
+        if text in game["used_words"]:
+            await add_fail_reaction(message)
+            return
+
+        if game["last_word"] is not None:
+            last_char = game["last_word"][-1]
+            if text[0] != last_char:
+                await add_fail_reaction(message)
+                return
+
+        game["used_words"].add(text)
+        game["last_word"] = text
+        game["count"] += 1
+        game["last_player"] = message.author.id
+        game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
+
+        await add_success_reactions(message, game["count"])
+        return
+
+    # --- NỐI TỪ TIẾNG VIỆT ---
     if game["mode"] == "vi":
         words = text.split()
         if len(words) != 2:
             return
 
-        # Kiểm tra tự nối 2 lần liên tiếp
         if game["last_player"] == message.author.id:
             await add_fail_reaction(message)
             return
 
-        # Kiểm tra tính hợp lệ & trùng lặp
         if not is_valid_vietnamese_word(text) or text in game["used_words"]:
             await add_fail_reaction(message)
             return
 
-        # Kiểm tra chữ đầu nối với chữ cuối từ trước
         if game["last_word"] is not None:
             prev_last = game["last_word"].split()[-1]
             if words[0] != prev_last:
@@ -222,8 +352,8 @@ async def on_message(message):
         game["last_player"] = message.author.id
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
-        # Thả Tick + Emoji số
         await add_success_reactions(message, game["count"])
+        return
 
 try:
     keep_alive()
