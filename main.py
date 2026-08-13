@@ -73,22 +73,20 @@ def is_dead_end_word(word):
     syllables = word_clean.split()
     return len(syllables) == 2 and syllables[-1] in DEAD_END_WORDS
 
-# --- 📚 NẠP TỪ ĐIỂN FULL (VIỆT + ANH) ---
+# --- 📚 NẠP TỪ ĐIỂN FULL ---
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     
-    # Từ điển Tiếng Việt Full
     words_vi = set(norm(w) for w in EASY_VI_WORDS)
     urls_vi = [
         "https://raw.githubusercontent.com/vinhjaxt/vietnamese-words/master/vietnamese-words.txt",
         "https://raw.githubusercontent.com/undertheseanlp/nlp/master/underthesea/word_tokenize/dicts/words.txt",
-        "https://raw.githubusercontent.com/VietAI/vietnamese-wordlist/master/words.txt",
-        "https://raw.githubusercontent.com/duyvuleo/VNcoreNLP/master/words.txt"
+        "https://raw.githubusercontent.com/VietAI/vietnamese-wordlist/master/words.txt"
     ]
     for url in urls_vi:
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+            with urllib.request.urlopen(req, context=ctx, timeout=8) as response:
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
                     word = norm(line.replace("_", " "))
@@ -97,17 +95,15 @@ def prepare_dictionaries():
         except Exception as e:
             print(f"Lỗi nạp nguồn Tiếng Việt ({url}): {e}")
 
-    # Từ điển Tiếng Anh Full
     words_en = set()
     urls_en_full = [
         "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt",
-        "https://raw.githubusercontent.com/raun/Scrabble/master/words.txt",
-        "https://raw.githubusercontent.com/redbo/scrabble/master/dictionary.txt"
+        "https://raw.githubusercontent.com/raun/Scrabble/master/words.txt"
     ]
     for url in urls_en_full:
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+            with urllib.request.urlopen(req, context=ctx, timeout=8) as response:
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
                     w = line.strip().lower()
@@ -119,7 +115,7 @@ def prepare_dictionaries():
     try:
         url_common = "https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english-no-swears.txt"
         req = urllib.request.Request(url_common, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+        with urllib.request.urlopen(req, context=ctx, timeout=8) as response:
             content = response.read().decode('utf-8', errors='ignore')
             for line in content.splitlines():
                 w = line.strip().lower()
@@ -207,8 +203,8 @@ def get_combo_title(count):
     if count >= 5:  return f"🔥 STREAK COMBO ({count})"
     return f"✨ COMBO ({count})"
 
-# --- 🎨 THIẾT KẾ EMBED SIÊU CẤP ĐẸP & CHẮC CHẮN KHÔNG LỖI ---
-CB = "```"  # Hằng số codeblock giúp tránh 100% lỗi f-string syntax
+# --- 🎨 THIẾT KẾ EMBED ---
+CB = "```"
 
 def build_game_embed(game, title, color, author_user=None, last_player_name=None):
     embed = discord.Embed(
@@ -220,7 +216,6 @@ def build_game_embed(game, title, color, author_user=None, last_player_name=None
     if author_user:
         embed.set_author(name=f"🎮 Trận đấu tạo bởi {author_user.display_name}", icon_url=author_user.display_avatar.url)
 
-    # 1. Lịch sử nối từ trong Codeblock an toàn
     used_list = list(game.get("history_list", []))
     recent_list = used_list[-5:]
     history_str = " ➔ ".join([w.upper() for w in recent_list])
@@ -232,7 +227,6 @@ def build_game_embed(game, title, color, author_user=None, last_player_name=None
         inline=False
     )
 
-    # 2. Chi tiết mục tiêu tiếp theo
     if game["mode"] == "vi":
         prev_last = norm(game["last_word"].split()[-1]).upper()
         target_info = f"👉 Bắt đầu bằng tiếng:\n# `  {prev_last}  `"
@@ -248,7 +242,6 @@ def build_game_embed(game, title, color, author_user=None, last_player_name=None
     if last_player_name:
         embed.add_field(name="👤 LƯỢT VỪA NỐI", value=f"**{last_player_name}**", inline=True)
 
-    # 3. Chân trang
     embed.add_field(
         name="‎",
         value="💬 *Gõ từ trực tiếp vào kênh để nối • Nhấn nút **💡 Gợi Ý** bên dưới nếu bị bí!*",
@@ -314,7 +307,7 @@ class GameControlButtons(discord.ui.View):
 
 # --- BOT INIT ---
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True  # Bắt buộc phải bật trên Developer Portal!
 
 bot = commands.Bot(command_prefix="?", intents=intents, help_command=None)
 games = {}
@@ -334,16 +327,15 @@ async def add_fail_reaction(message):
 
 @bot.event
 async def on_ready():
-    print(f"Bot {bot.user} đã sẵn sàng trên Render với Embed Cyber Super Pro!")
+    print(f"✅ Bot {bot.user} đã sẵn sàng kết nối Discord!")
 
-# --- 🎮 LỆNH BẮT ĐẦU VÁN CHƠI ---
+# --- 🎮 LỆNH CHƠI GAME (ĐÃ BỎ BẮT BUỘC ADMIN) ---
 
 @bot.command(name="noitu")
-@commands.has_permissions(administrator=True)
 async def start_game_vi(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("❌ Kênh này đang có trận đấu diễn ra!")
+        await ctx.send("❌ Kênh này đang có trận đấu diễn ra rồi!")
         return
 
     start_word = norm(pick_random_vi_word() or random.choice(EASY_VI_WORDS))
@@ -361,7 +353,7 @@ async def start_game_vi(ctx):
 async def start_game_vi_bot(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("❌ Kênh này đang có trận đấu diễn ra!")
+        await ctx.send("❌ Kênh này đang có trận đấu diễn ra rồi!")
         return
 
     start_word = norm(pick_random_vi_word() or random.choice(EASY_VI_WORDS))
@@ -379,7 +371,7 @@ async def start_game_vi_bot(ctx):
 async def start_game_en(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("❌ Kênh này đang có trận đấu diễn ra!")
+        await ctx.send("❌ Kênh này đang có trận đấu diễn ra rồi!")
         return
 
     start_word = pick_random_en_word() or "apple"
@@ -397,7 +389,7 @@ async def start_game_en(ctx):
 async def start_game_en_bot(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("❌ Kênh này đang có trận đấu diễn ra!")
+        await ctx.send("❌ Kênh này đang có trận đấu diễn ra rồi!")
         return
 
     start_word = pick_random_en_word() or "apple"
@@ -452,7 +444,6 @@ async def claim_daily(ctx):
     await ctx.send(embed=embed)
 
 @bot.command(name="huynoitu")
-@commands.has_permissions(administrator=True)
 async def stop_game(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
