@@ -9,9 +9,9 @@ from datetime import date
 from discord.ext import commands
 from keep_alive import keep_alive
 
-# 🖤🩷 MÀU SẮC THEME ĐEN HỒNG
-COLOR_PINK = 0xFF69B4  # Hồng rực rỡ
-COLOR_BLACK = 0x1A1A1A  # Đen huyền bí
+# MÀU SẮC THEME ĐEN HỒNG (Dùng phối 2 màu)
+COLOR_BLACK = 0x1A1A1A  # Đen huyền bí (Khung trên)
+COLOR_PINK = 0xFF69B4   # Hồng rực rỡ (Khung dưới)
 COLOR_HOT_PINK = 0xFF1493 # Hồng đậm
 
 # Custom Emoji của bạn
@@ -23,7 +23,7 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
-# 🚫 DANH SÁCH BỊ CHẶN (Chỉ chặn duy nhất từ "ỉa")
+# DANH SÁCH BỊ CHẶN (Chỉ chặn duy nhất từ "ỉa")
 BAD_WORDS = {"ỉa"}
 
 def contains_bad_word(text):
@@ -149,20 +149,17 @@ async def add_fail_reaction(message):
     except Exception:
         await message.add_reaction("❌")
 
-# Helper: Kiểm tra & Thông báo Combo Streak
+# Helper: Kiểm tra & Thông báo Combo Streak (Dùng 2 Embeds 2 màu)
 async def check_and_send_streak(channel, count):
     if count > 0 and count % 10 == 0:
-        embed = discord.Embed(
-            title="🖤🩷 COMBO STREAK CỰC CHẤT! 🖤🩷",
-            description=f"💖 **XỊN XÒ!** Trận đấu đã cán mốc **{count} TỪ NỐI LIÊN TIẾP**!",
-            color=COLOR_HOT_PINK
-        )
-        embed.set_footer(text="✨ Đen Hồng trong khu vực của bạn! Tiếp tục giữ phong độ nhé!")
-        await channel.send(embed=embed)
+        embed1 = discord.Embed(title="COMBO STREAK CỰC CHẤT!", color=COLOR_BLACK)
+        embed2 = discord.Embed(description=f"**XỊN XÒ!** Trận đấu đã cán mốc **{count} TỪ NỐI LIÊN TIẾP**!", color=COLOR_PINK)
+        embed2.set_footer(text="Tiếp tục giữ phong độ nhé!")
+        await channel.send(embeds=[embed1, embed2])
 
 @bot.event
 async def on_ready():
-    print(f"Bot Đen Hồng {bot.user} đã sẵn sàng!")
+    print(f"Bot {bot.user} đã sẵn sàng!")
 
 # --- 🎮 BẮT ĐẦU GAME NHIỀU NGƯỜI CHƠI ---
 @bot.command(name="noitu")
@@ -170,7 +167,7 @@ async def on_ready():
 async def start_game_vi(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("🖤 Kênh này đang có trận diễn ra rồi nha!")
+        await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
     start_word = random.choice(list(dictionary_vi))
@@ -186,12 +183,15 @@ async def start_game_vi(ctx):
         "scores": {}
     }
 
-    embed = discord.Embed(title="🖤🩷 TRÒ CHƠI NỐI TỪ (Tiếng Việt)", color=COLOR_PINK)
-    embed.add_field(name="Từ mở màn", value=f"💖 **{start_word.upper()}**", inline=False)
-    embed.add_field(name="Từ tiếp theo", value=f"👉 Bắt đầu bằng tiếng **'{last_syllable}'** (Chỉ tính từ **2 chữ**)", inline=False)
-    embed.set_footer(text="🖤 Không nối 2 lần liên tiếp | Gõ ?hint để xin gợi ý")
+    # EMBED 2 MÀU (ĐEN + HỒNG)
+    embed1 = discord.Embed(title="TRÒ CHƠI NỐI TỪ (Tiếng Việt)", color=COLOR_BLACK)
+    embed1.add_field(name="Từ mở màn", value=f"**{start_word.upper()}**", inline=False)
     
-    msg = await ctx.send(embed=embed)
+    embed2 = discord.Embed(color=COLOR_PINK)
+    embed2.add_field(name="Từ tiếp theo", value=f"👉 Bắt đầu bằng tiếng **'{last_syllable}'** (Chỉ tính từ **2 chữ**)", inline=False)
+    embed2.set_footer(text="Không nối 2 lần liên tiếp | Gõ ?hint để xin gợi ý")
+    
+    msg = await ctx.send(embeds=[embed1, embed2])
     await add_success_reactions(msg, 1)
 
 @bot.command(name="noituen")
@@ -199,7 +199,7 @@ async def start_game_vi(ctx):
 async def start_game_en(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("🖤 Kênh này đang có trận diễn ra rồi nha!")
+        await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
     start_word = random.choice(list(dictionary_en))
@@ -215,12 +215,15 @@ async def start_game_en(ctx):
         "scores": {}
     }
 
-    embed = discord.Embed(title="🖤🩷 ENGLISH WORD CHAIN", color=COLOR_BLACK)
-    embed.add_field(name="Starting Word", value=f"💖 **{start_word.upper()}**", inline=False)
-    embed.add_field(name="Next Letter", value=f"👉 Starts with letter **'{last_char.upper()}'**", inline=False)
-    embed.set_footer(text="🩷 Take turns connecting words | Type ?hint for help")
+    # EMBED 2 MÀU (ĐEN + HỒNG)
+    embed1 = discord.Embed(title="ENGLISH WORD CHAIN", color=COLOR_BLACK)
+    embed1.add_field(name="Starting Word", value=f"**{start_word.upper()}**", inline=False)
+    
+    embed2 = discord.Embed(color=COLOR_PINK)
+    embed2.add_field(name="Next Letter", value=f"👉 Starts with letter **'{last_char.upper()}'**", inline=False)
+    embed2.set_footer(text="Take turns connecting words | Type ?hint for help")
 
-    msg = await ctx.send(embed=embed)
+    msg = await ctx.send(embeds=[embed1, embed2])
     await add_success_reactions(msg, 1)
 
 # --- 🤖 CHẾ ĐỘ 1v1 ĐẤU VỚI BOT ---
@@ -228,7 +231,7 @@ async def start_game_en(ctx):
 async def start_game_vi_bot(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("🖤 Kênh này đang có trận diễn ra rồi nha!")
+        await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
     start_word = random.choice(list(dictionary_vi))
@@ -244,19 +247,22 @@ async def start_game_vi_bot(ctx):
         "scores": {}
     }
 
-    embed = discord.Embed(title="🤖 1v1 NỐI TỪ VỚI BOT ĐEN HỒNG", color=COLOR_HOT_PINK)
-    embed.add_field(name="Bot mở màn bằng từ", value=f"🖤 **{start_word.upper()}**", inline=False)
-    embed.add_field(name="Lượt của bạn", value=f"🩷 Hãy nhập từ 2 chữ bắt đầu bằng **'{last_syllable}'**", inline=False)
-    embed.set_footer(text="✨ Bot sẽ tự động phản hồi ngay khi bạn nối đúng!")
+    # EMBED 2 MÀU (ĐEN + HỒNG)
+    embed1 = discord.Embed(title="🤖 1v1 NỐI TỪ VỚI BOT", color=COLOR_BLACK)
+    embed1.add_field(name="Bot mở màn bằng từ", value=f"**{start_word.upper()}**", inline=False)
+    
+    embed2 = discord.Embed(color=COLOR_PINK)
+    embed2.add_field(name="Lượt của bạn", value=f"Hãy nhập từ 2 chữ bắt đầu bằng **'{last_syllable}'**", inline=False)
+    embed2.set_footer(text="✨ Bot sẽ tự động phản hồi ngay khi bạn nối đúng!")
 
-    msg = await ctx.send(embed=embed)
+    msg = await ctx.send(embeds=[embed1, embed2])
     await add_success_reactions(msg, 1)
 
 @bot.command(name="noituboten")
 async def start_game_en_bot(ctx):
     channel_id = ctx.channel.id
     if channel_id in games:
-        await ctx.send("🖤 Kênh này đang có trận diễn ra rồi nha!")
+        await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
     start_word = random.choice(list(dictionary_en))
@@ -272,11 +278,14 @@ async def start_game_en_bot(ctx):
         "scores": {}
     }
 
-    embed = discord.Embed(title="🤖 1v1 WORD CHAIN WITH BOT", color=COLOR_BLACK)
-    embed.add_field(name="Bot Starting Word", value=f"🖤 **{start_word.upper()}**", inline=False)
-    embed.add_field(name="Your Turn", value=f"🩷 Enter word starting with **'{last_char.upper()}'**", inline=False)
+    # EMBED 2 MÀU (ĐEN + HỒNG)
+    embed1 = discord.Embed(title="🤖 1v1 WORD CHAIN WITH BOT", color=COLOR_BLACK)
+    embed1.add_field(name="Bot Starting Word", value=f"**{start_word.upper()}**", inline=False)
+    
+    embed2 = discord.Embed(color=COLOR_PINK)
+    embed2.add_field(name="Your Turn", value=f"Enter word starting with **'{last_char.upper()}'**", inline=False)
 
-    msg = await ctx.send(embed=embed)
+    msg = await ctx.send(embeds=[embed1, embed2])
     await add_success_reactions(msg, 1)
 
 # --- 🎁 TIỆN ÍCH & LỆNH PHỤ ---
@@ -286,18 +295,16 @@ async def claim_daily(ctx):
     today_str = str(date.today())
 
     if user_daily_claimed.get(user_id) == today_str:
-        await ctx.send("🖤 Hôm nay bạn đã điểm danh rồi, quay lại vào ngày mai nhé!")
+        await ctx.send("Hôm nay bạn đã điểm danh rồi, quay lại vào ngày mai nhé!")
         return
 
     user_hints[user_id] = 3
     user_daily_claimed[user_id] = today_str
     
-    embed = discord.Embed(
-        title="🎁 ĐIỂM DANH HÀNG NGÀY 🖤🩷",
-        description=f"Chúc mừng **{ctx.author.display_name}** nhận được **3 lượt gợi ý** `?hint` hôm nay! ✨",
-        color=COLOR_PINK
-    )
-    await ctx.send(embed=embed)
+    # EMBED 2 MÀU
+    embed1 = discord.Embed(title="🎁 ĐIỂM DANH HÀNG NGÀY", color=COLOR_BLACK)
+    embed2 = discord.Embed(description=f"Chúc mừng **{ctx.author.display_name}** nhận được **3 lượt gợi ý** `?hint` hôm nay! ✨", color=COLOR_PINK)
+    await ctx.send(embeds=[embed1, embed2])
 
 @bot.command(name="hint")
 async def get_hint(ctx):
@@ -305,12 +312,12 @@ async def get_hint(ctx):
     user_id = ctx.author.id
 
     if channel_id not in games:
-        await ctx.send("🖤 Chưa có trận nào đang chạy hết nha!")
+        await ctx.send("Chưa có trận nào đang chạy hết nha!")
         return
 
     hints_left = user_hints.get(user_id, 0)
     if hints_left <= 0:
-        await ctx.send("🖤 Bạn hết lượt gợi ý rồi. Gõ `?daily` để nhận lượt mới nhé!")
+        await ctx.send("Bạn hết lượt gợi ý rồi. Gõ `?daily` để nhận lượt mới nhé!")
         return
 
     game = games[channel_id]
@@ -321,7 +328,7 @@ async def get_hint(ctx):
         if valid_words:
             user_hints[user_id] -= 1
             suggested = random.choice(valid_words)
-            await ctx.send(f"💡 **Gợi ý TA:** Từ bắt đầu bằng **'{last_char.upper()}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)* 💖")
+            await ctx.send(f"💡 **Gợi ý TA:** Từ bắt đầu bằng **'{last_char.upper()}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)*")
         else:
             await ctx.send("💡 Hết từ để gợi ý rồi!")
 
@@ -332,7 +339,7 @@ async def get_hint(ctx):
         if valid_words:
             user_hints[user_id] -= 1
             suggested = random.choice(valid_words)
-            await ctx.send(f"💡 **Gợi ý TV:** Từ bắt đầu bằng **'{prev_last}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)* 💖")
+            await ctx.send(f"💡 **Gợi ý TV:** Từ bắt đầu bằng **'{prev_last}'**: **{suggested}** *(Còn {user_hints[user_id]}/3 lượt)*")
         else:
             await ctx.send(f"💡 Cố tìm từ bắt đầu bằng **'{prev_last}'** nha!")
 
@@ -340,7 +347,7 @@ async def get_hint(ctx):
 async def show_top(ctx):
     channel_id = ctx.channel.id
     if channel_id not in games:
-        await ctx.send("🖤 Chưa có trận đấu nào đang diễn ra!")
+        await ctx.send("Chưa có trận đấu nào đang diễn ra!")
         return
 
     scores = games[channel_id]["scores"]
@@ -349,24 +356,27 @@ async def show_top(ctx):
         return
 
     sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    embed = discord.Embed(title="🖤🩷 BẢNG XẾP HẠNG VÁN HIỆN TẠI 🖤🩷", color=COLOR_PINK)
     
-    badges = ["👑", "💖", "🖤"]
+    # EMBED 2 MÀU
+    embed1 = discord.Embed(title="BẢNG XẾP HẠNG VÁN HIỆN TẠI", color=COLOR_BLACK)
     desc = ""
     for idx, (user_id, count) in enumerate(sorted_scores, 1):
-        badge = badges[idx-1] if idx <= 3 else f"**#{idx}**"
+        badge = f"**#{idx}**"
         user = await bot.fetch_user(user_id)
         desc += f"{badge} **{user.display_name}**: `{count}` từ\n"
 
-    embed.description = desc
-    await ctx.send(embed=embed)
+    embed2 = discord.Embed(description=desc, color=COLOR_PINK)
+    await ctx.send(embeds=[embed1, embed2])
 
 @bot.command(name="highscore")
 async def show_highscore(ctx):
-    embed = discord.Embed(title="🏆 KỶ LỤC CAO NHẤT SERVER 🖤🩷", color=COLOR_BLACK)
-    embed.add_field(name="🇻🇳 Tiếng Việt", value=f"💖 **{highscores.get('vi', {}).get('count', 0)}** từ nối", inline=False)
-    embed.add_field(name="🇬🇧 Tiếng Anh", value=f"🖤 **{highscores.get('en', {}).get('count', 0)}** từ nối", inline=False)
-    await ctx.send(embed=embed)
+    # EMBED 2 MÀU
+    embed1 = discord.Embed(title="🏆 KỶ LỤC CAO NHẤT SERVER", color=COLOR_BLACK)
+    embed1.add_field(name="🇻🇳 Tiếng Việt", value=f"**{highscores.get('vi', {}).get('count', 0)}** từ nối", inline=False)
+    
+    embed2 = discord.Embed(color=COLOR_PINK)
+    embed2.add_field(name="🇬🇧 Tiếng Anh", value=f"**{highscores.get('en', {}).get('count', 0)}** từ nối", inline=False)
+    await ctx.send(embeds=[embed1, embed2])
 
 @bot.command(name="huynoitu")
 @commands.has_permissions(administrator=True)
@@ -377,15 +387,20 @@ async def stop_game(ctx):
         total_count = game["count"]
         is_new_hs = update_highscore_if_needed(game["mode"], total_count)
         
-        embed = discord.Embed(title="🖤 TRẬN ĐẤU ĐÃ DỪNG 🖤", color=COLOR_BLACK)
-        embed.add_field(name="Tổng số từ đạt được", value=f"💖 **{total_count}** từ", inline=False)
+        # EMBED 2 MÀU
+        embed1 = discord.Embed(title="TRẬN ĐẤU ĐÃ DỪNG", color=COLOR_BLACK)
+        embed1.add_field(name="Tổng số từ đạt được", value=f"**{total_count}** từ", inline=False)
+        
+        embed2 = discord.Embed(color=COLOR_PINK)
         if is_new_hs:
-            embed.add_field(name="Kỷ lục", value="✨ **XÁC LẬP KỶ LỤC MỚI CỦA SERVER!**", inline=False)
+            embed2.add_field(name="Kỷ lục", value="✨ **XÁC LẬP KỶ LỤC MỚI CỦA SERVER!**", inline=False)
+        else:
+            embed2.description = "Trận đấu đã kết thúc thành công."
         
         del games[channel_id]
-        await ctx.send(embed=embed)
+        await ctx.send(embeds=[embed1, embed2])
     else:
-        await ctx.send("🖤 Kênh này chưa có ván đấu nào!")
+        await ctx.send("Kênh này chưa có ván đấu nào!")
 
 # --- ⚙️ XỬ LÝ LƯỢT CHƠI (BOT vs NGƯỜI & CHẾ ĐỘ THƯỜNG) ---
 async def bot_make_turn(channel, game):
@@ -402,16 +417,21 @@ async def bot_make_turn(channel, game):
             game["last_player"] = bot.user.id
             
             next_syllable = bot_word.split()[-1]
-            msg = await channel.send(f"🤖 **Bot Đen Hồng:** `{bot_word.upper()}` *(Tổng: {game['count']} từ)* 💖 Đến lượt bạn: **'{next_syllable}'**")
+            msg = await channel.send(f"🤖 **Bot:** `{bot_word.upper()}` *(Tổng: {game['count']} từ)* | Đến lượt bạn: **'{next_syllable}'**")
             await add_success_reactions(msg, game["count"])
             await check_and_send_streak(channel, game["count"])
         else:
             is_new_hs = update_highscore_if_needed("vi", game["count"])
-            embed = discord.Embed(title="🎉 BẠN ĐÃ THẮNG BOT ĐEN HỒNG! 🖤🩷", color=COLOR_PINK)
-            embed.description = f"Bot đã hết từ để nối tiếp rồi nha!\n🏆 Tổng số từ đạt được: **{game['count']}** từ."
+            embed1 = discord.Embed(title="🎉 BẠN ĐÃ THẮNG BOT!", color=COLOR_BLACK)
+            embed1.description = f"Bot đã hết từ để nối tiếp rồi nha!\n🏆 Tổng số từ đạt được: **{game['count']}** từ."
+            
+            embed2 = discord.Embed(color=COLOR_PINK)
             if is_new_hs:
-                embed.add_field(name="Kỷ lục", value="✨ **KỶ LỤC MỚI SERVER!**", inline=False)
-            await channel.send(embed=embed)
+                embed2.add_field(name="Kỷ lục", value="✨ **KỶ LỤC MỚI SERVER!**", inline=False)
+            else:
+                embed2.description = "Cảm ơn bạn đã tham gia chơi!"
+                
+            await channel.send(embeds=[embed1, embed2])
             del games[channel.id]
 
     elif game["mode"] == "en":
@@ -426,16 +446,21 @@ async def bot_make_turn(channel, game):
             game["last_player"] = bot.user.id
             
             next_char = bot_word[-1]
-            msg = await channel.send(f"🤖 **BlackPink Bot:** `{bot_word.upper()}` *(Total: {game['count']})* 💖 Your turn: **'{next_char.upper()}'**")
+            msg = await channel.send(f"🤖 **Bot:** `{bot_word.upper()}` *(Total: {game['count']})* | Your turn: **'{next_char.upper()}'**")
             await add_success_reactions(msg, game["count"])
             await check_and_send_streak(channel, game["count"])
         else:
             is_new_hs = update_highscore_if_needed("en", game["count"])
-            embed = discord.Embed(title="🎉 YOU BEAT THE BOT! 🖤🩷", color=COLOR_PINK)
-            embed.description = f"Bot ran out of words!\n🏆 Total words: **{game['count']}**."
+            embed1 = discord.Embed(title="🎉 YOU BEAT THE BOT!", color=COLOR_BLACK)
+            embed1.description = f"Bot ran out of words!\n🏆 Total words: **{game['count']}**."
+            
+            embed2 = discord.Embed(color=COLOR_PINK)
             if is_new_hs:
-                embed.add_field(name="Highscore", value="✨ **NEW SERVER HIGHSCORE!**", inline=False)
-            await channel.send(embed=embed)
+                embed2.add_field(name="Highscore", value="✨ **NEW SERVER HIGHSCORE!**", inline=False)
+            else:
+                embed2.description = "Thanks for playing!"
+                
+            await channel.send(embeds=[embed1, embed2])
             del games[channel.id]
 
 @bot.event
@@ -468,7 +493,7 @@ async def on_message(message):
         # 2. Không nối 2 lần liên tiếp
         if not game["vs_bot"] and game["last_player"] == message.author.id:
             await add_fail_reaction(message)
-            await message.reply(f"🖤 Bạn không được nối 2 lần liên tiếp! Chờ người khác nối từ bắt đầu bằng **'{prev_last}'** nhé.", mention_author=False)
+            await message.reply(f"Bạn không được nối 2 lần liên tiếp! Chờ người khác nối từ bắt đầu bằng **'{prev_last}'** nhé.", mention_author=False)
             return
 
         # 3. Trùng từ
@@ -513,12 +538,12 @@ async def on_message(message):
 
         if contains_bad_word(text):
             await add_fail_reaction(message)
-            await message.reply(f"🚫 Từ này bị cấm nha thằng lồn! Nối tiếp chữ: **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"🚫 Từ này bị cấm nha! Nối tiếp chữ: **'{last_char.upper()}'**.", mention_author=False)
             return
 
         if not game["vs_bot"] and game["last_player"] == message.author.id:
             await add_fail_reaction(message)
-            await message.reply(f"🖤 Đợi ng mà nối, thằng óc c mù **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"You can't play twice in a row! Wait for others to match **'{last_char.upper()}'**.", mention_author=False)
             return
 
         if len(dictionary_en) > 100 and text not in dictionary_en:
@@ -528,12 +553,12 @@ async def on_message(message):
 
         if text in game["used_words"]:
             await add_fail_reaction(message)
-            await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Nối tiếp chữ **'{last_char.upper()}'** nha l.", mention_author=False)
+            await message.reply(f"❌ Từ **'{text}'** đã dùng rồi! Nối tiếp chữ **'{last_char.upper()}'** nha.", mention_author=False)
             return
 
         if text[0] != last_char:
             await add_fail_reaction(message)
-            await message.reply(f"❌ Sai chữ nối rồi ngu! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
+            await message.reply(f"❌ Sai chữ nối! Từ tiếp theo phải bắt đầu bằng chữ **'{last_char.upper()}'**.", mention_author=False)
             return
 
         game["used_words"].add(text)
