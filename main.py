@@ -23,8 +23,15 @@ NUMBER_EMOJIS = {
     6: "6️⃣", 7: "7️⃣", 8: "8️⃣", 9: "9️⃣", 10: "🔟"
 }
 
-# BỘ TỪ BỊ CHẶN
+# 1. DANH SÁCH TỪ BỊ CHẶN HOÀN TOÀN
 BAD_WORDS = {"ỉa"}
+
+# 2. DANH SÁCH "TỪ CỤT" / HƯ TỪ KẾT THÚC (Loại bỏ triệt để để tránh thế bí)
+DEAD_END_WORDS = {
+    "vậy", "sao", "mà", "thì", "là", "nhé", "à", "nhỉ", "nè", "đâu", "đó",
+    "nào", "đấy", "ư", "hử", "nha", "nghen", "ha", "kìa", "này", "chứ", "rồi",
+    "chăng", "chứ", "vơi", "vâng", "ôi", "uôi", "hế", "hèn"
+}
 
 def contains_bad_word(text):
     words = text.lower().strip().split()
@@ -33,12 +40,19 @@ def contains_bad_word(text):
             return True
     return text.lower().strip() in BAD_WORDS
 
+# Kiểm tra từ có phải là "từ cụt" khiến người chơi bí từ không
+def is_dead_end_word(word):
+    syllables = word.lower().strip().split()
+    if len(syllables) == 2 and syllables[-1] in DEAD_END_WORDS:
+        return True
+    return False
+
 # --- TẢI VÀ NẠP TỪ ĐIỂN TIẾNG VIỆT/TIẾNG ANH ---
 def prepare_dictionaries():
     words_vi = set()
     words_en = set()
     
-    # 1. Danh sách các từ ghép Tiếng Việt cơ bản cố định (Đảm bảo luôn luôn hoạt động)
+    # Từ ghép Tiếng Việt cơ bản thông dụng
     COMMON_VI_WORDS = [
         "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt", "phạt góc",
         "học bài", "học tập", "học hành", "bài học", "bài tập", "tập viết", "viết sách", "sách vở", "vở kịch",
@@ -48,7 +62,7 @@ def prepare_dictionaries():
     for w in COMMON_VI_WORDS:
         words_vi.add(w.lower().strip())
 
-    # 2. Các nguồn từ điển chuẩn trên GitHub (File Text sạch)
+    # Nguồn từ điển chuẩn trên GitHub
     urls_vi = [
         "https://raw.githubusercontent.com/vinhjaxt/vietnamese-words/master/vietnamese-words.txt",
         "https://raw.githubusercontent.com/undertheseanlp/nlp/master/underthesea/word_tokenize/dicts/words.txt",
@@ -63,7 +77,6 @@ def prepare_dictionaries():
                 content = response.read().decode('utf-8', errors='ignore')
                 for line in content.splitlines():
                     word = line.strip().lower().replace("_", " ")
-                    # Lấy từ ghép 2 tiếng
                     if word and len(word.split()) == 2 and not contains_bad_word(word):
                         words_vi.add(word)
         except Exception as e:
@@ -86,7 +99,7 @@ def prepare_dictionaries():
     if not words_en:
         words_en = {"apple", "banana", "cat", "dog", "elephant", "fish", "green"}
 
-    print(f"✅ Đã nạp tổng cộng: {len(words_vi)} từ Tiếng Việt và {len(words_en)} từ Tiếng Anh.")
+    print(f"✅ Đã nạp thành công: {len(words_vi)} từ Tiếng Việt và {len(words_en)} từ Tiếng Anh.")
     return words_vi, words_en
 
 dictionary_vi, dictionary_en = prepare_dictionaries()
@@ -101,6 +114,10 @@ def is_valid_vietnamese_word(text):
     if not VN_CHARS_REGEX.match(text_clean):
         return False
     return text_clean in dictionary_vi
+
+# Lọc danh sách từ cho Bot (Loại bỏ các từ cụt)
+def get_playable_vi_start_words():
+    return [w for w in dictionary_vi if not is_dead_end_word(w)]
 
 HIGHSCORE_FILE = "highscore.json"
 
@@ -177,7 +194,8 @@ async def start_game_vi(ctx):
         await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
-    start_word = random.choice(list(dictionary_vi))
+    playable_words = get_playable_vi_start_words()
+    start_word = random.choice(playable_words if playable_words else list(dictionary_vi))
     last_syllable = start_word.split()[-1]
 
     games[channel_id] = {
@@ -239,7 +257,8 @@ async def start_game_vi_bot(ctx):
         await ctx.send("Kênh này đang có trận diễn ra rồi nha!")
         return
 
-    start_word = random.choice(list(dictionary_vi))
+    playable_words = get_playable_vi_start_words()
+    start_word = random.choice(playable_words if playable_words else list(dictionary_vi))
     last_syllable = start_word.split()[-1]
 
     games[channel_id] = {
@@ -337,7 +356,7 @@ async def get_hint(ctx):
     elif game["mode"] == "vi":
         prev_last = game["last_word"].split()[-1]
         prefix = prev_last + " "
-        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w)]
+        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w) and not is_dead_end_word(w)]
         if valid_words:
             user_hints[user_id] -= 1
             suggested = random.choice(valid_words)
@@ -407,7 +426,18 @@ async def bot_make_turn(channel, game):
         prev_last = game["last_word"].split()[-1]
         prefix = prev_last + " "
         
-        valid_words = [w for w in dictionary_vi if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w)]
+        # Lọc các từ hợp lệ VÀ KHÔNG PHẢI TỪ CỤT
+        valid_words = [
+            w for w in dictionary_vi 
+            if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w) and not is_dead_end_word(w)
+        ]
+        
+        # Nếu đã lọc mà hết từ hay, mới dùng các từ thường khác
+        if not valid_words:
+            valid_words = [
+                w for w in dictionary_vi 
+                if w.startswith(prefix) and w not in game["used_words"] and not contains_bad_word(w)
+            ]
         
         if valid_words:
             bot_word = random.choice(valid_words)
