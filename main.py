@@ -42,7 +42,7 @@ def prepare_dictionaries():
                         for syllable in word.split():
                             syllables_vi.add(syllable)
         except Exception as e:
-            print(f"Không tải được từ điển TV online ({url}): {e}")
+            print(f"Lỗi tải từ điển TV: {e}")
 
     # 2. Từ điển Tiếng Anh
     try:
@@ -53,7 +53,7 @@ def prepare_dictionaries():
             content = response.read().decode('utf-8', errors='ignore')
             words_en = set(line.strip().lower() for line in content.splitlines() if line.strip())
     except Exception as e:
-        print(f"Không tải được từ điển TA: {e}")
+        print(f"Lỗi tải từ điển TA: {e}")
 
     print(f"-> Nạp thành công: {len(words_vi)} từ TV ghép, {len(syllables_vi)} tiếng đơn TV, {len(words_en)} từ TA.")
     return words_vi, syllables_vi, words_en
@@ -77,6 +77,13 @@ def is_valid_vietnamese_word(text):
             return True
         return (words[0] in syllables_vi) and (words[1] in syllables_vi)
 
+    return True
+
+def check_has_next_vi(last_syllable, used_words):
+    prefix = last_syllable.lower().strip() + " "
+    for w in dictionary_vi:
+        if w.startswith(prefix) and w not in used_words:
+            return True
     return True
 
 HIGHSCORE_FILE = "highscore.json"
@@ -179,7 +186,7 @@ async def start_game_en(ctx):
     }
     await ctx.send(
         "🔤 **Đã bắt trò chơi nối từ! (Tiếng Anh)**\n"
-        "• Mỗi người chỉ được nối 1 từ tiếng Anh hợp lệ.\n"
+        "• Mỗi người chỉ được nối 1 từ tiếng Anh合 lệ.\n"
         "• Không được nối 2 lần liên tiếp, thay phiên nhau mà nối.\n"
         "• Gõ `?daily` | `?hint` | `?top` | `?highscore` | `?huynoitu`."
     )
@@ -296,13 +303,13 @@ async def on_message(message):
     if game["mode"] == "en":
         words = text.split()
         if len(words) != 1:
+            await add_fail_reaction(message)
             return
 
         if game["last_player"] == message.author.id:
             await add_fail_reaction(message)
             return
 
-        # Kiểm tra từ điển TA (nếu từ điển tải thành công) hoặc check từ chưa dùng
         if len(dictionary_en) > 100 and text not in dictionary_en:
             await add_fail_reaction(message)
             return
@@ -324,12 +331,21 @@ async def on_message(message):
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
         await add_success_reactions(message, game["count"])
+
+        next_char = text[-1]
+        has_next_word = any(w.startswith(next_char) and w not in game["used_words"] for w in dictionary_en)
+        if not has_next_word and len(dictionary_en) > 100:
+            is_new_hs = update_highscore_if_needed("en", game["count"])
+            hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
+            await message.reply(f"🏆 Hết từ nối bắt đầu bằng chữ '{next_char.upper()}'. Tổng: **{game['count']}** từ.{hs_msg}\nReset game!", mention_author=False)
+            game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
         return
 
     # --- NỐI TỪ TIẾNG VIỆT ---
     if game["mode"] == "vi":
         words = text.split()
         if len(words) != 2:
+            await add_fail_reaction(message)
             return
 
         if game["last_player"] == message.author.id:
@@ -353,6 +369,12 @@ async def on_message(message):
         game["scores"][message.author.id] = game["scores"].get(message.author.id, 0) + 1
 
         await add_success_reactions(message, game["count"])
+
+        if not check_has_next_vi(words[-1], game["used_words"]):
+            is_new_hs = update_highscore_if_needed("vi", game["count"])
+            hs_msg = "\n🎉 **KỶ LỤC MỚI CỦA SERVER!**" if is_new_hs else ""
+            await message.reply(f"🏆 Hết từ nối bắt đầu bằng chữ '{words[-1].upper()}'. Tổng: **{game['count']}** từ.{hs_msg}\nReset game!", mention_author=False)
+            game.update({"last_word": None, "count": 0, "used_words": set(), "last_player": None, "scores": {}})
         return
 
 try:
