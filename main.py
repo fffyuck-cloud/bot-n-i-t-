@@ -16,7 +16,6 @@ try:
 except ImportError:
     def keep_alive(): pass
 
-# Đã sửa lại vị trí TICK và CROSS cho chuẩn xác
 TICK = "<:Screenshot20260812173722:1537047895310602300>"
 CROSS = "<:Screenshot20260812172055:1537043520790073424>"
 
@@ -132,7 +131,7 @@ async def help_cmd(ctx):
     embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ULTIMATE ✦", color=0xFF007F)
     embed.description = (
         "💬 **Word Chain Ultimate Bot Core**\n"
-        "Hệ thống trò chơi nối từ tích hợp bộ đếm số lượng từ và kiểm tra từ điển chuẩn xác."
+        "Hệ thống trò chơi nối từ phân tách hoàn toàn tiếng Việt và tiếng Anh, tích hợp bộ đếm số lượng từ chuẩn xác."
     )
     embed.add_field(
         name="🎮 CÁC LỆNH TRÒ CHƠI",
@@ -154,7 +153,7 @@ async def help_cmd(ctx):
         ),
         inline=False
     )
-    embed.set_footer(text="Hệ thống đã cập nhật sửa lỗi icon và bộ đếm số từ thành công!")
+    embed.set_footer(text="Hệ thống lọc ngôn ngữ độc lập đã được kích hoạt thành công!")
     await ctx.send(embed=embed)
 
 @bot.command(name="rank")
@@ -210,7 +209,8 @@ async def start_noitu(ctx, mode: str = "vi"):
             "🔥 **SÀN ĐẤU QUỐC TẾ KHAI MẠC** 🔥\n\n"
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
             f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
-            f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**"
+            f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**\n"
+            f"🛡️ *Lưu ý: Chỉ chấp nhận từ tiếng Anh đơn hợp lệ.*"
         )
         await ctx.send(embed=embed)
     else:
@@ -221,7 +221,8 @@ async def start_noitu(ctx, mode: str = "vi"):
             "🔥 **SÀN ĐẤU TIẾNG VIỆT KHAI MẠC** 🔥\n\n"
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
             f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
-            f"⚡ Bắt đầu bằng âm tiết: **{word.split()[-1].upper()}**"
+            f"⚡ Bắt đầu bằng âm tiết: **{word.split()[-1].upper()}**\n"
+            f"🛡️ *Lưu ý: Chỉ chấp nhận cụm từ tiếng Việt đúng 2 tiếng.*"
         )
         await ctx.send(embed=embed)
 
@@ -299,9 +300,12 @@ async def on_message(message):
     if mode in ["vi_multi", "vi_bot"]:
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
+        
+        # Bắt buộc phải đúng 2 từ tiếng Việt, không chấp nhận từ tiếng Anh đơn hoặc sai định dạng
         if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
             await message.add_reaction(CROSS)
             return
+            
         game["used_words"].add(user_input)
         game["last_word"] = user_input
         current_count = len(game["used_words"])
@@ -332,9 +336,12 @@ async def on_message(message):
     elif mode in ["en_multi", "en_bot"]:
         w = user_input
         prev_char = game["last_word"][-1]
-        if len(w.split()) != 1 or w[0] != prev_char or w in game["used_words"] or w not in dictionary_en:
+        
+        # Bắt buộc phải là từ đơn tiếng Anh (1 từ), không chứa khoảng trắng (để chặn từ tiếng Việt 2 tiếng), và phải thuộc từ điển Anh
+        if len(w.split()) != 1 or not w.isalpha() or w[0] != prev_char or w in game["used_words"] or w not in dictionary_en:
             await message.add_reaction(CROSS)
             return
+            
         game["used_words"].add(w)
         game["last_word"] = w
         current_count = len(game["used_words"])
