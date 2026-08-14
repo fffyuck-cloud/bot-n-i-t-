@@ -6,7 +6,7 @@ import urllib.parse
 import random
 import re
 import unicodedata
-from datetime import datetime, date
+from datetime import datetime
 import discord
 from discord.ext import commands
 from keep_alive import keep_alive
@@ -24,7 +24,11 @@ def norm(text: str) -> str:
     text = unicodedata.normalize('NFC', str(text).lower().strip())
     return re.sub(r'\s+', ' ', text)
 
-FALLBACK_VI_WORDS = ["đá banh", "đá bóng", "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt", "phạt góc", "học bài", "thể thao", "bóng đá"]
+FALLBACK_VI_WORDS = [
+    "đá banh", "đá bóng", "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao",
+    "ao cá", "cá chép", "chép phạt", "phạt góc", "học bài", "thể thao", "bóng đá",
+    "ao làng", "làng quê", "quê hương", "hương thơm", "thơm ngon", "ngon ngọt"
+]
 
 # --- 📚 TẢI TỪ ĐIỂN TIẾNG VIỆT & ANH ---
 def prepare_dictionaries():
@@ -56,11 +60,12 @@ def prepare_dictionaries():
     return words_vi, words_en
 
 dictionary_vi, dictionary_en = prepare_dictionaries()
-VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờờớởợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
+VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
 
+# Vừa fix: Chỉ kiểm tra đúng 2 từ và là chữ VN hợp lệ, không ép người chơi phải nhập đúng từ trong từ điển nữa
 def is_valid_vietnamese_word(text):
     text_clean = norm(text)
-    return len(text_clean.split()) == 2 and bool(VN_CHARS_REGEX.match(text_clean)) and text_clean in dictionary_vi
+    return len(text_clean.split()) == 2 and bool(VN_CHARS_REGEX.match(text_clean))
 
 def is_valid_english_word(text):
     return text.strip().lower() in dictionary_en
@@ -80,10 +85,9 @@ def pick_random_en_word(letter=None, used_words=None):
 # --- 💎 HÀM TẠO EMBED CHI TIẾT ---
 def build_game_embed(game, title, last_player_name=None):
     embed = discord.Embed(color=COLOR_THEME, timestamp=datetime.now())
-    embed.set_image(url=BANNER_URL) # Nhúng thẳng banner vào embed gọn gàng
+    embed.set_image(url=BANNER_URL)
     embed.set_author(name=f"❖ {title} ❖", icon_url="https://cdn-icons-png.flaticon.com/512/8066/8066804.png")
     
-    # Lịch sử 5 từ gần nhất
     used_list = list(game.get("history_list", []))
     history_str = " ➔ ".join([w.upper() for w in used_list[-5:]])
     embed.add_field(name="📜 LỊCH SỬ TỪ VỰNG (5 GẦN NHẤT)", value=f"```fix\n{history_str}\n```", inline=False)
@@ -184,12 +188,11 @@ async def on_message(message):
         words = text.split()
         prev_last = norm(game["last_word"].split()[-1])
 
-        # Kiểm tra điều kiện: đúng 2 từ, khớp âm tiết đầu, chưa dùng, và có trong từ điển
+        # Luật mới: Yêu cầu đúng 2 từ, chữ đầu khớp, chưa được dùng và là ký tự VN hợp lệ
         if len(words) != 2 or words[0] != prev_last or text in game["used_words"] or not is_valid_vietnamese_word(text):
             await message.add_reaction(EMOJI_CROSS)
             return
 
-        # Hợp lệ
         game["used_words"].add(text)
         game["history_list"].append(text)
         game["last_word"] = text
@@ -240,6 +243,5 @@ async def on_message(message):
         else:
             await message.channel.send(embed=build_game_embed(game, "ENGLISH WORD CHAIN", last_player_name=message.author.display_name))
 
-# Khởi chạy keep_alive cho Render và chạy bot
 keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
