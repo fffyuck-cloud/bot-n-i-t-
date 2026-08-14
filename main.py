@@ -210,7 +210,7 @@ async def start_noitu(ctx, mode: str = "vi"):
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
             f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
             f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**\n"
-            f"🛡️ *Lưu ý: Chỉ chấp nhận từ tiếng Anh đơn hợp lệ.*"
+            f"🛡️ *Lưu ý: Chỉ chấp nhận từ tiếng Anh đơn (chỉ chứa a-z).* "
         )
         await ctx.send(embed=embed)
     else:
@@ -301,7 +301,6 @@ async def on_message(message):
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         
-        # Bắt buộc phải đúng 2 từ tiếng Việt, không chấp nhận từ tiếng Anh đơn hoặc sai định dạng
         if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
             await message.add_reaction(CROSS)
             return
@@ -337,8 +336,8 @@ async def on_message(message):
         w = user_input
         prev_char = game["last_word"][-1]
         
-        # Bắt buộc phải là từ đơn tiếng Anh (1 từ), không chứa khoảng trắng (để chặn từ tiếng Việt 2 tiếng), và phải thuộc từ điển Anh
-        if len(w.split()) != 1 or not w.isalpha() or w[0] != prev_char or w in game["used_words"] or w not in dictionary_en:
+        # Bắt buộc phải là từ đơn tiếng Anh thuần ASCII (a-z), chặn hoàn toàn tiếng Việt có dấu/khoảng trắng
+        if len(w.split()) != 1 or not (w.isascii() and w.isalpha()) or w[0] != prev_char or w in game["used_words"] or w not in dictionary_en:
             await message.add_reaction(CROSS)
             return
             
