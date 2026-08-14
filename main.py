@@ -129,12 +129,17 @@ async def on_ready():
 
 @bot.command(name="help")
 async def help_cmd(ctx):
-    embed = discord.Embed(title="BẢNG LỆNH BOT NỐI TỪ", color=0xFF007F)
-    embed.add_field(name="?noitu vi", value="chơi nối từ tiếng việt 2 từ", inline=False)
-    embed.add_field(name="?noitu en", value="chơi nối từ tiếng anh 1 từ", inline=False)
-    embed.add_field(name="?huynoitu", value="hủy ván chơi hiện tại", inline=False)
-    embed.add_field(name="?rank", value="xem thẻ rank", inline=False)
-    embed.add_field(name="?daily", value="điểm danh nhận quà mỗi ngày", inline=False)
+    embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ✦", color=0xFF007F)
+    embed.description = """
+    💬 **Word Chain Ultimate Bot**
+    Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.
+    Hỗ trợ kho từ vựng khổng lồ Tiếng Việt & Tiếng Anh, bot này không chỉ nối từ mà còn dạy đời mấy ông về chính tả đấy nhé!
+    """
+    embed.add_field(name="🇻🇳 NỐI TỪ TIẾNG VIỆT", value="Chơi đúng luật 2 từ (ví dụ: 'đá bóng' -> 'bóng đá') không chơi từ đơn, không chơi từ lóng, viết sai chính tả là bot nó vả vào mồm ngay\n`?noitu` → Chơi chung kênh cùng bè lũ\n`?noituubot` → Solo khô máu với con bot cho biết mùi đời", inline=False)
+    embed.add_field(name="🇬🇧 NỐI TỪ TIẾNG ANH", value="Luật quốc tế chơi 1 từ duy nhất (ví dụ: 'apple' -> 'egg') miễn là có trong từ điển tiếng anh chuẩn quốc tế\n`?noitueng` → Chơi chung kênh cùng bè lũ\n`?noituuboteng` → Solo khô máu với con bot cho biết mùi đời", inline=False)
+    embed.add_field(name="⚙️ QUẢN LÝ TRẬN ĐẤU & CÔNG CỤ", value="Mấy lệnh này để kiểm soát game, tránh tình trạng spam vớ vẩn\n`?huynoitu` → Hủy ván chơi nếu thấy chán hoặc lag\n`?nghia [từ]` → Tra cứu từ điển nếu ông giáo nghi ngờ từ đấy méo có thật", inline=False)
+    embed.add_field(name="📊 HỆ THỐNG RANK & DAILY", value="Điểm danh mỗi ngày để húp XP, leo rank làm trùm server\n`?rank` → Xem thẻ rank mượt mà xem mình đang ở đâu\n`?daily` → Điểm danh tích lũy XP hằng ngày, đừng để đứt chuỗi", inline=False)
+    embed.set_footer(text="Bot được tạo ra bởi dân chơi hệ logic, đừng spam lệnh quá mức kẻo bot nó dỗi nó sập đấy nhé")
     await ctx.send(embed=embed)
 
 @bot.command(name="rank")
@@ -163,18 +168,32 @@ async def daily_cmd(ctx):
     await ctx.send(f"{icon} yêu cầu của {ctx.author.mention}", file=file)
 
 @bot.command(name="noitu")
-async def start_game(ctx, mode="vi"):
-    mode = mode.lower()
-    if ctx.channel.id in games: 
-        return await ctx.send("kênh đang có ván chơi rồi")
-    if mode == "en":
-        word = "apple"
-        games[ctx.channel.id] = {"mode": "en", "last_word": word, "used_words": {word}}
-        await ctx.send(f"🎮 **NỐI TỪ TIẾNG ANH** bắt đầu từ đầu tiên **`{word.upper()}`**")
-    else:
-        word = "đá bóng"
-        games[ctx.channel.id] = {"mode": "vi", "last_word": word, "used_words": {word}}
-        await ctx.send(f"🎮 **NỐI TỪ TIẾNG VIỆT** bắt đầu từ đầu tiên **`{word.upper()}`**")
+async def start_game_vi(ctx):
+    if ctx.channel.id in games: return await ctx.send("kênh đang có ván chơi rồi")
+    word = "đá bóng"
+    games[ctx.channel.id] = {"mode": "vi_multi", "last_word": word, "used_words": {word}}
+    await ctx.send(f"🎮 **NỐI TỪ TIẾNG VIỆT** bắt đầu từ đầu tiên **`{word.upper()}`**")
+
+@bot.command(name="noituubot")
+async def start_game_vi_bot(ctx):
+    if ctx.channel.id in games: return await ctx.send("kênh đang có ván chơi rồi")
+    word = "đá bóng"
+    games[ctx.channel.id] = {"mode": "vi_bot", "last_word": word, "used_words": {word}}
+    await ctx.send(f"🤖 **SOLO VỚI BOT (TIẾNG VIỆT)** bắt đầu từ đầu tiên **`{word.upper()}`**")
+
+@bot.command(name="noitueng")
+async def start_game_en(ctx):
+    if ctx.channel.id in games: return await ctx.send("kênh đang có ván chơi rồi")
+    word = "apple"
+    games[ctx.channel.id] = {"mode": "en_multi", "last_word": word, "used_words": {word}}
+    await ctx.send(f"🎮 **NỐI TỪ TIẾNG ANH** bắt đầu từ đầu tiên **`{word.upper()}`**")
+
+@bot.command(name="noituuboteng")
+async def start_game_en_bot(ctx):
+    if ctx.channel.id in games: return await ctx.send("kênh đang có ván chơi rồi")
+    word = "apple"
+    games[ctx.channel.id] = {"mode": "en_bot", "last_word": word, "used_words": {word}}
+    await ctx.send(f"🤖 **SOLO VỚI BOT (TIẾNG ANH)** bắt đầu từ đầu tiên **`{word.upper()}`**")
 
 @bot.command(name="huynoitu")
 async def stop_game(ctx):
@@ -184,6 +203,15 @@ async def stop_game(ctx):
     else:
         await ctx.send(f"{CROSS} làm gì có ván nào đang chạy")
 
+@bot.command(name="nghia")
+async def nghia_cmd(ctx, word: str = None):
+    if not word: return await ctx.send("nhập từ cần tra đi ông giáo")
+    w = word.strip().lower()
+    if w in dictionary_en:
+        await ctx.send(f"{TICK} từ **`{w}`** có tồn tại trong từ điển tiếng Anh")
+    else:
+        await ctx.send(f"{CROSS} đéo tìm thấy từ này trong từ điển")
+
 @bot.event
 async def on_message(message):
     if message.author.bot: return
@@ -192,8 +220,9 @@ async def on_message(message):
     
     game = games[message.channel.id]
     user_input = norm(message.content)
+    mode = game["mode"]
     
-    if game["mode"] == "vi":
+    if mode in ["vi_multi", "vi_bot"]:
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
@@ -210,7 +239,19 @@ async def on_message(message):
             data["level"] += 1
             await message.channel.send(f"🎉 {message.author.mention} vừa lên level {data['level']}")
 
-    elif game["mode"] == "en":
+        if mode == "vi_bot":
+            last_syllable = user_input.split()[-1]
+            possible_words = [w for w in dictionary_vi if w.startswith(last_syllable + " ") and w not in game["used_words"]]
+            if possible_words:
+                bot_word = random.choice(possible_words)
+                game["used_words"].add(bot_word)
+                game["last_word"] = bot_word
+                await message.channel.send(f"🤖 Bot nối tiếp: **`{bot_word.upper()}`** {TICK}")
+            else:
+                await message.channel.send(f"🏆 {message.author.mention} đã win bot vì bot hết từ")
+                del games[ctx.channel.id]
+
+    elif mode in ["en_multi", "en_bot"]:
         w = user_input
         prev_char = game["last_word"][-1]
         if len(w.split()) != 1 or w[0] != prev_char or w in game["used_words"] or w not in dictionary_en:
@@ -226,6 +267,18 @@ async def on_message(message):
             data["xp"] -= data["level"] * 300
             data["level"] += 1
             await message.channel.send(f"🎉 {message.author.mention} vừa lên level {data['level']}")
+
+        if mode == "en_bot":
+            last_char = w[-1]
+            possible_words = [word for word in dictionary_en if word.startswith(last_char) and word not in game["used_words"]]
+            if possible_words:
+                bot_word = random.choice(possible_words)
+                game["used_words"].add(bot_word)
+                game["last_word"] = bot_word
+                await message.channel.send(f"🤖 Bot nối tiếp: **`{bot_word.upper()}`** {TICK}")
+            else:
+                await message.channel.send(f"🏆 {message.author.mention} đã win bot vì bot hết từ")
+                del games[ctx.channel.id]
 
 keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
