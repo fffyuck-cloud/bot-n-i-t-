@@ -10,57 +10,28 @@ import discord
 from discord.ext import commands
 from keep_alive import keep_alive
 
-# --- 🎨 BẢNG MÀU THEME & HÌNH ẢNH (ULTIMATE EDITION) ---
-COLOR_BLACK     = 0x2B2D31 
-COLOR_PINK      = 0xFF69B4 
-COLOR_DEEP_PINK = 0xFF1493 
-COLOR_RED       = 0xFF4747 
-COLOR_SUCCESS   = 0x57F287 
-COLOR_ERROR     = 0xED4245 
+# --- 🎨 THEME & BANNER ---
+COLOR_THEME   = 0xFF1493 # Hồng đậm Cyberpunk
+COLOR_SUCCESS = 0x57F287 
+COLOR_ERROR   = 0xED4245 
 
-BANNER_HELP = "https://i.imgur.com/xT5l7Hn.gif" 
+# 👉 Hướng dẫn: Click chuột phải vào ảnh banner bạn vừa tải lên trên Discord -> chọn "Copy Link" rồi dán vào thay cho chữ "URL_ANH_BANNER_CUA_BAN" ở dưới đây:
+BANNER_URL = "URL_ANH_BANNER_CUA_BAN" 
 
 def norm(text: str) -> str:
     if not text: return ""
     text = unicodedata.normalize('NFC', str(text).lower().strip())
     return re.sub(r'\s+', ' ', text)
 
-BAD_WORDS = {norm("ỉa")}
 DEAD_END_WORDS = {norm(w) for w in ["vậy", "sao", "mà", "thì", "là", "nhé", "à", "nhỉ", "nè", "đâu", "đó", "nào", "đấy", "ư", "hử", "nha", "nghen", "ha", "kìa", "này", "chứ", "rồi"]}
-
 EASY_VI_WORDS = ["đá banh", "đá bóng", "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao", "ao cá", "cá chép", "chép phạt", "phạt góc", "học bài", "thể thao", "bóng đá", "cầu thủ"]
-easy_en_words_set = {"apple", "banana", "cat", "dog", "elephant", "fish", "giraffe", "house", "ice", "jungle", "kite", "lemon", "monkey", "nest", "orange"}
-
-# --- 🎭 KHO LỜI THOẠI KHI TRẢ LỜI SAI (ĐA DẠNG & CÀ KHỊA) ---
-VI_ERROR_RESPONSES = [
-    "Sai bét nhè rồi đại thần ơi! Từ này không hợp lệ hoặc sai vần.",
-    "Ọt ẹc, tính lừa bot hả? Cố gắng đọc kỹ luật chơi lại xem nào!",
-    "Đi lạc hướng rồi nha! Bộ não đang đình công hay gì thế?",
-    "Giao thông bế tắc! Từ này không dùng được hoặc sai vần rồi.",
-    "Sai hoàn toàn! Đừng để bot phải cười chê chứ lị.",
-    "Ê ê, gõ nhầm bàn phím à? Từ này không nằm trong từ điển nối từ đâu!"
-]
-
-EN_ERROR_RESPONSES = [
-    "Oops! That's completely wrong or already used. Try again!",
-    "Nice try, but your English vocabulary needs a little upgrade!",
-    "Nope! That word doesn't match the rules. Wake up!",
-    "Grammar police says NO! Check your spelling or starting letter.",
-    "Error 404: Valid English word not found in your typing."
-]
-
-def contains_bad_word(text):
-    text_clean = norm(text)
-    for word in text_clean.split():
-        if word in BAD_WORDS: return True
-    return text_clean in BAD_WORDS
 
 def is_dead_end_word(word):
     word_clean = norm(word)
     syllables = word_clean.split()
     return len(syllables) == 2 and syllables[-1] in DEAD_END_WORDS
 
-# --- 📚 NẠP TỪ ĐIỂN ---
+# --- 📚 NẠP TỪ ĐIỂN TIẾNG VIỆT & ANH ---
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     words_vi = set(norm(w) for w in EASY_VI_WORDS)
@@ -69,7 +40,7 @@ def prepare_dictionaries():
         with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
             for line in response.read().decode('utf-8', errors='ignore').splitlines():
                 word = norm(line.replace("_", " "))
-                if word and len(word.split()) == 2 and not contains_bad_word(word): words_vi.add(word)
+                if word and len(word.split()) == 2: words_vi.add(word)
     except: pass
 
     words_en = set()
@@ -80,7 +51,7 @@ def prepare_dictionaries():
                 w = line.strip().lower()
                 if len(w) >= 2 and w.isalpha(): words_en.add(w)
     except: pass
-    print(f"✅ NẠP DATA: {len(words_vi):,} từ VN | {len(words_en):,} từ EN.")
+    print(f"✅ NẠP DATA THÀNH CÔNG: {len(words_vi):,} từ VN | {len(words_en):,} từ EN.")
     return words_vi, words_en
 
 dictionary_vi, dictionary_en = prepare_dictionaries()
@@ -105,9 +76,8 @@ def pick_random_en_word(letter=None, used_words=None):
     all_candidates = [w for w in dictionary_en if (not letter or w.startswith(letter)) and w not in used_words]
     return random.choice(all_candidates) if all_candidates else None
 
-# --- 💾 THỐNG KÊ (DATABASE) ---
+# --- 💾 THỐNG KÊ NGƯỜI CHƠI ---
 STATS_FILE = "user_stats.json"
-
 def load_json():
     if os.path.exists(STATS_FILE):
         try:
@@ -116,7 +86,6 @@ def load_json():
     return {}
 
 user_stats = load_json()
-
 def save_json():
     with open(STATS_FILE, "w", encoding="utf-8") as f: json.dump(user_stats, f, ensure_ascii=False, indent=4)
 
@@ -132,17 +101,16 @@ def get_user_title(total_words):
     if total_words >= 1000: return "🌟 CHÚA TỂ NGÔN TỪ"
     if total_words >= 500: return "👑 BẬC THẦY GIAO TIẾP"
     if total_words >= 200: return "🔥 CAO THỦ NỐI TỪ"
-    if total_words >= 50: return "✨ TAY CHƠI TRIỂN VỌNG"
     return "🐣 TÂN THỦ NHẬP MÔN"
 
-# --- 💎 PREMIUM EMBED BUILDER ---
-def build_game_embed(game, title, color, author_user=None, last_player_name=None):
-    embed = discord.Embed(color=color, timestamp=datetime.now())
-    embed.set_author(name=f" ❖ {title} ❖", icon_url="https://cdn-icons-png.flaticon.com/512/8066/8066804.png")
+# --- 💎 GIAO DIỆN EMBED SIÊU CẤP ---
+def build_game_embed(game, title, last_player_name=None):
+    embed = discord.Embed(color=COLOR_THEME, timestamp=datetime.now())
+    embed.set_author(name=f"❖ {title} ❖", icon_url="https://cdn-icons-png.flaticon.com/512/8066/8066804.png")
     
     used_list = list(game.get("history_list", []))
     history_str = " ➔ ".join([w.upper() for w in used_list[-5:]])
-    embed.add_field(name="╭━━━━━━━━ 📜 DÒNG CHẢY TỪ VỰNG ━━━━━━━━╮", value=f"```fix\n{history_str}\n```", inline=False)
+    embed.add_field(name="╭━━━━━━━━ 📜 LỊCH SỬ TỪ VỰNG ━━━━━━━━╮", value=f"```fix\n{history_str}\n```", inline=False)
 
     if game["mode"] == "vi":
         prev_last = norm(game["last_word"].split()[-1]).upper()
@@ -153,52 +121,72 @@ def build_game_embed(game, title, color, author_user=None, last_player_name=None
 
     combo = game.get('count', 1)
     bar = f"`[{'█'*min(10, combo)}{'░'*max(0, 10-combo)}]`"
-
     embed.add_field(name="🎯 **NỐI TIẾP BẰNG**", value=target_word, inline=True)
     embed.add_field(name="🔥 **CHUỖI COMBO**", value=f"**{combo}**\n{bar}", inline=True)
 
-    if last_player_name:
-        embed.add_field(name="╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯", value=f"✨ Lượt vừa nối: **{last_player_name}**", inline=False)
+    if game.get("is_duel"):
+        p1_name = game.get("p1_name", "P1")
+        p2_name = game.get("p2_name", "P2")
+        current_turn = p1_name if game["turn_idx"] == 0 else p2_name
+        embed.add_field(name="╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯", value=f"⚔️ **Đấu 1v1**: `{p1_name}` vs `{p2_name}`\n⏳ Lượt đi của: **{current_turn}**", inline=False)
+    elif last_player_name:
+        embed.add_field(name="╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯", value=f"✨ Vừa nối bởi: **{last_player_name}**", inline=False)
     else:
-        embed.add_field(name="╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯", value="> 💬 *Chat trực tiếp từ nối vào kênh. Không cần dùng dấu `?`*", inline=False)
+        embed.add_field(name="╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯", value="> 💬 *Chat trực tiếp từ nối vào kênh.*", inline=False)
 
-    flag = "https://cdn-icons-png.flaticon.com/512/197/197473.png" if game["mode"] == "vi" else "https://cdn-icons-png.flaticon.com/512/197/197374.png"
-    embed.set_thumbnail(url=flag)
-    embed.set_footer(text=f"Host: {author_user.display_name}" if author_user else "Word Chain Engine v2.0", icon_url=author_user.display_avatar.url if author_user else None)
+    if BANNER_URL and BANNER_URL != "URL_ANH_BANNER_CUA_BAN":
+        embed.set_image(url=BANNER_URL)
     return embed
 
-# --- 🖱️ HỆ THỐNG NÚT BẤM ---
+# --- 🖱️ NÚT BẤM TIỆN ÍCH ---
 class GameControlButtons(discord.ui.View):
-    def __init__(self, channel_id):
+    def __init__(self):
         super().__init__(timeout=None)
-        self.channel_id = channel_id
 
-    @discord.ui.button(label="Cứu Viện (Gợi Ý)", emoji="🆘", style=discord.ButtonStyle.danger, custom_id="btn_hint")
+    @discord.ui.button(label="Gợi Ý (Cứu Viện)", emoji="🆘", style=discord.ButtonStyle.danger, custom_id="btn_hint")
     async def hint_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         channel_id = interaction.channel_id
-        if channel_id not in games: return await interaction.response.send_message("❌ Trận đấu đã kết thúc!", ephemeral=True)
-        user_id = interaction.user.id
-        hints_left = user_hints.get(user_id, 0)
-        if hints_left <= 0: return await interaction.response.send_message("❌ Cạn kiệt Lượt Gợi Ý! Gõ `?daily` để nhận thêm.", ephemeral=True)
-
+        if channel_id not in games: return await interaction.response.send_message("❌ Trận đấu không tồn tại!", ephemeral=True)
         game = games[channel_id]
         if game["mode"] == "vi":
             suggested = pick_random_vi_word(prefix=norm(game["last_word"].split()[-1]), used_words=game["used_words"])
         else:
             suggested = pick_random_en_word(letter=game["last_word"][-1].lower(), used_words=game["used_words"])
+        await interaction.response.send_message(f"💡 Gợi ý cho bạn: **`{suggested.upper() if suggested else 'Không tìm thấy từ phù hợp'}`**", ephemeral=True)
 
-        if suggested:
-            user_hints[user_id] -= 1
-            await interaction.response.send_message(f"💡 Hỗ trợ: **`{suggested.upper()}`** *(Còn {user_hints[user_id]} lượt)*", ephemeral=True)
-        else:
-            await interaction.response.send_message("💀 Chịu chết! Hệ thống cũng đã bí từ hợp lệ.", ephemeral=True)
+# --- ⚔️ THÁCH ĐẤU 1V1 ---
+class ChallengeView(discord.ui.View):
+    def __init__(self, challenger, target):
+        super().__init__(timeout=30)
+        self.challenger = challenger
+        self.target = target
 
-    @discord.ui.button(label="Xem Hồ Sơ", emoji="💎", style=discord.ButtonStyle.primary, custom_id="btn_profile")
-    async def profile_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        stats = user_stats.get(str(interaction.user.id), {"wins": 0, "losses": 0, "total_words": 0})
-        await interaction.response.send_message(f"🏅 **Rank:** {get_user_title(stats['total_words'])}\n🧠 **Vốn từ:** `{stats['total_words']}` từ", ephemeral=True)
+    @discord.ui.button(label="Chấp Nhận Thách Đấu", emoji="⚔️", style=discord.ButtonStyle.success)
+    async def accept(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.target.id: return await interaction.response.send_message("❌ Bạn không phải là người được thách đấu!", ephemeral=True)
+        channel_id = interaction.channel_id
+        if channel_id in games: return await interaction.response.send_message("⚠️ Kênh đang có trận đấu khác!", ephemeral=True)
+        
+        for child in self.children: child.disabled = True
+        await interaction.response.edit_message(content=f"⚔️ **{self.target.display_name}** đã chấp nhận chiến thư từ **{self.challenger.display_name}**!", view=self)
+        
+        word = norm(pick_random_vi_word() or "đá bóng")
+        games[channel_id] = {
+            "mode": "vi", "vs_bot": False, "is_duel": True, "players": [self.challenger.id, self.target.id],
+            "p1_name": self.challenger.display_name, "p2_name": self.target.display_name,
+            "turn_idx": 0, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]
+        }
+        await interaction.channel.send(embed=build_game_embed(games[channel_id], "⚔️ ĐẠI CHIẾN NỐI TỪ 1V1"))
+        self.stop()
 
-# --- 🚀 BOT INIT ---
+    @discord.ui.button(label="Từ Chối", emoji="🛑", style=discord.ButtonStyle.danger)
+    async def decline(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.target.id: return await interaction.response.send_message("❌ Bạn không liên quan!", ephemeral=True)
+        for child in self.children: child.disabled = True
+        await interaction.response.edit_message(content=f"🛑 **{self.target.display_name}** đã từ chối thách đấu.", view=self)
+        self.stop()
+
+# --- 🚀 KHỞI TẠO BOT ---
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="?", intents=intents, help_command=None)
@@ -206,29 +194,26 @@ games, user_hints, user_daily_claimed = {}, {}, {}
 
 @bot.event
 async def on_ready():
-    print(f"✅ Bot {bot.user.name} online (Bản Chát Đa Dạng & Embed Đẹp)!")
-    await bot.change_presence(activity=discord.Game(name="?help | Nối Từ Đỉnh Cao"))
+    print(f"✅ Bot {bot.user.name} đã sẵn sàng chinh chiến!")
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound): return 
-    raise error 
-
-# --- 📜 LỆNH CHỨC NĂNG ---
-@bot.command(name="help", aliases=["trogiup", "menu"])
+@bot.command(name="help", aliases=["trogiup"])
 async def custom_help(ctx):
-    embed = discord.Embed(color=COLOR_PINK)
-    embed.set_author(name=" ❖ BẢNG ĐIỀU KHIỂN HỆ THỐNG NỐI TỪ ❖", icon_url=bot.user.display_avatar.url)
-    embed.set_image(url=BANNER_HELP)
-    embed.description = ">>> 🎮 **Word Chain Master V2**\nThử thách vốn từ vựng cực mạnh với kho lời thoại cực lầy lội!"
+    embed = discord.Embed(color=COLOR_THEME)
+    embed.set_author(name="❖ HỆ THỐNG TRỢ GIÚP NỐI TỪ ❖", icon_url=bot.user.display_avatar.url)
+    if BANNER_URL and BANNER_URL != "URL_ANH_BANNER_CUA_BAN":
+        embed.set_image(url=BANNER_URL)
+    embed.description = ">>> 🎮 **Word Chain Ultimate**\nHỗ trợ cả Tiếng Việt & Tiếng Anh, chế độ Solo Bot và Thách Đấu 1v1 đỉnh cao!"
     
-    embed.add_field(name="🇻🇳 TIẾNG VIỆT", value="`?noitu` ➔ Chơi chung\n`?noitubot` ➔ Solo Bot", inline=True)
-    embed.add_field(name="🔤 TIẾNG ANH", value="`?noitueng` ➔ Chơi chung\n`?noituboteng` ➔ Solo Bot", inline=True)
-    embed.add_field(name="\u200B", value="\u200B", inline=False)
-    embed.add_field(name="⚙️ TIỆN ÍCH", value="`?daily` ➔ Điểm danh nhận Gợi ý\n`?profile` ➔ Xem thông số cá nhân\n`?huynoitu` ➔ Hủy ván", inline=False)
-    
-    embed.set_footer(text="Dev by Word Chain Master", icon_url="https://cdn-icons-png.flaticon.com/512/2069/2069581.png")
+    embed.add_field(name="🇻🇳 NỐI TỪ TIẾNG VIỆT", value="`?noitu` ➔ Chơi chung\n`?noitubot` ➔ Solo với Bot", inline=True)
+    embed.add_field(name="🇬🇧 NỐI TỪ TIẾNG ANH", value="`?noitueng` ➔ Chơi chung\n`?noituboteng` ➔ Solo với Bot", inline=True)
+    embed.add_field(name="⚔️ TÍNH NĂNG KHÁC", value="`?thachdau @user` ➔ Thách đấu 1v1 trực tiếp\n`?profile` ➔ Xem hồ sơ cá nhân\n`?daily` ➔ Nhận lượt cứu viện\n`?huynoitu` ➔ Hủy ván chơi", inline=False)
     await ctx.send(embed=embed)
+
+@bot.command(name="thachdau")
+async def challenge_user(ctx, member: discord.Member = None):
+    if not member or member.bot or member == ctx.author: return await ctx.send("❌ Hãy tag một người chơi hợp lệ để thách đấu!")
+    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh này đang có trận đấu diễn ra!")
+    await ctx.send(content=member.mention, embed=discord.Embed(title="⚔️ LỜI THÁCH ĐẤU 1V1!", description=f"> **{ctx.author.display_name}** vừa thách đấu {member.mention}!", color=COLOR_THEME), view=ChallengeView(ctx.author, member))
 
 @bot.command(name="profile")
 async def show_profile(ctx, member: discord.Member = None):
@@ -237,65 +222,59 @@ async def show_profile(ctx, member: discord.Member = None):
     w, l, total = stats["wins"], stats["losses"], stats["total_words"]
     win_rate = round((w / (w + l) * 100), 1) if (w + l) > 0 else 0
 
-    embed = discord.Embed(title=f"💎 HỒ SƠ NGƯỜI CHƠI", color=COLOR_BLACK)
-    embed.set_thumbnail(url=target.display_avatar.url)
-    embed.add_field(name="👤 Tên Tài Khoản", value=f"**{target.display_name}**", inline=True)
+    embed = discord.Embed(title=f"💎 HỒ SƠ: {target.display_name}", color=COLOR_THEME)
+    if BANNER_URL and BANNER_URL != "URL_ANH_BANNER_CUA_BAN":
+        embed.set_thumbnail(url=target.display_avatar.url)
     embed.add_field(name="🏅 Danh Hiệu", value=f"**{get_user_title(total)}**", inline=True)
-    embed.add_field(name="\u200B", value="\u200B", inline=False)
-    embed.add_field(name="🧠 Vốn Từ (Kinh nghiệm)", value=f"```diff\n+ {total:,} từ chuẩn\n```", inline=True)
-    embed.add_field(name="⚔️ Tỉ Lệ Thắng Bot", value=f"```ini\n[ {win_rate}% ] ({w} Thắng / {l} Thua)\n```", inline=True)
+    embed.add_field(name="🧠 Vốn Từ Tích Lũy", value=f"**{total:,}** từ", inline=True)
+    embed.add_field(name="⚔️ Tỉ Lệ Thắng", value=f"**{win_rate}%** ({w} Thắng / {l} Thua)", inline=False)
     await ctx.send(embed=embed)
 
 @bot.command(name="daily")
 async def claim_daily(ctx):
     user_id, today_str = ctx.author.id, str(date.today())
-    if user_daily_claimed.get(user_id) == today_str: return await ctx.send("❌ Đừng tham lam! Bạn đã nhận thưởng hôm nay rồi.")
+    if user_daily_claimed.get(user_id) == today_str: return await ctx.send("❌ Bạn đã nhận lượt cứu viện hôm nay rồi!")
     user_hints[user_id] = 3
     user_daily_claimed[user_id] = today_str
-    
-    embed = discord.Embed(title="🎁 NHẬN THƯỞNG THÀNH CÔNG", description=f"> **{ctx.author.display_name}** đã được nạp **3 Lượt Cứu Viện** 🆘!", color=COLOR_SUCCESS)
-    embed.set_thumbnail(url=ctx.author.display_avatar.url)
-    await ctx.send(embed=embed)
+    await ctx.send(embed=discord.Embed(title="🎁 NHẬN THƯỞNG THÀNH CÔNG", description="Bạn đã nhận được quyền trợ giúp cứu viện!", color=COLOR_SUCCESS))
 
-# --- 🎮 LỆNH GAME ---
 @bot.command(name="noitu")
 async def start_game_vi(ctx):
-    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh này đang diễn ra một trận chiến rồi!")
-    word = norm(pick_random_vi_word() or random.choice(EASY_VI_WORDS))
-    games[ctx.channel.id] = {"mode": "vi", "vs_bot": False, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
-    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "NỐI TỪ TIẾNG VIỆT (MULTIPLAYER)", COLOR_BLACK, ctx.author), view=GameControlButtons(ctx.channel.id))
+    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh đang có trận đấu!")
+    word = norm(pick_random_vi_word() or "đá bóng")
+    games[ctx.channel.id] = {"mode": "vi", "vs_bot": False, "is_duel": False, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
+    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "NỐI TỪ TIẾNG VIỆT (MULTIPLAYER)"), view=GameControlButtons())
 
 @bot.command(name="noitubot")
 async def start_game_vi_bot(ctx):
-    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh này đang giao tranh rồi!")
-    word = norm(pick_random_vi_word() or random.choice(EASY_VI_WORDS))
-    games[ctx.channel.id] = {"mode": "vi", "vs_bot": True, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
-    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "NỐI TỪ TIẾNG VIỆT (VS BOT)", COLOR_PINK, ctx.author), view=GameControlButtons(ctx.channel.id))
+    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh đang có trận đấu!")
+    word = norm(pick_random_vi_word() or "đá bóng")
+    games[ctx.channel.id] = {"mode": "vi", "vs_bot": True, "is_duel": False, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
+    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "NỐI TỪ TIẾNG VIỆT (VS BOT)"), view=GameControlButtons())
 
 @bot.command(name="noitueng")
 async def start_game_en(ctx):
-    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh này đang giao tranh rồi!")
+    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh đang có trận đấu!")
     word = pick_random_en_word() or "apple"
-    games[ctx.channel.id] = {"mode": "en", "vs_bot": False, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
-    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "ENGLISH WORD CHAIN (MULTIPLAYER)", COLOR_DEEP_PINK, ctx.author), view=GameControlButtons(ctx.channel.id))
+    games[ctx.channel.id] = {"mode": "en", "vs_bot": False, "is_duel": False, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
+    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "ENGLISH WORD CHAIN (MULTIPLAYER)"), view=GameControlButtons())
 
 @bot.command(name="noituboteng")
 async def start_game_en_bot(ctx):
-    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh này đang giao tranh rồi!")
+    if ctx.channel.id in games: return await ctx.send("⚠️ Kênh đang có trận đấu!")
     word = pick_random_en_word() or "apple"
-    games[ctx.channel.id] = {"mode": "en", "vs_bot": True, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
-    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "ENGLISH WORD CHAIN (VS BOT)", COLOR_RED, ctx.author), view=GameControlButtons(ctx.channel.id))
+    games[ctx.channel.id] = {"mode": "en", "vs_bot": True, "is_duel": False, "last_word": word, "count": 1, "used_words": {word}, "history_list": [word]}
+    await ctx.send(embed=build_game_embed(games[ctx.channel.id], "ENGLISH WORD CHAIN (VS BOT)"), view=GameControlButtons())
 
 @bot.command(name="huynoitu")
 async def stop_game(ctx):
     if ctx.channel.id in games:
         del games[ctx.channel.id]
-        await ctx.message.add_reaction("✅")
-        await ctx.send(embed=discord.Embed(description="🛑 Đã đình chỉ trận đấu tại kênh này.", color=COLOR_ERROR))
+        await ctx.send(embed=discord.Embed(description="🛑 Đã hủy trận đấu tại kênh này.", color=COLOR_ERROR))
     else:
-        await ctx.send("❌ Ở đây làm gì có trận nào đang chạy mà hủy?")
+        await ctx.send("❌ Không có trận đấu nào đang diễn ra ở kênh này.")
 
-# --- 📩 XỬ LÝ LOGIC NỐI TỪ & THÔNG BÁO SAI SIÊU ĐẸP ---
+# --- 📩 XỬ LÝ SỰ KIỆN TIN NHẮN ---
 @bot.event
 async def on_message(message):
     if message.author.bot: return
@@ -305,6 +284,31 @@ async def on_message(message):
     game = games[message.channel.id]
     user_input = message.content.strip().lower()
 
+    # Xử lý chế độ 1v1
+    if game.get("is_duel"):
+        players = game["players"]
+        if message.author.id != players[game["turn_idx"]]: return
+        text = norm(user_input)
+        words = text.split()
+        prev_last = norm(game["last_word"].split()[-1])
+
+        if len(words) != 2 or words[0] != prev_last or text in game["used_words"] or not is_valid_vietnamese_word(text):
+            loser_name = message.author.display_name
+            winner_name = game["p2_name"] if game["turn_idx"] == 0 else game["p1_name"]
+            winner_id = players[1 - game["turn_idx"]]
+            update_user_stats(message.author.id, loss=True)
+            update_user_stats(winner_id, win=True)
+            await message.channel.send(embed=discord.Embed(title=f"🏆 {winner_name.upper()} CHIẾN THẮNG 1V1!", description=f"`- {loser_name} đã gõ sai từ!`", color=COLOR_SUCCESS))
+            del games[message.channel.id]
+            return
+
+        game["used_words"].add(text); game["history_list"].append(text); game["last_word"] = text; game["count"] += 1
+        update_user_stats(message.author.id, added_words=1)
+        game["turn_idx"] = 1 - game["turn_idx"]
+        await message.channel.send(embed=build_game_embed(game, "⚔️ ĐẠI CHIẾN NỐI TỪ 1V1"))
+        return
+
+    # Chế độ Tiếng Việt (Thường / Vs Bot)
     if game["mode"] == "vi":
         text = norm(user_input)
         words = text.split()
@@ -312,68 +316,46 @@ async def on_message(message):
 
         if len(words) != 2 or words[0] != prev_last or text in game["used_words"] or not is_valid_vietnamese_word(text):
             await message.add_reaction("❌")
-            # Chọn ngẫu nhiên một câu thoại cà khịa lỗi
-            funny_msg = random.choice(VI_ERROR_RESPONSES)
-            err_embed = discord.Embed(
-                title="⚠️ TỪ KHÔNG HỢP LỆ!",
-                description=f"> **{funny_msg}**\n\n📌 Từ tiếp theo bắt buộc phải bắt đầu bằng: **`{prev_last.upper()}`** (Gồm 2 âm tiết)",
-                color=COLOR_ERROR
-            )
-            return await message.reply(embed=err_embed, delete_after=7)
+            return
 
-        game["used_words"].add(text)
-        game["history_list"].append(text)
-        game["last_word"] = text
-        game["count"] += 1
+        game["used_words"].add(text); game["history_list"].append(text); game["last_word"] = text; game["count"] += 1
         update_user_stats(message.author.id, added_words=1)
         await message.add_reaction("✅")
 
         if game["vs_bot"]:
             bot_word = pick_random_vi_word(prefix=words[-1], used_words=game["used_words"])
             if bot_word:
-                game["used_words"].add(bot_word)
-                game["history_list"].append(bot_word)
-                game["last_word"] = bot_word
-                game["count"] += 1
-                await message.channel.send(embed=build_game_embed(game, "ĐẾN LƯỢT BOT ĐÁP TRẢ", COLOR_PINK, last_player_name="🤖 Trí Tuệ Nhân Tạo"), view=GameControlButtons(message.channel.id))
+                game["used_words"].add(bot_word); game["history_list"].append(bot_word); game["last_word"] = bot_word; game["count"] += 1
+                await message.channel.send(embed=build_game_embed(game, "NỐI TỪ TIẾNG VIỆT (VS BOT)", last_player_name="🤖 Bot Trí Tuệ"))
             else:
                 update_user_stats(message.author.id, win=True)
-                embed_win = discord.Embed(title="🏆 CHIẾN THẮNG ÁP ĐẢO!", description=f"```diff\n+ Bot đã cạn kiệt từ vựng trước bộ não của {message.author.display_name}!\n+ Tích lũy trận này: {game['count']} từ.\n```", color=COLOR_SUCCESS)
-                await message.channel.send(embed=embed_win)
+                await message.channel.send(embed=discord.Embed(title="🏆 BẠN ĐÃ THẮNG BOT!", description="Bot đã cạn kiệt từ vựng!", color=COLOR_SUCCESS))
                 del games[message.channel.id]
+        else:
+            await message.channel.send(embed=build_game_embed(game, "NỐI TỪ TIẾNG VIỆT", last_player_name=message.author.display_name))
 
+    # Chế độ Tiếng Anh (Thường / Vs Bot)
     elif game["mode"] == "en":
         last_char = game["last_word"][-1].lower()
         if not user_input.startswith(last_char) or user_input in game["used_words"] or not is_valid_english_word(user_input):
             await message.add_reaction("❌")
-            funny_msg_en = random.choice(EN_ERROR_RESPONSES)
-            err_embed_en = discord.Embed(
-                title="⚠️ INVALID WORD!",
-                description=f"> **{funny_msg_en}**\n\n📌 Must start with letter: **`{last_char.upper()}`**",
-                color=COLOR_ERROR
-            )
-            return await message.reply(embed=err_embed_en, delete_after=7)
+            return
 
-        game["used_words"].add(user_input)
-        game["history_list"].append(user_input)
-        game["last_word"] = user_input
-        game["count"] += 1
+        game["used_words"].add(user_input); game["history_list"].append(user_input); game["last_word"] = user_input; game["count"] += 1
         update_user_stats(message.author.id, added_words=1)
         await message.add_reaction("✅")
 
         if game["vs_bot"]:
             bot_word = pick_random_en_word(letter=user_input[-1], used_words=game["used_words"])
             if bot_word:
-                game["used_words"].add(bot_word)
-                game["history_list"].append(bot_word)
-                game["last_word"] = bot_word
-                game["count"] += 1
-                await message.channel.send(embed=build_game_embed(game, "BOT'S TURN (ENGLISH)", COLOR_RED, last_player_name="🤖 English Bot"), view=GameControlButtons(message.channel.id))
+                game["used_words"].add(bot_word); game["history_list"].append(bot_word); game["last_word"] = bot_word; game["count"] += 1
+                await message.channel.send(embed=build_game_embed(game, "ENGLISH WORD CHAIN (VS BOT)", last_player_name="🤖 English Bot"))
             else:
                 update_user_stats(message.author.id, win=True)
-                embed_win = discord.Embed(title="🏆 YOU BEAT THE SYSTEM!", description=f"```diff\n+ The bot is out of words starting with {user_input[-1].upper()}!\n+ Total streak: {game['count']} words.\n```", color=COLOR_SUCCESS)
-                await message.channel.send(embed=embed_win)
+                await message.channel.send(embed=discord.Embed(title="🏆 YOU BEAT THE BOT!", description="Bot ran out of English words!", color=COLOR_SUCCESS))
                 del games[message.channel.id]
+        else:
+            await message.channel.send(embed=build_game_embed(game, "ENGLISH WORD CHAIN", last_player_name=message.author.display_name))
 
 try: keep_alive()
 except: pass
