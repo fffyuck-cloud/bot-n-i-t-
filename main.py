@@ -12,7 +12,7 @@ from keep_alive import keep_alive
 # --- 🎨 CẤU HÌNH GIAO DIỆN & BANNER ---
 COLOR_THEME = 0xFF1493 # Hồng Cyberpunk
 
-# ⚠️ LƯU Ý: Nếu ảnh bị đen/ẩn như trong hình, bố hãy up ảnh lên Imgur.com rồi thay link có đuôi .png vào đây nhé!
+# ⚠️ LƯU Ý: Nếu ảnh bị đen/ẩn, bố hãy up ảnh lên Imgur.com rồi thay link có đuôi .png vào đây nhé!
 BANNER_URL = "https://cdn.discordapp.com/attachments/1398867543971946578/1405789128033099836/6ab3b622-3ac8-4d11-88e3-ede9d98f7f10.png" 
 
 # Custom Emoji của bạn
@@ -99,4 +99,6 @@ def build_game_embeds(game, title, last_player_name=None):
     
     used_list = list(game.get("history_list", []))
     history_str = " ➔ ".join([w.upper() for w in used_list[-5:]])
-    embed.add_field(name="📜 LỊCH SỬ TỪ VỰNG (5 GẦN NHẤT)", value=f"```fix\n{history_str}\n
+    
+    # Đã fix dòng 102 ở đây, ghép chuỗi thủ công để tránh lỗi SyntaxError
+    embed.add_field(name="📜 LỊCH SỬ TỪ VỰNG (5 GẦN NHẤT)", value="```fix\n" + history_str + "\n
