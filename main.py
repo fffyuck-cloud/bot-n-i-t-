@@ -1,8 +1,6 @@
 import os
 import ssl
-import json
 import urllib.request
-import urllib.parse
 import random
 import re
 import unicodedata
@@ -27,42 +25,49 @@ def norm(text: str) -> str:
 FALLBACK_VI_WORDS = [
     "đá banh", "đá bóng", "bàn học", "học sinh", "sinh viên", "viên bi", "bi ao",
     "ao cá", "cá chép", "chép phạt", "phạt góc", "học bài", "thể thao", "bóng đá",
-    "ao làng", "làng quê", "quê hương", "hương thơm", "thơm ngon", "ngon ngọt"
+    "ao làng", "làng quê", "quê hương", "hương thơm", "thơm ngon", "ngon ngọt",
+    "ngon lành", "lành lặn", "lặn lội", "lội nước", "nước trong", "trong xanh"
 ]
 
-# --- 📚 TẢI TỪ ĐIỂN TIẾNG VIỆT & ANH ---
+# --- 📚 TẢI TỪ ĐIỂN (CÓ HỆ THỐNG RETRY CHỐNG LỖI MẠNG) ---
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     words_vi = set(norm(w) for w in FALLBACK_VI_WORDS)
     
-    try:
-        req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
-            for line in response.read().decode('utf-8', errors='ignore').splitlines():
-                word = norm(line.replace("_", " "))
-                if word and len(word.split()) == 2: 
-                    words_vi.add(word)
-    except Exception as e:
-        print(f"⚠️ Dùng từ điển dự phòng VN: {e}")
+    # Cố gắng tải từ điển Tiếng Việt tối đa 3 lần
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, context=ctx, timeout=15) as response:
+                for line in response.read().decode('utf-8', errors='ignore').splitlines():
+                    word = norm(line.replace("_", " "))
+                    if word and len(word.split()) == 2: 
+                        words_vi.add(word)
+            print(f"✅ Đã nạp {len(words_vi):,} từ Tiếng Việt thành công!")
+            break # Tải thành công thì thoát vòng lặp
+        except Exception as e:
+            print(f"⚠️ Lần {attempt + 1} tải từ điển TV bị lỗi mạng: {e}")
 
+    # Cố gắng tải từ điển Tiếng Anh
     words_en = set()
-    try:
-        req = urllib.request.Request("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt", headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=12) as response:
-            for line in response.read().decode('utf-8', errors='ignore').splitlines():
-                w = line.strip().lower()
-                if len(w) >= 2 and w.isalpha(): 
-                    words_en.add(w)
-    except Exception as e:
-        print(f"⚠️ Lỗi tải từ điển Anh: {e}")
-        
-    print(f"✅ Đã nạp: {len(words_vi):,} từ TV | {len(words_en):,} từ TA.")
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt", headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, context=ctx, timeout=15) as response:
+                for line in response.read().decode('utf-8', errors='ignore').splitlines():
+                    w = line.strip().lower()
+                    if len(w) >= 2 and w.isalpha(): 
+                        words_en.add(w)
+            print(f"✅ Đã nạp {len(words_en):,} từ Tiếng Anh thành công!")
+            break
+        except Exception as e:
+            print(f"⚠️ Lỗi tải từ điển Anh lần {attempt + 1}: {e}")
+            
     return words_vi, words_en
 
 dictionary_vi, dictionary_en = prepare_dictionaries()
-VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
+VN_CHARS_REGEX = re.compile(r'^[a-zàáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờờớởỡợùúủũụưừứửữựỳýỷỹỵđ\s]+$')
 
-# Vừa fix: Chỉ kiểm tra đúng 2 từ và là chữ VN hợp lệ, không ép người chơi phải nhập đúng từ trong từ điển nữa
 def is_valid_vietnamese_word(text):
     text_clean = norm(text)
     return len(text_clean.split()) == 2 and bool(VN_CHARS_REGEX.match(text_clean))
@@ -132,7 +137,7 @@ async def custom_help(ctx):
     
     embed.add_field(name="🇻🇳 NỐI TỪ TIẾNG VIỆT", value="`?noitu` ➔ Chơi chung kênh\n`?noitubot` ➔ Solo với Bot", inline=True)
     embed.add_field(name="🇬🇧 NỐI TỪ TIẾNG ANH", value="`?noitueng` ➔ Chơi chung kênh\n`?noituboteng` ➔ Solo với Bot", inline=True)
-    embed.add_field(name="⚙️ QUẢN LÝ TRẬN ĐẤU", value="`?huynoitu` ➔ Hủy ván chơi hiện tại\n`?nghia [từ]` ➔ Tra nghĩa từ điển Anh", inline=False)
+    embed.add_field(name="⚙️ QUẢN LÝ TRẬN ĐẤU", value="`?huynoitu` ➔ Hủy ván chơi hiện tại", inline=False)
     await ctx.send(embed=embed)
 
 @bot.command(name="huynoitu")
@@ -188,7 +193,6 @@ async def on_message(message):
         words = text.split()
         prev_last = norm(game["last_word"].split()[-1])
 
-        # Luật mới: Yêu cầu đúng 2 từ, chữ đầu khớp, chưa được dùng và là ký tự VN hợp lệ
         if len(words) != 2 or words[0] != prev_last or text in game["used_words"] or not is_valid_vietnamese_word(text):
             await message.add_reaction(EMOJI_CROSS)
             return
@@ -208,9 +212,15 @@ async def on_message(message):
                 game["count"] += 1
                 await message.channel.send(embed=build_game_embed(game, "NỐI TỪ TIẾNG VIỆT (VS BOT)", last_player_name="🤖 Bot Trí Tuệ"))
             else:
-                embed = discord.Embed(title="🏆 BẠN ĐÃ CHIẾN THẮNG BOT!", description="Bot đã cạn kiệt từ vựng tiếng Việt có thể nối tiếp!", color=0x57F287)
-                embed.set_image(url=BANNER_URL)
-                await message.channel.send(embed=embed)
+                # BẢNG THÔNG BÁO CHIẾN THẮNG ĐƯỢC NÂNG CẤP XỊN HƠN + CÓ BANNER
+                win_embed = discord.Embed(
+                    title="🏆 BẠN ĐÃ CHIẾN THẮNG BOT!", 
+                    description=f"> Bot đã cạn kiệt từ vựng và không thể tìm ra từ nào bắt đầu bằng chữ **`{words[-1].upper()}`** để nối tiếp!\n\n**Từ chốt hạ của bạn:** `{text.upper()}`", 
+                    color=0x57F287
+                )
+                win_embed.set_image(url=BANNER_URL)
+                win_embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1086/1086088.png") # Cúp vàng
+                await message.channel.send(embed=win_embed)
                 del games[message.channel.id]
         else:
             await message.channel.send(embed=build_game_embed(game, "NỐI TỪ TIẾNG VIỆT", last_player_name=message.author.display_name))
@@ -236,9 +246,15 @@ async def on_message(message):
                 game["count"] += 1
                 await message.channel.send(embed=build_game_embed(game, "ENGLISH WORD CHAIN (VS BOT)", last_player_name="🤖 English Bot"))
             else:
-                embed = discord.Embed(title="🏆 YOU BEAT THE BOT!", description="The Bot ran out of English words!", color=0x57F287)
-                embed.set_image(url=BANNER_URL)
-                await message.channel.send(embed=embed)
+                # BẢNG THÔNG BÁO CHIẾN THẮNG TIẾNG ANH
+                win_embed = discord.Embed(
+                    title="🏆 YOU BEAT THE BOT!", 
+                    description=f"> The Bot ran out of English words starting with **`{user_input[-1].upper()}`**!\n\n**Your winning word:** `{user_input.upper()}`", 
+                    color=0x57F287
+                )
+                win_embed.set_image(url=BANNER_URL)
+                win_embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1086/1086088.png")
+                await message.channel.send(embed=win_embed)
                 del games[message.channel.id]
         else:
             await message.channel.send(embed=build_game_embed(game, "ENGLISH WORD CHAIN", last_player_name=message.author.display_name))
