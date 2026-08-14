@@ -129,13 +129,46 @@ async def on_ready():
 
 @bot.command(name="help")
 async def help_cmd(ctx):
-    embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ✦", color=0xFF007F)
-    embed.description = "💬 **Word Chain Ultimate Bot**\nHỗ trợ kho từ vựng khổng lồ Tiếng Việt & Tiếng Anh, chế độ chơi chung hoặc Solo Bot!"
-    embed.add_field(name="🇻🇳 NỐI TỪ TIẾNG VIỆT", value="`?noitu` hoặc `?noitu vi` → Chơi chung kênh\n`?noituubot` → Solo với Bot", inline=False)
-    embed.add_field(name="🇬🇧 NỐI TỪ TIẾNG ANH", value="`?noitu en` hoặc `?noitueng` → Chơi chung kênh\n`?noituuboteng` → Solo với Bot", inline=False)
-    embed.add_field(name="⚙️ QUẢN LÝ TRẬN ĐẤU", value="`?huynoitu` → Hủy ván chơi hiện tại\n`?nghia [từ]` → Tra nghĩa từ điển Anh", inline=False)
-    embed.add_field(name="📊 HỆ THỐNG CÁ NHÂN", value="`?rank` → Xem thẻ rank\n`?daily` → Điểm danh nhận quà", inline=False)
-    embed.set_footer(text="Hệ thống bot tối ưu hóa tuyệt đối cho dân chơi")
+    embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ULTIMATE ✦", color=0xFF007F)
+    embed.description = (
+        "💬 **Word Chain Ultimate Bot Core**\n"
+        "Chào mừng các dân chơi đã truy cập vào hệ thống trò chơi trí tuệ đỉnh cao nhất server. "
+        "Bot được tích hợp kho từ vựng khổng lồ cả tiếng Việt lẫn tiếng Anh, hỗ trợ đa chế độ từ chiến đấu tập thể đến solo khô máu với AI.\n"
+        "Hãy tham khảo chi tiết toàn bộ danh sách lệnh vận hành dưới đây để làm chủ cuộc chơi!"
+    )
+    embed.add_field(
+        name="🇻🇳 HỆ THỐNG NỐI TỪ TIẾNG VIỆT",
+        value=(
+            "• `?noitu` hoặc `?noitu vi` → Khởi động bàn đấu chung tiếng Việt (quy chuẩn 2 từ).\n"
+            "• `?noituubot` → Thách đấu solo trực tiếp với AI thông minh ở thể loại tiếng Việt."
+        ),
+        inline=False
+    )
+    embed.add_field(
+        name="🇬🇧 HỆ THỐNG NỐI TỪ TIẾNG ANH",
+        value=(
+            "• `?noitu en` (hoặc `?noitu eng`) → Khởi động bàn đấu chung tiếng Anh chuẩn quốc tế.\n"
+            "• `?noituuboteng` → Thách đấu solo trực tiếp với AI thông minh ở thể loại tiếng Anh."
+        ),
+        inline=False
+    )
+    embed.add_field(
+        name="⚙️ QUẢN LÝ TRẬN ĐẤU & TRA CỨU",
+        value=(
+            "• `?huynoitu` → Hủy bỏ ngay lập tức ván đấu đang diễn ra trong kênh hiện tại.\n"
+            "• `?nghia [từ]` → Tra cứu từ điển Anh chi tiết để kiểm tra tính hợp lệ của từ vựng."
+        ),
+        inline=False
+    )
+    embed.add_field(
+        name="📊 HỆ THỐNG CÁ NHÂN HÓA & XQ",
+        value=(
+            "• `?rank [tag]` → Hiển thị thẻ cấp độ, thanh tiến trình XP và thứ hạng siêu đẹp.\n"
+            "• `?daily` → Điểm danh hằng ngày nhận phần thưởng nóng hổi để đua top."
+        ),
+        inline=False
+    )
+    embed.set_footer(text="Hệ thống vận hành mượt mà 24/7 • Chúc các dân chơi có những giây phút đấu trí bùng nổ!")
     await ctx.send(embed=embed)
 
 @bot.command(name="rank")
@@ -144,12 +177,16 @@ async def rank_cmd(ctx, member: discord.Member = None):
     data = get_user_data(member.id)
     file = await create_rank_card(member, data)
     
-    embed = discord.Embed(title=f"📊 THÔNG TIN RANK CỦA {member.display_name.upper()}", color=0xFF007F)
-    embed.description = f"Dân chơi đang có chuỗi hoạt động cực kỳ năng suất trong server, hãy xem chi tiết thông số bên dưới thẻ rank"
-    embed.add_field(name="Cấp độ hiện tại", value=f"Level {data['level']}", inline=True)
-    embed.add_field(name="Thứ hạng server", value=f"Rank #{data['rank']}", inline=True)
-    embed.add_field(name="Điểm kinh nghiệm", value=f"{data['xp']} XP", inline=True)
-    embed.set_footer(text="Tiếp tục tương tác và nối từ để cày cuốc lên các mốc level cao hơn nữa nhé")
+    embed = discord.Embed(title=f"📊 HỒ SƠ XẾP HẠNG CÁ NHÂN: {member.display_name.upper()}", color=0xFF007F)
+    embed.description = (
+        f"Hồ sơ năng lực của thành viên {member.mention} trong hệ thống trò chơi nối từ.\n"
+        "Toàn bộ thông số cấp độ, kinh nghiệm và vị thế trên bảng vàng server được tổng hợp chi tiết dưới thẻ hình ảnh."
+    )
+    embed.add_field(name="⭐ Cấp Độ (Level)", value=f"Level **{data['level']}**", inline=True)
+    embed.add_field(name="🏆 Thứ Hạng Server", value=f"Rank **#{data['rank']}**", inline=True)
+    embed.add_field(name="⚡ Tổng Kinh Nghiệm", value=f"**{data['xp']}** XP", inline=True)
+    embed.add_field(name="🔥 Chuỗi Hoạt Động", value=f"**{data['streak']}** ngày liên tục", inline=True)
+    embed.set_footer(text="Tiếp tục tích cực tham gia nối từ và tương tác để gia tăng điểm XP lên các cấp cao hơn!")
     
     await ctx.send(embed=embed, file=file)
 
@@ -170,15 +207,24 @@ async def daily_cmd(ctx):
         
     file = await create_daily_card(ctx.author, reward, claimed)
     
-    embed = discord.Embed(title="🎁 HỆ THỐNG ĐIỂM DANH QUÀ TẶNG HẰNG NGÀY", color=0x57F287 if claimed else 0xED4245)
+    embed = discord.Embed(
+        title="🎁 TRUNG TÂM ĐIỂM DANH QUÀ TẶNG HẰNG NGÀY", 
+        color=0x57F287 if claimed else 0xED4245
+    )
     if claimed:
-        embed.description = f"Điểm danh thành công rực rỡ, húp trọn phần thưởng nóng hổi vào tài khoản"
-        embed.add_field(name="Phần thưởng nhận được", value=f"+{reward} XP", inline=True)
-        embed.add_field(name="Chuỗi điểm danh liên tục", value=f"{data['streak']} ngày", inline=True)
+        embed.description = (
+            f"🎉 Chúc mừng {ctx.author.mention} đã điểm danh thành công phiên làm việc hôm nay!\n"
+            "Phần thưởng kinh nghiệm nóng hổi đã được chuyển trực tiếp vào tài khoản cá nhân."
+        )
+        embed.add_field(name="💰 Quà Tặng Nhận Được", value=f"+**{reward}** XP", inline=True)
+        embed.add_field(name="📈 Chuỗi Điểm Danh", value=f"**{data['streak']}** ngày", inline=True)
     else:
-        embed.description = f"Hôm nay điểm danh rồi còn đòi húp nữa à, đợi tròn 24 tiếng rồi quay lại đây nhận quà tiếp nhé"
-        embed.add_field(name="Trạng thái", value="Đã điểm danh trong vòng 24h qua", inline=False)
-    embed.set_footer(text="Duy trì chuỗi điểm danh đều đặn mỗi ngày để nhận quà khủng nhân lên gấp bội")
+        embed.description = (
+            f"⚠️ Bình tĩnh nào {ctx.author.mention} ơi! Bạn đã nhận quà điểm danh trong vòng 24 giờ qua rồi.\n"
+            "Hãy kiên nhẫn chờ đủ thời gian để quay lại nhận các phần quà giá trị tiếp theo nhé."
+        )
+        embed.add_field(name="⏱️ Trạng Thái", value="Đang trong thời gian hồi (Cooldown 24h)", inline=False)
+    embed.set_footer(text="Duy trì điểm danh đều đặn mỗi ngày giúp hệ số nhân phần thưởng của bạn tăng vọt!")
     
     icon = TICK if claimed else CROSS
     await ctx.send(f"{icon} Yêu cầu từ {ctx.author.mention}", embed=embed, file=file)
@@ -188,19 +234,40 @@ async def start_noitu(ctx, mode: str = "vi"):
     if ctx.channel.id in games: 
         return await ctx.send("kênh đang có ván chơi rồi")
     mode = mode.lower()
-    if mode in ["en", "english", "noitueng"]:
+    
+    if mode in ["en", "english", "eng", "noitueng"]:
         word = "apple"
         games[ctx.channel.id] = {"mode": "en_multi", "last_word": word, "used_words": {word}}
-        embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH ĐÃ BẮT ĐẦU", color=0xFF007F)
-        embed.description = f"Chế độ chơi chung kênh tiếng Anh chính thức kích hoạt\nTừ khóa khởi đầu hệ thống cung cấp:\n\n👉 **`{word.upper()}`**\n\nMọi người mau chóng nhập từ tiếp theo bắt đầu bằng chữ cái **{word[-1].upper()}**"
-        embed.set_footer(text="Luật chơi nghiêm ngặt không chấp nhận từ trùng lặp hoặc từ không có trong từ điển")
+        embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH ĐÃ ĐƯỢC KHỞI TẠO", color=0xFF007F)
+        embed.description = (
+            "🔥 **SÀN ĐẤU NGÔN NGỮ QUỐC TẾ CHÍNH THỨC KHAI MẠC** 🔥\n\n"
+            "Chế độ chơi chung kênh tiếng Anh đã kích hoạt thành công!\n"
+            "Mọi người cùng nhau tập trung, huy động toàn bộ vốn từ vựng phong phú để tiếp nối chuỗi từ.\n\n"
+            f"🎯 **TỪ KHÓA KHỞI ĐẦU TỪ HỆ THỐNG:**\n"
+            f"👉 **`{word.upper()}`**\n\n"
+            f"⚡ Quy tắc: Nhập từ tiếng Anh tiếp theo bắt đầu bằng ký tự **{word[-1].upper()}**"
+        )
+        embed.add_field(name="📌 Thể Thức", value="Multiplayer (Nhiều người chơi)", inline=True)
+        embed.add_field(name="🎁 Điểm Thưởng", value="+25 XP mỗi từ đúng", inline=True)
+        embed.add_field(name="🛡️ Bộ Lọc", value="Kiểm tra từ điển Alpha chuẩn xác", inline=True)
+        embed.set_footer(text="Hãy chắc chắn từ của bạn có trong từ điển và chưa từng được sử dụng trước đó!")
         await ctx.send(embed=embed)
     else:
         word = "đá bóng"
         games[ctx.channel.id] = {"mode": "vi_multi", "last_word": word, "used_words": {word}}
-        embed = discord.Embed(title="🇻🇳 TRẬN ĐẤU NỐI TỪ TIẾNG VIỆT ĐÃ BẮT ĐẦU", color=0xFF007F)
-        embed.description = f"Chế độ chơi chung kênh tiếng Việt chính thức kích hoạt\nTừ khóa khởi đầu hệ thống cung cấp:\n\n👉 **`{word.upper()}`**\n\nMọi người mau chóng nhập từ tiếp theo bắt đầu bằng âm tiết **{word.split()[-1].upper()}**"
-        embed.set_footer(text="Luật chơi chuẩn mực yêu cầu đúng định dạng 2 từ có nghĩa trong từ điển tiếng việt")
+        embed = discord.Embed(title="🇻🇳 TRẬN ĐẤU NỐI TỪ TIẾNG VIỆT ĐÃ ĐƯỢC KHỞI TẠO", color=0xFF007F)
+        embed.description = (
+            "🔥 **SÀN ĐẤU TIẾNG MẸ ĐẺ CHÍNH THỨC KHAI MẠC** 🔥\n\n"
+            "Chế độ chơi chung kênh tiếng Việt đã kích hoạt thành công!\n"
+            "Sẵn sàng tranh tài cao thấp, flex vốn từ phong phú cùng đồng đội trong server ngay lập tức.\n\n"
+            f"🎯 **TỪ KHÓA KHỞI ĐẦU TỪ HỆ THỐNG:**\n"
+            f"👉 **`{word.upper()}`**\n\n"
+            f"⚡ Quy tắc: Nhập cụm từ 2 tiếng tiếp theo bắt đầu bằng âm tiết **{word.split()[-1].upper()}**"
+        )
+        embed.add_field(name="📌 Thể Thức", value="Multiplayer (Nhiều người chơi)", inline=True)
+        embed.add_field(name="🎁 Điểm Thưởng", value="+25 XP mỗi từ đúng", inline=True)
+        embed.add_field(name="🛡️ Bộ Lọc", value="Kho từ vựng tiếng Việt kiểm duyệt khắt khe", inline=True)
+        embed.set_footer(text="Định dạng bắt buộc: Đúng 2 từ có nghĩa, không chơi từ lóng hoặc sai chính tả!")
         await ctx.send(embed=embed)
 
 @bot.command(name="noituubot")
@@ -208,9 +275,18 @@ async def start_game_vi_bot(ctx):
     if ctx.channel.id in games: return await ctx.send("kênh đang có ván chơi rồi")
     word = "đá bóng"
     games[ctx.channel.id] = {"mode": "vi_bot", "last_word": word, "used_words": {word}}
-    embed = discord.Embed(title="🤖 SOLO KHÔ MÁU VỚI BOT TIẾNG VIỆT", color=0xFF007F)
-    embed.description = f"Người chơi đã bật chế độ thách đấu trực tiếp với hệ thống AI\nTừ khóa mở màn từ tổng đài:\n\n👉 **`{word.upper()}`**\n\nHãy tung chiêu nối tiếp ngay lập tức để đè bẹp con bot này"
-    embed.set_footer(text="Con bot sẽ phản đòn tự động ngay sau khi nhận được từ hợp lệ từ bạn")
+    embed = discord.Embed(title="🤖 THÁCH ĐẤU AI: SOLO TIẾNG VIỆT KHÔ MÁU", color=0xFF007F)
+    embed.description = (
+        "⚔️ **CHẾ ĐỘ ĐƠN ĐẢ ĐỘC MÃ CHIẾN ĐẤU TRỰC TIẾP VỚI HỆ THỐNG AI** ⚔️\n\n"
+        "Bạn đã tự tin bước vào lôi đài đối đầu 1v1 với con bot siêu trí tuệ tiếng Việt.\n"
+        "Hãy tung chiêu thật nhanh và chính xác để không bị con bot bắt bẻ gục ngã.\n\n"
+        f"🎯 **TỪ KHÓA MỞ MÀN TỪ TỔNG ĐÀI:**\n"
+        f"👉 **`{word.upper()}`**\n\n"
+        f"⚡ Âm tiết phản đòn tiếp theo bắt đầu bằng: **{word.split()[-1].upper()}**"
+    )
+    embed.add_field(name="🎯 Chế Độ", value="Solo vs Bot (Tiếng Việt)", inline=True)
+    embed.add_field(name="⚡ Tốc Độ Phản Hồi", value="Tức thì ngay lập tức", inline=True)
+    embed.set_footer(text="Bot sẽ tự động đáp trả ngay sau mỗi câu lệnh hợp lệ từ bạn. Cẩn thận hết từ nhé!")
     await ctx.send(embed=embed)
 
 @bot.command(name="noitueng")
@@ -218,9 +294,19 @@ async def start_game_en(ctx):
     if ctx.channel.id in games: return await ctx.send("kênh đang có ván chơi rồi")
     word = "apple"
     games[ctx.channel.id] = {"mode": "en_multi", "last_word": word, "used_words": {word}}
-    embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH ĐÃ BẮT ĐẦU", color=0xFF007F)
-    embed.description = f"Chế độ chơi chung kênh tiếng Anh chính thức kích hoạt\nTừ khóa khởi đầu hệ thống cung cấp:\n\n👉 **`{word.upper()}`**\n\nMọi người mau chóng nhập từ tiếp theo bắt đầu bằng chữ cái **{word[-1].upper()}**"
-    embed.set_footer(text="Luật chơi nghiêm ngặt không chấp nhận từ trùng lặp hoặc từ không có trong từ điển")
+    embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH ĐÃ ĐƯỢC KHỞI TẠO", color=0xFF007F)
+    embed.description = (
+        "🔥 **SÀN ĐẤU NGÔN NGỮ QUỐC TẾ CHÍNH THỨC KHAI MẠC** 🔥\n\n"
+        "Chế độ chơi chung kênh tiếng Anh đã kích hoạt thành công!\n"
+        "Mọi người cùng nhau tập trung, huy động toàn bộ vốn từ vựng phong phú để tiếp nối chuỗi từ.\n\n"
+        f"🎯 **TỪ KHÓA KHỞI ĐẦU TỪ HỆ THỐNG:**\n"
+        f"👉 **`{word.upper()}`**\n\n"
+        f"⚡ Quy tắc: Nhập từ tiếng Anh tiếp theo bắt đầu bằng ký tự **{word[-1].upper()}**"
+    )
+    embed.add_field(name="📌 Thể Thức", value="Multiplayer (Nhiều người chơi)", inline=True)
+    embed.add_field(name="🎁 Điểm Thưởng", value="+25 XP mỗi từ đúng", inline=True)
+    embed.add_field(name="🛡️ Bộ Lọc", value="Kiểm tra từ điển Alpha chuẩn xác", inline=True)
+    embed.set_footer(text="Hãy chắc chắn từ của bạn có trong từ điển và chưa từng được sử dụng trước đó!")
     await ctx.send(embed=embed)
 
 @bot.command(name="noituuboteng")
@@ -228,9 +314,18 @@ async def start_game_en_bot(ctx):
     if ctx.channel.id in games: return await ctx.send("kênh đang có ván chơi rồi")
     word = "apple"
     games[ctx.channel.id] = {"mode": "en_bot", "last_word": word, "used_words": {word}}
-    embed = discord.Embed(title="🤖 SOLO KHÔ MÁU VỚI BOT TIẾNG ANH", color=0xFF007F)
-    embed.description = f"Người chơi đã bật chế độ thách đấu trực tiếp với hệ thống AI ngôn ngữ quốc tế\nTừ khóa mở màn từ tổng đài:\n\n👉 **`{word.upper()}`**\n\nHãy tung chiêu nối tiếp ngay lập tức để đè bẹp con bot này"
-    embed.set_footer(text="Con bot tiếng anh sẽ phản đòn tự động ngay sau khi nhận được từ hợp lệ từ bạn")
+    embed = discord.Embed(title="🤖 THÁCH ĐẤU AI: SOLO TIẾNG ANH KHÔ MÁU", color=0xFF007F)
+    embed.description = (
+        "⚔️ **CHẾ ĐỘ ĐƠN ĐẢ ĐỘC MÃ CHIẾN ĐẤU TRỰC TIẾP VỚI HỆ THỐNG AI** ⚔️\n\n"
+        "Bạn đã tự tin bước vào lôi đài đối đầu 1v1 với con bot siêu trí tuệ quốc tế tiếng Anh.\n"
+        "Hãy tung từ vựng ngoại ngữ thật chuẩn xác để áp đảo đối thủ máy móc này.\n\n"
+        f"🎯 **TỪ KHÓA MỞ MÀN TỪ TỔNG ĐÀI:**\n"
+        f"👉 **`{word.upper()}`**\n\n"
+        f"⚡ Ký tự phản đòn tiếp theo bắt đầu bằng: **{word[-1].upper()}**"
+    )
+    embed.add_field(name="🎯 Chế Độ", value="Solo vs Bot (Tiếng Anh)", inline=True)
+    embed.add_field(name="⚡ Tốc Độ Phản Hồi", value="Tức thì ngay lập tức", inline=True)
+    embed.set_footer(text="Bot tiếng Anh sẵn sàng tiếp chiêu bất cứ lúc nào bạn ra từ!")
     await ctx.send(embed=embed)
 
 @bot.command(name="huynoitu")
@@ -238,35 +333,52 @@ async def stop_game(ctx):
     if ctx.channel.id in games:
         del games[ctx.channel.id]
         embed = discord.Embed(title="⚙️ HỦY BỎ TRẬN ĐẤU THÀNH CÔNG", color=0xED4245)
-        embed.description = f"Trận đấu hiện tại trong kênh này đã bị ban quản trị hủy bỏ hoàn toàn theo yêu cầu"
-        embed.set_footer(text="Mọi dữ liệu từ vựng của ván vừa rồi đã được xóa sạch sẽ khỏi bộ nhớ tạm")
+        embed.description = (
+            "🛑 **PHIÊN TRẬN ĐẤU ĐÃ ĐƯỢC KẾT THÚC CƯỠNG BỨC**\n\n"
+            "Theo yêu cầu của ban quản trị/người chơi, ván đấu nối từ trong kênh này đã bị giải tán hoàn toàn.\n"
+            "Toàn bộ bộ nhớ tạm về từ vựng đã được làm sạch sẽ."
+        )
+        embed.add_field(name="📌 Trạng Thái Kênh", value="Đã sẵn sàng khởi tạo ván mới bất cứ lúc nào", inline=False)
+        embed.set_footer(text="Sử dụng lệnh ?noitu hoặc ?noitueng để mở bàn đấu mới khi cần.")
         await ctx.send(embed=embed)
     else:
-        embed = discord.Embed(title="⚠️ KHÔNG TÌM THẤY TRẬN ĐẤU NÀO", color=0xFEE75C)
-        embed.description = f"Kênh này hiện tại làm gì có ván nối từ nào đang chạy mà đòi hủy với bỏ"
-        embed.set_footer(text="Hãy khởi động một ván mới trước khi muốn hủy trận đấu nhé")
+        embed = discord.Embed(title="⚠️ CẢNH BÁO: KHÔNG CÓ TRẬN ĐẤU NÀO", color=0xFEE75C)
+        embed.description = (
+            "🔍 Kênh chat này hiện tại làm gì có ván nối từ nào đang chạy mà bạn lại đòi hủy bỏ?\n"
+            "Hãy chắc chắn rằng một trận đấu đang diễn ra trước khi gọi lệnh hủy nhé."
+        )
+        embed.set_footer(text="Mọi thắc mắc vui lòng kiểm tra lại tình trạng kênh hiện tại.")
         await ctx.send(embed=embed)
 
 @bot.command(name="nghia")
 async def nghia_cmd(ctx, word: str = None):
     if not word: 
-        embed = discord.Embed(title="⚠️ THIẾU THÔNG TIN TỪ KHÓA", color=0xFEE75C)
-        embed.description = f"Ông giáo muốn tra cái gì thì phải gõ kèm từ đó vào chứ, ví dụ `?nghia apple` đi chứ lị"
-        embed.set_footer(text="Hệ thống tra cứu từ điển thông minh")
+        embed = discord.Embed(title="⚠️ THIẾU THÔNG TIN TỪ KHÓA TRA CỨU", color=0xFEE75C)
+        embed.description = (
+            "📌 Bạn muốn tra nghĩa từ nào thì phải gõ kèm từ đó theo cú pháp chuẩn chứ!\n\n"
+            "👉 Ví dụ mẫu: `?nghia apple` hoặc `?nghia computer`"
+        )
+        embed.set_footer(text="Hệ thống từ điển thông minh hỗ trợ tra cứu trực tuyến.")
         return await ctx.send(embed=embed)
         
     w = word.strip().lower()
     if w in dictionary_en:
-        embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN THÀNH CÔNG", color=0x57F287)
-        embed.description = f"Từ khóa **`{w}`** hoàn toàn hợp lệ và có mặt trong kho tàng từ điển tiếng Anh chuẩn quốc tế"
-        embed.add_field(name="Trạng thái từ vựng", value="Được công nhận chính thức", inline=False)
-        embed.set_footer(text="Có thể tự tin sử dụng từ này trong các ván nối từ tiếng anh sắp tới")
+        embed = discord.Embed(title="📖 KẾT QUẢ TRA CỨU TỪ ĐIỂN: THÀNH CÔNG", color=0x57F287)
+        embed.description = (
+            f"🎉 Từ khóa **`{w}`** hoàn toàn hợp lệ và có mặt trong cơ sở dữ liệu từ điển tiếng Anh chuẩn!\n\n"
+            "Bạn có thể hoàn toàn tự tin sử dụng từ này trong các ván đấu nối từ quốc tế."
+        )
+        embed.add_field(name="✅ Tình Trạng", value="Hợp lệ - Được hệ thống công nhận", inline=False)
+        embed.set_footer(text="Tra cứu nhanh chóng, chính xác tuyệt đối 100%.")
         await ctx.send(embed=embed)
     else:
-        embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN THẤT BẠI", color=0xED4245)
-        embed.description = f"Từ khóa **`{w}`** tuyệt đối không tìm thấy trong hệ thống từ điển tiếng Anh"
-        embed.add_field(name="Trạng thái từ vựng", value="Không tồn tại hoặc sai chính tả", inline=False)
-        embed.set_footer(text="Hãy kiểm tra lại kỹ lưỡng các ký tự trước khi đem ra đấu trí nhé")
+        embed = discord.Embed(title="📖 KẾT QUẢ TRA CỨU TỪ ĐIỂN: THẤT BẠI", color=0xED4245)
+        embed.description = (
+            f"❌ Từ khóa **`{w}`** tuyệt đối KHÔNG tìm thấy trong hệ thống từ điển tiếng Anh!\n\n"
+            "Có thể từ này không tồn tại, sai chính tả hoặc thuộc từ lóng không được hệ thống chuẩn hóa."
+        )
+        embed.add_field(name="⚠️ Tình Trạng", value="Không tồn tại trong từ điển chuẩn", inline=False)
+        embed.set_footer(text="Hãy kiểm tra lại kỹ lưỡng từng ký tự trước khi đem ra thi đấu nhé.")
         await ctx.send(embed=embed)
 
 @bot.event
