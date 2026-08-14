@@ -129,4 +129,4 @@ def build_game_embed(game, title, color, author_user=None, last_player_name=None
     # 📜 Box Lịch sử dùng Markdown `fix` (Màu vàng bắt mắt)
     used_list = list(game.get("history_list", []))
     history_str = " ➔ ".join([w.upper() for w in used_list[-5:]])
-    embed.add_field(name="╭━━━━━━━━ 📜 DÒNG CHẢY TỪ VỰNG ━━━━━━━━╮", value=f"```fix\n{history_str}\n
+    embed.add_field(name="╭━━━━━━━━ 📜 DÒNG CHẢY TỪ VỰNG ━━━━━━━━╮", value=f"```fix\n{history_str}\n```", inline=False)
