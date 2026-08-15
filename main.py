@@ -45,7 +45,7 @@ def prepare_dictionaries():
         "thái độ", "độ ẩm", "ẩm thực", "thực phẩm", "phẩm chất", "chất lượng", "lượng từ",
         "từ vựng", "phát triển", "triển khai", "khai thác", "thác nước", "nước ngọt",
         "ngọt ngào", "ngào ngạt", "ngạt thở", "thở dài", "dài lâu", "lâu đời", "đời sống",
-        "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", "th thanh niên",
+        "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", "thanh niên",
         "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn",
         "bùn lầy", "lầy lội", "lội nước", "nước mắt", "mắt cá", "cá tính",
         "tính cách", "cách mạng", "mạng lưới", "lưới cá", "cá mập", "mập mạp",
@@ -76,22 +76,9 @@ def prepare_dictionaries():
         "tiêu cực", "kỳ diệu", "kỳ quan", "quan sát", "phạt đền", "đền ơn", "ơn huệ",
         "ơn nghĩa", "nghĩa vụ", "vụ án", "án mạng", "mạng sống", "sống chết", "mỏ neo",
         "neo đậu", "đậu phộng", "rang lạc", "lạc quan", "quan hệ", "hệ trọng",
-        "trọng điểm", "điểm hẹn", "hẹn hò", "hò hét", "đẹp đẽ", "gọt giũa", "chữ nghĩa",
-        "nghĩa tình", "tình cảm", "cảm xúc", "động đất", "đất liền", "mạch lạc",
-        "lạc hậu", "hậu cần", "cần cù", "lao động", "động viên", "viên mãn", "mãn nguyện",
-        "nguyện vọng", "vọng tưởng", "tưởng nhớ", "nhớ nhung", "nhung lụa", "lụa là",
-        "đà điểu", "thú vật", "vật chất", "thảo nguyên", "nguyên thủy", "thủy triều",
-        "triều đại", "đại dương", "gian nan", "giải quyết", "quyết tâm", "tâm huyết",
-        "huyết mạch", "đập phá", "phá hoại", "hoại tử", "vong thân", "thân thiết",
-        "thiết thực", "thực tế", "sinh hoạt", "hoạt động", "tĩnh lặng", "lặng lẽ",
-        "lẽ phải", "phải trái", "trái đất", "đất trời", "trời mây", "qua đời",
-        "đời thuở", "thuở xưa", "xưa nay", "nay mai", "mai sau", "sau này", "quý tử",
-        "tử hình", "hình phạt", "vạ lây", "lây lan", "lan tràn", "ngập tràn", "tràn lan",
-        "lan tỏa", "tỏa sáng", "sáng ngời", "sáng tạo", "tạo hình", "hình mẫu",
-        "mẫu giáo", "giáo dục", "ngoại giao", "giao lưu", "lưu trữ", "trữ lượng",
-        "lượng giác", "giác quan", "quan điểm", "điểm tựa", "hệ thống", "thống nhất", 
-        "thống kê", "hệ quả", "quả cảm", "quả tang", "hệ lụy", "lụy tình", "trọng trách", 
-        "trọng tài", "trọng tâm", "tiểu đường", "đường đi", "đi đứng", "đương thời"
+        "trọng điểm", "trọng trách", "trọng tài", "trọng tâm", "trọng đại", "tiểu đường",
+        "đường đi", "đi đứng", "đương thời", "hệ lụy", "lụy tình", "hệ thống", "thống nhất",
+        "thống kê", "hệ quả", "quả cảm", "quả tang"
     }
     
     try:
@@ -218,7 +205,7 @@ async def help_cmd(ctx):
         
         "⚙️ **QUẢN LÝ TRẬN ĐẤU & CÔNG CỤ**\n"
         "`?huynoitu` → Hủy ván chơi nếu thấy chán hoặc lag\n"
-        "`?nghia [từ]` → Tra cứu từ điển tiếng Việt/Anh\n\n"
+        "`?nghia [t]` → Tra cứu từ điển tiếng Việt/Anh\n\n"
         
         "📊 **HỆ THỐNG RANK & DAILY**\n"
         "`?rank` → Xem thẻ rank\n"
@@ -440,7 +427,6 @@ async def on_message(message):
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         
-        # Bắt buộc đúng 2 từ (2 âm tiết), khớp âm tiết, chưa dùng và phải có trong từ điển
         if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
             await message.add_reaction(CROSS)
             return
