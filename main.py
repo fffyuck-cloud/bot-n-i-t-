@@ -68,7 +68,7 @@ def prepare_dictionaries():
                 for line in f:
                     w = norm(line.replace("_", " "))
                     if w: words_vi.add(w)
-            print(f"Đã nạp {len(words_vi)} từ tiếng Việt từ file.")
+            print(f"Đã nạp thành công tổng cộng {len(words_vi)} từ tiếng Việt.")
         except Exception as e:
             print(f"Lỗi đọc file words.txt: {e}")
     else:
@@ -157,11 +157,18 @@ games = {}
 
 @bot.event
 async def on_ready():
-    print(f"Bot {bot.user.name} online!")
+    print(f"Bot {bot.user.name} đã sẵn sàng hoạt động!")
 
 @bot.command(name="help")
 async def help_cmd(ctx):
+    try:
+        file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
+    except:
+        file = None
+        
     embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ✦", color=0xFF0055)
+    if file: embed.set_image(url="attachment://banner.png")
+        
     embed.description = (
         "💬 **Word Chain Ultimate Bot**\n\n"
         "🇻🇳 **NỐI TỪ TIẾNG VIỆT (2 TỪ)**\n"
@@ -175,7 +182,8 @@ async def help_cmd(ctx):
         "`?nghia [từ]` → Tra cứu từ điển\n"
         "`?rank` & `?daily` → Xem cấp độ & điểm danh"
     )
-    await ctx.send(embed=embed)
+    if file: await ctx.send(embed=embed, file=file)
+    else: await ctx.send(embed=embed)
 
 @bot.command(name="rank")
 async def rank_cmd(ctx, member: discord.Member = None):
