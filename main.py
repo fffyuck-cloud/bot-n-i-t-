@@ -310,21 +310,28 @@ global_session_manager = SessionManager()
 # PHẦN 6: CÁC TIỆN ÍCH HỖ TRỢ XỬ LÝ DỮ LIỆU & GIAO DIỆN (UTILITIES)
 # ====================================================================================================
 
+# ====================================================================================================
+# PHẦN 6: HỆ THỐNG QUẢN LÝ GIAO DIỆN & THẨM MỸ (ENTERPRISE UI & AESTHETICS)
+# ====================================================================================================
+# ███████╗███╗   ███╗██████╗ ███████╗██████╗     ███╗   ███╗ █████╗ ███╗   ██╗ █████╗  ██████╗ ███████╗██████╗ 
+# ██╔════╝████╗ ████║██╔══██╗██╔════╝██╔══██╗    ████╗ ████║██╔══██╗████╗  ██║██╔══██╗██╔════╝ ██╔════╝██╔══██╗
+# █████╗  ██╔████╔██║██████╔╝█████╗  ██║  ██║    ██╔████╔██║███████║██╔██╗ ██║███████║██║  ███╗█████╗  ██████╔╝
+# ██╔══╝  ██║╚██╔╝██║██╔══██╗██╔══╝  ██║  ██║    ██║╚██╔╝██║██╔══██║██║╚██╗██║██╔══██║██║   ██║██╔══╝  ██╔══██╗
+# ███████╗██║ ╚═╝ ██║██████╔╝███████╗██████╔╝    ██║ ╚═╝ ██║██║  ██║██║ ╚████║██║  ██║╚██████╔╝███████╗██║  ██║
+# ╚══════╝╚═╝     ╚═╝╚═════╝ ╚══════╝╚═════╝     ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═╝
+# Tích hợp Chủ đề: Đen Hồng Cánh Hoa (Black & Pink Petals)
+# ====================================================================================================
+
 class GameUtils:
     """Chứa các hàm tiện ích thuật toán phục vụ cho logic của trò chơi."""
 
     @staticmethod
     def scramble_vietnamese_syllables(phrase: str) -> str:
-        """
-        Nhận vào một cụm từ tiếng Việt, chia theo khoảng trắng và xáo trộn vị trí.
-        Ví dụ: "thể thao" -> "thao thể"
-        """
         syllables = phrase.split()
         if len(syllables) <= 1:
             return phrase
             
         shuffled = syllables.copy()
-        # Đảm bảo kết quả xáo trộn không trùng với từ gốc
         attempts = 0
         while shuffled == syllables and attempts < 10:
             random.shuffle(shuffled)
@@ -334,10 +341,6 @@ class GameUtils:
 
     @staticmethod
     def generate_country_mask(country_name: str) -> str:
-        """
-        Tạo chuỗi gợi ý cho tên quốc gia. Hiển thị chữ cái đầu, cuối và khoảng trắng.
-        Ví dụ: "việt nam" -> "V _ _ _   _ _ M"
-        """
         if not country_name:
             return ""
             
@@ -346,7 +349,7 @@ class GameUtils:
         
         for index, char in enumerate(characters):
             if char == ' ':
-                masked_chars.append('  ') # Khoảng trắng rộng hơn để dễ nhìn
+                masked_chars.append('  ')
             elif index == 0 or index == len(characters) - 1:
                 masked_chars.append(char.upper())
             else:
@@ -354,29 +357,213 @@ class GameUtils:
                 
         return " ".join(masked_chars)
 
-class UIUtils:
-    """Tiện ích tạo giao diện tin nhắn Discord (Embeds)."""
+class PetalAesthetics:
+    """Trình quản lý các yếu tố đồ họa nghệ thuật "Đen Hồng Cánh Hoa"."""
+    
+    PINK_PETAL: str = "🌸"
+    DARK_PETAL: str = "🥀"
+    BLACK_HEART: str = "🖤"
+    PINK_HEART: str = "💗"
+    
+    DIVIDER_LIGHT: str = f"〰️ {BLACK_HEART} {PINK_PETAL} 〰️ {PINK_PETAL} {BLACK_HEART} 〰️"
+    DIVIDER_DARK: str = f"✧ {DARK_PETAL} ✦ {BLACK_HEART} ✦ {DARK_PETAL} ✧"
+    
+    VICTORY_QUOTES: list[str] = [
+        "Một cánh hoa hồng 🌸 vừa rơi xuống, vinh danh người chiến thắng!",
+        "Trong bóng tối 🖤, trí tuệ của bạn bừng sáng rực rỡ như sắc hồng 💗.",
+        "Gió cuốn cánh hoa bay 🥀, mang theo chiến thắng gọi tên bạn hôm nay.",
+        "Từng nhịp nối từ tựa như từng cánh hoa đan xen vào nhau thật hoàn mỹ.",
+        "Bức tranh đen hồng lại khắc thêm một dấu ấn từ vựng tuyệt vời từ bạn 🌸."
+    ]
 
     @staticmethod
-    def create_embed(
-        title: str, 
-        description: str, 
-        color: int = BotConfig.COLOR_DEFAULT,
-        footer_text: str = f"Black & Pink Enterprise • v{BotConfig.VERSION}"
-    ) -> discord.Embed:
-        """Hàm chuẩn hóa việc khởi tạo đối tượng Embed của Discord."""
+    def get_falling_petal_quote() -> str:
+        return random.choice(PetalAesthetics.VICTORY_QUOTES)
+
+    @staticmethod
+    def decorate_title(title: str, is_dark_mode: bool = False) -> str:
+        if is_dark_mode:
+            return f"{PetalAesthetics.DARK_PETAL} {title} {PetalAesthetics.BLACK_HEART}"
+        return f"{PetalAesthetics.PINK_PETAL} {title} {PetalAesthetics.PINK_HEART}"
+
+class UIUtils:
+    """Trình quản lý giao diện chuyên sâu với họa tiết Đen Hồng Cánh Hoa."""
+    
+    DEFAULT_FOOTER_ICON = "https://cdn.discordapp.com/embed/avatars/0.png"
+    
+    @staticmethod
+    def create_embed(title: str, description: str, color: int = BotConfig.COLOR_DEFAULT, footer_text: Optional[str] = None) -> discord.Embed:
+        embed = discord.Embed(title=title, description=description, color=color, timestamp=datetime.now())
+        final_footer = footer_text if footer_text else f"Vườn hoa Đen Hồng 🖤💗"
+        embed.set_footer(text=final_footer, icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_error_embed(error_message: str, error_code: str = "SYS_ERR") -> discord.Embed:
         embed = discord.Embed(
-            title=title,
-            description=description,
-            color=color,
+            title=PetalAesthetics.decorate_title("Hệ Thống Báo Lỗi", is_dark_mode=True),
+            description=f"{PetalAesthetics.DIVIDER_DARK}\n\n**Chi tiết:** {error_message}\n\n🥀 *Hoa tàn, hệ thống gặp chút trục trặc. Xin lượng thứ.*",
+            color=BotConfig.COLOR_ERROR,
             timestamp=datetime.now()
         )
-        embed.set_footer(
-            text=footer_text,
-            icon_url="https://cdn.discordapp.com/embed/avatars/0.png"
+        embed.set_footer(text=f"Mã lỗi: {error_code} | Thẩm mỹ học", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_warning_embed(title: str, warning_msg: str) -> discord.Embed:
+        embed = discord.Embed(
+            title=f"⚠️ {title}",
+            description=warning_msg,
+            color=BotConfig.COLOR_WARNING,
+            timestamp=datetime.now()
         )
         return embed
 
+    @staticmethod
+    def build_success_embed(title: str, success_msg: str) -> discord.Embed:
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title(title),
+            description=f"{PetalAesthetics.DIVIDER_LIGHT}\n\n{success_msg}",
+            color=BotConfig.COLOR_SUCCESS,
+            timestamp=datetime.now()
+        )
+        return embed
+
+    # ==================== GAME START EMBEDS ====================
+
+    @staticmethod
+    def build_noitu_pvp_start(start_word: str, next_syllable: str) -> discord.Embed:
+        description = (
+            f"{PetalAesthetics.DIVIDER_LIGHT}\n\n"
+            f"**Cánh hoa đầu tiên đã rơi xuống:**\n"
+            f"📌 Từ khóa: **{start_word.upper()}**\n\n"
+            f"**Quy luật của vườn hoa:**\n"
+            f"🌸 Hãy nối tiếp bằng âm tiết: **`{next_syllable.upper()}`**\n\n"
+            f"*(Nhẹ nhàng gõ đáp án 2 tiếng của bạn vào khung chat)*\n"
+            f"{PetalAesthetics.DIVIDER_LIGHT}"
+        )
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title("Đấu Trường Nối Từ"),
+            description=description,
+            color=0xFF69B4, 
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text=f"Khởi tạo không gian Black & Pink 🌸", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_noitu_bot_start(start_word: str, next_syllable: str) -> discord.Embed:
+        description = (
+            f"{PetalAesthetics.DIVIDER_DARK}\n\n"
+            f"🖤 **Bot Đã Chấp Nhận Lời Thách Đấu!**\n\n"
+            f"📌 Hệ thống khai màn với từ: **{start_word.upper()}**\n"
+            f"🌸 Lượt của bạn phải bắt đầu bằng: **`{next_syllable.upper()}`**\n\n"
+            f"*(Hãy để những đóa hoa trí tuệ của bạn nở rộ trước Bot!)*\n"
+            f"{PetalAesthetics.DIVIDER_DARK}"
+        )
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title("AI: Thử Thách Trí Tuệ"),
+            description=description,
+            color=0x000000,
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Chế độ: Đấu với Máy (AI) 🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_noitu_english_start(start_word: str, next_letter: str) -> discord.Embed:
+        description = (
+            f"{PetalAesthetics.DIVIDER_LIGHT}\n\n"
+            f"🇬🇧 **The First Petal Has Dropped!**\n\n"
+            f"📌 Start word: **{start_word.upper()}**\n"
+            f"🔤 The next word must start with the letter: **`{next_letter.upper()}`**\n\n"
+            f"*(Type your English word directly in the chat)*\n"
+            f"{PetalAesthetics.DIVIDER_LIGHT}"
+        )
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title("English Word Chain"),
+            description=description,
+            color=BotConfig.COLOR_INFO,
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Mode: Global English 🌸", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_vua_tieng_viet_start(scrambled_word: str) -> discord.Embed:
+        description = (
+            f"{PetalAesthetics.DIVIDER_LIGHT}\n\n"
+            f"Nhiệm vụ: Hãy gom những cánh hoa đang rơi lộn xộn dưới đây để xếp thành một từ có nghĩa:\n\n"
+            f"## 🔀 `{scrambled_word}`\n\n"
+            f"*(Ai có đáp án đúng và nhanh nhất sẽ giành chiến thắng!)*\n"
+            f"{PetalAesthetics.DIVIDER_LIGHT}"
+        )
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title("Vua Tiếng Việt"),
+            description=description,
+            color=0xFFB6C1,
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Thể loại: Giải đố nghệ thuật 🌸", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_doan_quoc_gia_start(masked_hint: str) -> discord.Embed:
+        description = (
+            f"{PetalAesthetics.DIVIDER_DARK}\n\n"
+            f"Gợi ý từ khóa ký tự (Bao gồm khoảng trắng nếu có):\n\n"
+            f"## 🗺️ `{masked_hint}`\n\n"
+            f"*(Gõ tên quốc gia đầy đủ bằng tiếng Việt để trả lời!)*\n"
+            f"{PetalAesthetics.DIVIDER_DARK}"
+        )
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title("Thử Tài Địa Lý", is_dark_mode=True),
+            description=description,
+            color=0x000000,
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Thể loại: Kiến thức chung 🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    # ==================== IN-GAME & RESULT EMBEDS ====================
+
+    @staticmethod
+    def build_game_victory(winner_mention: str, correct_answer: str, game_name: str) -> discord.Embed:
+        poetic_quote = PetalAesthetics.get_falling_petal_quote()
+        description = (
+            f"🎉 **ĐÁP ÁN CHÍNH XÁC:** **`{correct_answer.upper()}`**\n\n"
+            f"{PetalAesthetics.DIVIDER_LIGHT}\n"
+            f"Xin chúc mừng {winner_mention}!\n"
+            f"*{poetic_quote}*\n"
+            f"{PetalAesthetics.DIVIDER_LIGHT}"
+        )
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title(f"Vinh Danh: {game_name}"),
+            description=description,
+            color=0xFFB6C1, 
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Vườn hoa Đen Hồng 🖤💗", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_bot_victory(user_mention: str, missing_syllable: str, dict_size: int) -> discord.Embed:
+        description = (
+            f"{PetalAesthetics.DIVIDER_DARK}\n\n"
+            f"🥀 {user_mention} đã xuất sắc đánh bại hệ thống AI của vườn hoa!\n\n"
+            f"Bot đã lật tung **{dict_size:,}** từ vựng, nhưng không một từ nào bắt đầu bằng "
+            f"âm tiết **`{missing_syllable.upper()}`** có thể cứu vãn ván cờ này.\n\n"
+            f"🖤 *Chút tro tàn để lại, nhường ngôi vương cho bạn.*\n"
+            f"{PetalAesthetics.DIVIDER_DARK}"
+        )
+        embed = discord.Embed(
+            title=PetalAesthetics.decorate_title("Trí Tuệ Nhân Tạo Gục Ngã", is_dark_mode=True),
+            description=description,
+            color=0x000000, 
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Hệ thống đã cạn kiệt từ vựng 🥀", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
 # ====================================================================================================
 # PHẦN 7: KHỞI TẠO DISCORD BOT & ĐĂNG KÝ SỰ KIỆN (BOT INITIALIZATION & EVENTS)
 # ====================================================================================================
