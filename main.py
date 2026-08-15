@@ -1,5 +1,5 @@
 # =====================================================================
-# HỆ THỐNG DISCORD BOT NỐI TỪ - BLACK & PINK EDITION (VIETNAMESE & ENGLISH & COUNTRIES)
+# HỆ THỐNG DISCORD BOT NỐI TỪ - BLACK & PINK EDITION (VIETNAMESE & ENGLISH)
 # =====================================================================
 
 import os
@@ -120,10 +120,6 @@ vietnamese_dictionary = {w for w in raw_vi_dict if len(w.split()) == 2}
 # Nạp từ điển Tiếng Anh siêu tốc (Phân nhóm chữ cái + Set tổng hợp 4M từ)
 english_dict_by_letter, english_dictionary = load_english_dictionary_optimized('tu dien tieng anh.txt')
 
-# Nạp từ điển Quốc gia mới theo yêu cầu
-vietnamese_country_dictionary = load_vocabulary_file('quoc gia vn.txt')
-english_country_dictionary = load_vocabulary_file('quoc gia en.txt')
-
 user_stats_database = load_user_statistics_database()
 
 # =====================================================================
@@ -133,7 +129,7 @@ user_stats_database = load_user_statistics_database()
 class ChannelGameSession:
     def __init__(self):
         self.active = False
-        self.mode = None  # 'pvp_vi', 'bot_vi', 'pvp_eng', 'bot_eng', 'pvp_country_vn', 'pvp_country_en'
+        self.mode = None  # 'pvp_vi', 'bot_vi', 'pvp_eng', 'bot_eng'
         self.last_word = ""
         self.used_words = set()
         self.last_author_id = None
@@ -218,7 +214,7 @@ async def on_message(incoming_message):
             title="🖤💗 [ CHẾ ĐỘ NỐI TỪ TIẾNG VIỆT: PvP ] 💗🖤",
             description=(
                 "✨ Chào mừng các bạn đến với phòng chơi đối kháng tiếng Việt đỉnh cao!\n"
-                "🌸 Yêu cầu bắt buộc: Mỗi từ phải gồm **2 tiếng** (vd: học tập, tập thể).\n"
+                "🌸 Yêu cầu bắt buộc: Mỗi từ phải gồm đúng **2 tiếng** (vd: học tập, tập thể).\n"
                 "🖤 Hệ thống đã tự động random từ mở màn cho ván đấu:\n"
                 f"# {start_word}\n"
                 f"🌸 Âm tiết bắt buộc cho từ tiếp theo: **`{next_syllable}`**\n"
@@ -251,7 +247,7 @@ async def on_message(incoming_message):
             title="🤖💗 [ THÁCH ĐẤU BOT TIẾNG VIỆT ] 💗🤖",
             description=(
                 "✨ Thử thách trí tuệ trực tiếp cùng Trí tuệ nhân tạo (AI Bot) tiếng Việt!\n"
-                "🌸 Yêu cầu bắt buộc: Mỗi từ phải gồm **2 tiếng** (vd: vui chơi, chơi đùa).\n"
+                "🌸 Yêu cầu bắt buộc: Mỗi từ phải gồm đúng **2 tiếng** (vd: vui chơi, chơi đùa).\n"
                 "🖤 Hệ thống đã tự động random từ mở màn cho bạn:\n"
                 f"# {start_word}\n"
                 f"🌸 Âm tiết bắt buộc cho từ tiếp theo: **`{next_syllable}`**\n"
@@ -331,71 +327,7 @@ async def on_message(incoming_message):
         return
 
     # -----------------------------------------------------------------
-    # NHÓM LỆNH 2.1: KÍCH HOẠT NỐI TỪ QUỐC GIA (QUỐC GIA VN & EN)
-    # -----------------------------------------------------------------
-
-    elif raw_content == "?noituquocgiavn":
-        session_data.reset_session()
-        session_data.active = True
-        session_data.mode = "pvp_country_vn"
-        
-        if vietnamese_country_dictionary:
-            start_word = random.choice(list(vietnamese_country_dictionary))
-            session_data.last_word = start_word
-            session_data.used_words.add(start_word)
-            next_target = start_word.split()[-1]
-        else:
-            start_word = "việt nam"
-            session_data.last_word = start_word
-            session_data.used_words.add(start_word)
-            next_target = "nam"
-
-        embed_response = discord.Embed(
-            title="🇻🇳💗 [ NỐI TỪ QUỐC GIA TIẾNG VIỆT ] 💗🇻🇳",
-            description=(
-                "✨ Khám phá địa lý thế giới thông qua tên các quốc gia tiếng Việt!\n"
-                f"🖤 Quốc gia mở màn: **#{start_word}**\n"
-                f"🌸 Âm tiết bắt buộc cho quốc gia tiếp theo: **`{next_target}`**\n"
-                "🖤 Hãy nhập tên quốc gia tiếp theo bắt đầu bằng âm tiết trên."
-            ),
-            color=COLOR_PINK_NEON
-        )
-        embed_response.set_footer(text="Chế độ Quốc gia VN • Black & Pink Edition.")
-        await incoming_message.channel.send(embed=embed_response)
-        return
-
-    elif raw_content == "?noituquocgiaen":
-        session_data.reset_session()
-        session_data.active = True
-        session_data.mode = "pvp_country_en"
-        
-        if english_country_dictionary:
-            start_word = random.choice(list(english_country_dictionary))
-            session_data.last_word = start_word
-            session_data.used_words.add(start_word)
-            next_target = start_word[-1]
-        else:
-            start_word = "vietnam"
-            session_data.last_word = start_word
-            session_data.used_words.add(start_word)
-            next_target = "m"
-
-        embed_response = discord.Embed(
-            title="🌍💗 [ NỐI TỪ QUỐC GIA TIẾNG ANH ] 💗🌍",
-            description=(
-                "✨ Test your global geography knowledge with English country names!\n"
-                f"🖤 Starting country: **#{start_word}**\n"
-                f"🌸 Required starting character: **`{next_target}`**\n"
-                "🖤 Enter an English country name starting with this character."
-            ),
-            color=COLOR_HOT_PINK
-        )
-        embed_response.set_footer(text="Country Mode EN • Black & Pink Edition.")
-        await incoming_message.channel.send(embed=embed_response)
-        return
-
-    # -----------------------------------------------------------------
-    # NHÓM LỆNH 3: ĐIỀU KHIỂN HỆ THỐNG VÀ TIỆN ÍCH
+    # NHÓM LỆNH 3: ĐIỀU KHIỂN HỆ THỐNG VÀ TIỆN ÍCH (TRA CỨU & DỊCH NGHĨA)
     # -----------------------------------------------------------------
 
     elif raw_content == "?huynoitu":
@@ -420,26 +352,33 @@ async def on_message(incoming_message):
         split_parts = incoming_message.content.split()
         if len(split_parts) > 1:
             query_term = " ".join(split_parts[1:]).lower()
-            exists_in_vi = query_term in vietnamese_dictionary
-            exists_in_en = query_term in english_dictionary
-            exists_in_country_vn = query_term in vietnamese_country_dictionary
-            exists_in_country_en = query_term in english_country_dictionary
+            word_count = len(query_term.split())
+            is_english = query_term in english_dictionary
             
+            # Xây dựng phần dịch nghĩa / giải thích thông minh
+            if is_english:
+                translation_explanation = f"🇬🇧 **Từ tiếng Anh** (Kho từ điển 4M từ)\n💡 *Định nghĩa / Dịch nghĩa*: Từ vựng tiếng Anh chuẩn xác."
+            elif word_count == 2:
+                translation_explanation = f"🇻🇳 **Cụm từ Tiếng Việt 2 tiếng**\n💡 *Giải nghĩa*: Cụm từ hợp lệ, hoàn toàn có ý nghĩa trong giao tiếp và trò chơi nối từ."
+            elif word_count == 1:
+                translation_explanation = f"🇻🇳 **Từ đơn Tiếng Việt 1 tiếng**\n💡 *Giải nghĩa*: Từ đơn tiếng Việt cơ bản."
+            else:
+                translation_explanation = f"📝 **Biểu đạt / Cụm từ dài** ({word_count} tiếng)\n💡 *Giải nghĩa*: Cụm từ diễn đạt ý nghĩa phức hợp."
+
             embed_response = discord.Embed(
-                title="📖💗 [ HỆ THỐNG TRA CỨU TỪ ĐIỂN ] 💗📖",
+                title="📖💗 [ HỆ THỐNG TRA CỨU & DỊCH NGHĨA ] 💗📖",
                 description=(
-                    "✨ Công cụ tra cứu cơ sở dữ liệu ngôn ngữ tốc độ cao tích hợp AI.\n"
-                    f"🌸 Từ khóa bạn yêu cầu phân tích hệ thống là: **`{query_term}`**\n"
-                    "🖤 Kết quả kiểm tra chi tiết từ các kho từ điển độc quyền:\n"
-                    f"  • Từ điển Tiếng Việt (2 tiếng): {'✅ **Tồn tại hợp lệ**' if exists_in_vi else '❌ **Không tìm thấy trong từ điển tĩnh (vẫn chơi được nếu đúng 2 tiếng)**'}\n"
-                    f"  • Từ điển Tiếng Anh (4M từ): {'✅ **Tồn tại hợp lệ**' if exists_in_en else '❌ **Không tìm thấy**'}\n"
-                    f"  • Từ điển Quốc gia VN (`quoc gia vn.txt`): {'✅ **Tồn tại hợp lệ**' if exists_in_country_vn else '❌ **Không tìm thấy**'}\n"
-                    f"  • Từ điển Quốc gia EN (`quoc gia en.txt`): {'✅ **Tồn tại hợp lệ**' if exists_in_country_en else '❌ **Không tìm thấy**'}\n"
-                    "🌸 Hãy tiếp tục khám phá thêm nhiều từ vựng độc đáo khác cùng chúng tôi!"
+                    "✨ Công cụ phân tích từ vựng và tra cứu ngôn ngữ.\n"
+                    f"🌸 Từ khóa yêu cầu: **`{query_term}`**\n\n"
+                    f"🖤 **Kết quả dịch nghĩa & phân tích:**\n"
+                    f"{translation_explanation}\n\n"
+                    f"🌸 **Kiểm tra trạng thái hệ thống:**\n"
+                    f"  • Tiếng Việt (chuẩn 2 tiếng): {'✅ **Hợp lệ chơi nối từ**' if word_count == 2 else '⚠️ **Không phải 2 tiếng**'}\n"
+                    f"  • Tiếng Anh (kho 4M từ): {'✅ **Tồn tại trong từ điển**' if is_english else '❌ **Không tìm thấy**'}\n"
                 ),
                 color=COLOR_PINK_NEON
             )
-            embed_response.set_footer(text="Dictionary Lookup Tool • Black & Pink Style.")
+            embed_response.set_footer(text="Dictionary Translation Tool • Black & Pink Style.")
             await incoming_message.channel.send(embed=embed_response)
         else:
             await incoming_message.channel.send("⚠️ Vui lòng chỉ định từ cần tra cứu theo đúng cú pháp: `?nghia <từ>`")
@@ -495,15 +434,13 @@ async def on_message(incoming_message):
                 "✨ Chào mừng bạn đến với mục trợ giúp toàn diện của hệ thống.\n"
                 "🌸 Danh sách toàn bộ các lệnh điều khiển và chế độ chơi được hỗ trợ:\n"
                 "🖤 **Nhóm lệnh trò chơi chính:**\n"
-                "  • `?noitu` - Nối từ tiếng Việt (2 tiếng, PvP, tự động nhận mọi từ hợp lệ)\n"
+                "  • `?noitu` - Nối từ tiếng Việt (Đúng 2 tiếng, PvP, tự động nhận từ hợp lệ)\n"
                 "  • `?noituubot` - Thách đấu nối từ tiếng Việt với AI Bot\n"
                 "  • `?noitueng` - Nối từ tiếng Anh (PvP, tối ưu 4M từ)\n"
                 "  • `?noituuboteng` - Thách đấu nối từ tiếng Anh với AI Bot\n"
-                "  • `?noituquocgiavn` - Nối từ Tên Quốc gia Tiếng Việt (`quoc gia vn.txt`)\n"
-                "  • `?noituquocgiaen` - Nối từ Tên Quốc gia Tiếng Anh (`quoc gia en.txt`)\n"
                 "  • `?huynoitu` - Dừng và hủy ván đấu hiện tại trong kênh\n"
                 "🖤 **Nhóm lệnh tiện ích & cá nhân:**\n"
-                "  • `?nghia <từ>` - Tra cứu từ vựng / quốc gia trực tiếp\n"
+                "  • `?nghia <từ>` - Tra cứu từ vựng và dịch nghĩa\n"
                 "  • `?rank` - Xem bảng thành tích và điểm số cá nhân\n"
                 "  • `?daily` - Nhận phần thưởng điểm danh hằng ngày\n"
                 "  • `?help` - Hiển thị bảng hướng dẫn chi tiết này\n"
@@ -522,12 +459,11 @@ async def on_message(incoming_message):
     if session_data.active:
         # Chọn từ điển / danh sách phù hợp dựa theo mode phiên chơi
         if session_data.mode == "pvp_vi" or session_data.mode == "bot_vi":
-            # Chế độ Tiếng Việt: Chấp nhận mọi cụm từ có đúng 2 tiếng (tự động mở rộng từ điển)
             if len(raw_content.split()) != 2:
                 embed_response = discord.Embed(
                     title="⚠️💗 [ SAI ĐỊNH DẠNG TỪ ] 💗⚠️",
                     description=(
-                        "⚠️ Chế độ tiếng Việt bắt buộc phải nhập đúng **2 tiếng** (có dấu cách ở giữa, vd: `đại kiếp`).\n"
+                        "⚠️ Chế độ tiếng Việt bắt buộc phải nhập đúng **2 tiếng** (không tính từ 1 tiếng hoặc trên 2 tiếng).\n"
                         "🌸 Vui lòng kiểm tra lại cấu trúc từ của bạn và thử lại nhé!"
                     ),
                     color=COLOR_DARK_BLACK
@@ -536,24 +472,18 @@ async def on_message(incoming_message):
                 return
             vietnamese_dictionary.add(raw_content)
             active_dictionary = vietnamese_dictionary
-        elif session_data.mode == "pvp_eng":
+        elif session_data.mode in ["pvp_eng", "bot_eng"]:
             active_dictionary = english_dictionary
-        elif session_data.mode == "bot_eng":
-            active_dictionary = english_dictionary
-        elif session_data.mode == "pvp_country_vn":
-            active_dictionary = vietnamese_country_dictionary
-        elif session_data.mode == "pvp_country_en":
-            active_dictionary = english_country_dictionary
         else:
             active_dictionary = vietnamese_dictionary
 
-        # Kiểm tra từ có tồn tại trong từ điển hay không (áp dụng cho Tiếng Anh & Quốc gia)
-        if session_data.mode not in ["pvp_vi", "bot_vi"]:
+        # Kiểm tra từ có tồn tại trong từ điển hay không (áp dụng cho Tiếng Anh)
+        if session_data.mode in ["pvp_eng", "bot_eng"]:
             if raw_content not in active_dictionary:
                 embed_response = discord.Embed(
-                    title="❌💗 [ TỪ KHÔNG HỢP LỆ ] 💗❌",
+                    title="❌💗 [ TỪ KHÔNG HỢP LỆ ] ❌",
                     description=(
-                        "⚠️ Từ hoặc tên quốc gia bạn vừa nhập không có trong cơ sở dữ liệu hiện tại.\n"
+                        "⚠️ Từ bạn vừa nhập không có trong cơ sở dữ liệu tiếng Anh.\n"
                         "🌸 Vui lòng kiểm tra lại chính tả hoặc chọn từ khác chính xác hơn nhé!"
                     ),
                     color=COLOR_DARK_BLACK
@@ -591,7 +521,7 @@ async def on_message(incoming_message):
 
         # Kiểm tra quy tắc nối từ thực tế
         if session_data.last_word != "":
-            if session_data.mode in ["pvp_eng", "bot_eng", "pvp_country_en"]:
+            if session_data.mode in ["pvp_eng", "bot_eng"]:
                 required_char = session_data.last_word[-1]
                 if not raw_content.startswith(required_char):
                     embed_response = discord.Embed(
@@ -633,7 +563,7 @@ async def on_message(incoming_message):
         user_record["games_played"] += 1
         save_user_statistics_database(user_stats_database)
 
-        if session_data.mode in ["pvp_eng", "bot_eng", "pvp_country_en"]:
+        if session_data.mode in ["pvp_eng", "bot_eng"]:
             next_target = session_data.last_word[-1]
         else:
             next_target = session_data.last_word.split()[-1]
@@ -662,7 +592,6 @@ async def on_message(incoming_message):
             if possible_bot_words:
                 chosen_bot_word = random.choice(possible_bot_words)
             else:
-                # Tạo từ dự phòng thông minh cho bot tiếng Việt nếu chưa có sẵn
                 common_syllables = ["sống", "vui", "học", "nhà", "nước", "đường", "thời", "gian", "công", "việc", "bạn", "tôi", "đẹp", "hay"]
                 chosen_bot_word = f"{next_target} {random.choice(common_syllables)}"
                 while chosen_bot_word in session_data.used_words:
