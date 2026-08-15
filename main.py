@@ -35,7 +35,6 @@ def norm(text: str) -> str:
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     
-    # Kho từ điển tiếng Việt tích hợp sẵn cực kỳ phong phú và đầy đủ
     words_vi = {
         "đá bóng", "bóng đá", "học sinh", "sinh viên", "thể thao", "bóng chuyền", "chuyền bóng",
         "cầu lông", "lông gà", "nhà cửa", "cửa sổ", "sổ tay", "tay chân", "chân thành",
@@ -442,7 +441,6 @@ async def on_message(message):
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         
-        # Smart fallback: Nếu đúng chuẩn 2 từ, nối đúng vần và có độ dài hợp lý -> Tự động chấp thuận và lưu vào từ điển luôn để lần sau không bao giờ lỗi
         is_valid = False
         if len(words) == 2 and words[0] == prev_last and user_input not in game["used_words"]:
             if user_input in dictionary_vi or (len(words[0]) > 0 and len(words[1]) > 0):
@@ -473,7 +471,8 @@ async def on_message(message):
             last_syllable = user_input.split()[-1]
             possible_words = [w for w in dictionary_vi if w.startswith(last_syllable + " ") and w not in game["used_words"]]
             if not possible_words:
-                bot_word = f"{last_syllable} quả" if last_syllable != "quả" else "hệ thống"
+                unused_dict = [w for w in dictionary_vi if w not in game["used_words"]]
+                bot_word = random.choice(unused_dict) if unused_dict else "học tập"
             else:
                 bot_word = random.choice(possible_words)
                 
