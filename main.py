@@ -6,10 +6,7 @@
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═════╝    ╚═╝   
 #                                                                                                    
-# PURE FUN ENTERPRISE EDITION - ULTIMATE STRUCTURE (v2.0.0)
-# Kích thước mã nguồn: Hơn 800 dòng (Enterprise Scale)
-# Tích hợp toàn bộ dữ liệu từ các tệp .txt trên GitHub Repository.
-# Tập trung 100% vào giải trí (Không kinh tế, không Cờ bạc).
+# PURE FUN ENTERPRISE EDITION - ULTIMATE STRUCTURE (v2.0.1 - FIXED)
 # ====================================================================================================
 
 import os
@@ -30,39 +27,30 @@ from discord.ext import commands
 # ====================================================================================================
 
 class BotConfig:
-    """Lớp lưu trữ toàn bộ cấu hình lõi của ứng dụng Bot."""
-    
-    # --- Thông tin cơ bản ---
-    VERSION: str = "2.0.0 Enterprise"
+    VERSION: str = "2.0.1 Enterprise"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     
-    # --- Cấu hình Server Keep-Alive ---
     WEB_SERVER_HOST: str = "0.0.0.0"
     WEB_SERVER_PORT: int = 8080
     
-    # --- Tên các tệp dữ liệu trên GitHub ---
     FILE_VIETNAMESE_DICT: str = "tu dien.txt"
     FILE_WORDS_DICT: str = "words.txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_VN: str = "quoc gia vn.txt"
     FILE_COUNTRIES_EN: str = "quoc gia en.txt"
     
-    # --- Bảng màu chuẩn Discord Embed (Hexadecimal) ---
-    COLOR_DEFAULT: int = 0xFF69B4     # Hot Pink (Màu chủ đạo)
-    COLOR_SUCCESS: int = 0x2ECC71     # Green (Thành công/Chính xác)
-    COLOR_WARNING: int = 0xF1C40F     # Yellow (Cảnh báo/Gợi ý)
-    COLOR_ERROR: int = 0xE74C3C       # Red (Lỗi/Thất bại)
-    COLOR_INFO: int = 0x3498DB        # Blue (Thông tin chung)
-    COLOR_GOLD: int = 0xFFD700        # Gold (Vua tiếng Việt)
+    COLOR_DEFAULT: int = 0xFF69B4     # Hot Pink
+    COLOR_SUCCESS: int = 0x2ECC71     # Green
+    COLOR_WARNING: int = 0xF1C40F     # Yellow
+    COLOR_ERROR: int = 0xE74C3C       # Red
+    COLOR_INFO: int = 0x3498DB        # Blue
     
-    # --- Thông báo hệ thống ---
     MSG_ERR_NO_DATA: str = "Kho dữ liệu hiện đang trống. Vui lòng kiểm tra lại file txt."
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
     MSG_GAME_CANCELLED: str = "🚫 Phiên trò chơi trong kênh này đã được hủy bỏ thành công."
     MSG_NO_ACTIVE_GAME: str = "⚠️ Hiện tại không có phiên trò chơi nào đang hoạt động trong kênh này."
     
-    # --- Dữ liệu dự phòng (Fallback Data) ---
     FALLBACK_VIETNAMESE: Set[str] = {
         "học tập", "tập thể", "thể thao", "áo quần", "nước non", 
         "non sông", "sông núi", "núi cao", "cao cấp", "cấp tốc"
@@ -79,8 +67,6 @@ class BotConfig:
 # ====================================================================================================
 
 class LoggerSetup:
-    """Khởi tạo và cấu hình hệ thống ghi log chuyên nghiệp."""
-    
     @staticmethod
     def initialize_logger() -> logging.Logger:
         for handler in logging.root.handlers[:]:
@@ -148,8 +134,6 @@ web_server_thread.start()
 # ====================================================================================================
 
 class DataManager:
-    """Lớp quản lý việc tải, xử lý và lưu trữ dữ liệu từ điển trong bộ nhớ RAM."""
-    
     @staticmethod
     def load_text_file(filepath: str, fallback_dataset: Set[str]) -> Set[str]:
         if not os.path.exists(filepath):
@@ -174,7 +158,7 @@ class DataManager:
             logger.error(f"LỖI KHI ĐỌC TỆP [{filepath}]: {err}")
             return set(fallback_dataset)
 
-logger.info("Bắt đầu tiến trình nạp dữ liệu từ kho lưu trữ GitHub (Local Cache)...")
+logger.info("Bắt đầu tiến trình nạp dữ liệu từ kho lưu trữ (Local Cache)...")
 
 VIETNAMESE_DICT = DataManager.load_text_file(BotConfig.FILE_VIETNAMESE_DICT, BotConfig.FALLBACK_VIETNAMESE)
 WORDS_DICT = DataManager.load_text_file(BotConfig.FILE_WORDS_DICT, BotConfig.FALLBACK_VIETNAMESE)
@@ -217,6 +201,8 @@ class ChannelSession:
         self.active_mode = mode
         self.session_start_time = datetime.now()
         
+        logger.info(f"[CH-{channel_id if 'channel_id' in locals() else self.channel_id}] Khởi tạo phiên Nối Từ. Mode: {mode}, Từ đầu: {start_word or target}")
+        
         if mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE, GameMode.PVP_ENGLISH]:
             self.current_word = start_word
             self.used_words_history.add(start_word)
@@ -245,13 +231,7 @@ class SessionManager:
             self._sessions[channel_id] = ChannelSession(channel_id)
         return self._sessions[channel_id]
 
-    def reset_session(self, channel_id: int) -> None:
-        if channel_id in self._sessions:
-            self._sessions[channel_id].reset()
-
 global_session_manager = SessionManager()
-
-# Lưu trữ dữ liệu người dùng (XP, Level, Daily)
 USER_DATA: Dict[int, Dict[str, Any]] = {}
 
 def get_user_data(user_id: int) -> Dict[str, Any]:
@@ -260,7 +240,7 @@ def get_user_data(user_id: int) -> Dict[str, Any]:
     return USER_DATA[user_id]
 
 # ====================================================================================================
-# PHẦN 6: HỆ THỐNG QUẢN LÝ GIAO DIỆN & THẨM MỸ (ENTERPRISE UI & AESTHETICS)
+# PHẦN 6: HỆ THỐNG GIAO DIỆN & THẨM MỸ (ENTERPRISE UI & AESTHETICS)
 # ====================================================================================================
 
 class GameUtils:
@@ -292,11 +272,6 @@ class GameUtils:
         return " ".join(masked_chars)
 
 class PetalAesthetics:
-    PINK_PETAL: str = "🌸"
-    DARK_PETAL: str = "🥀"
-    BLACK_HEART: str = "🖤"
-    PINK_HEART: str = "💗"
-    
     VICTORY_QUOTES: list[str] = [
         "Một cánh hoa hồng 🌸 vừa rơi xuống, vinh danh người chiến thắng!",
         "Trong bóng tối 🖤, trí tuệ của bạn bừng sáng rực rỡ như sắc hồng 💗.",
@@ -359,8 +334,7 @@ class UIUtils:
             f"🖤 Hệ thống đã tự động random từ mở màn cho ván đấu:\n\n"
             f"## {start_word.upper()}\n\n"
             f"🌸 Âm tiết bắt buộc cho từ tiếp theo: **`{next_syllable.upper()}`**\n"
-            f"🖤 Người chơi tiếp theo hãy nhập cụm từ 2 tiếng bắt đầu bằng âm tiết trên.\n"
-            f"🌸 Chúc các bạn có những giây phút giải trí thật bùng nổ và thăng hoa."
+            f"🖤 Người chơi tiếp theo hãy nhập cụm từ 2 tiếng bắt đầu bằng âm tiết trên."
         )
         embed = discord.Embed(
             title="💕 [ CHẾ ĐỘ NỐI TỪ TIẾNG VIỆT: PvP ] 🖤",
@@ -393,7 +367,7 @@ class UIUtils:
         description = (
             f"✨ Đường đi nước bước hoàn hảo! (+10 điểm tích lũy)\n"
             f"🌸 Từ vừa được hệ thống ghi nhận: **`{user_word.upper()}`**\n"
-            f"🖤 Âm tiết / ký tự bắt buộc cho lượt kế tiếp: **`{next_syllable.upper()}`**\n\n"
+            f"🖤 Âm tiết bắt buộc cho lượt kế tiếp: **`{next_syllable.upper()}`**\n\n"
             f"🤖💗 **Phản đòn chớp nhoáng từ AI Bot:**\n\n"
             f"## {bot_word.upper()}\n\n"
             f"🌸 Lượt tiếp theo dành cho bạn, bắt đầu bằng: **`{next_bot_syllable.upper()}`**"
@@ -414,8 +388,7 @@ class UIUtils:
             f"🌸 Rule: Each word must connect using the last letter of the previous word.\n"
             f"🖤 Starting word provided by system:\n\n"
             f"## {start_word.upper()}\n\n"
-            f"🌸 Required starting letter for next word: **`{next_letter.upper()}`**\n"
-            f"🖤 Type your English word directly in the chat to continue."
+            f"🌸 Required starting letter for next word: **`{next_letter.upper()}`**"
         )
         embed = discord.Embed(
             title="🇬🇧💗 [ ENGLISH WORD CHAIN MODE ] 💗🖤",
@@ -675,7 +648,8 @@ async def cmd_noituen(ctx: commands.Context) -> None:
 async def cmd_vuatiengviet(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active:
-        await ctx.send(embed=UIUtils.build_warning_vn = UIUtils.build_warning_embed("Đã có ván chơi", "Kênh này đang có ván chơi.")) if False else None
+        await ctx.send(embed=UIUtils.build_warning_embed("Đã có ván chơi", "Kênh này đang có một ván chơi hoạt động."))
+        return
     
     valid_phrases = [w for w in COMBINED_VIETNAMESE_DICTIONARY if len(w.split()) >= 2]
     if not valid_phrases:
@@ -685,7 +659,6 @@ async def cmd_vuatiengviet(ctx: commands.Context) -> None:
     scrambled = GameUtils.scramble_vietnamese_syllables(target)
     
     session.initialize_session(GameMode.VUA_TIENG_VIET, target=target)
-    session.scrambled_target = target
     
     embed = UIUtils.build_vua_tieng_viet_start(scrambled)
     await ctx.send(embed=embed)
@@ -693,12 +666,15 @@ async def cmd_vuatiengviet(ctx: commands.Context) -> None:
 @bot.command(name="doanquocgia")
 async def cmd_doanquocgia(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
+    if session.is_active:
+        await ctx.send(embed=UIUtils.build_warning_embed("Đã có ván chơi", "Kênh này đang có một ván chơi hoạt động."))
+        return
+        
     countries = list(COUNTRIES_VN_DICT) if COUNTRIES_VN_DICT else list(BotConfig.FALLBACK_COUNTRIES)
     target = random.choice(countries)
     masked = GameUtils.generate_country_mask(target)
     
     session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
-    session.secret_country = target
     
     embed = UIUtils.build_doan_quoc_gia_start(masked)
     await ctx.send(embed=embed)
@@ -759,7 +735,6 @@ async def on_message(message: discord.Message) -> None:
     if message.author.bot:
         return
         
-    # Xử lý lệnh trước
     await bot.process_commands(message)
     
     session = global_session_manager.get_session(message.channel.id)
@@ -805,7 +780,6 @@ async def on_message(message: discord.Message) -> None:
         if syllables[0] != required_syl:
             return
             
-        # Hợp lệ
         session.used_words_history.add(content)
         session.current_word = content
         next_syl = syllables[-1]
@@ -816,7 +790,7 @@ async def on_message(message: discord.Message) -> None:
         
         embed = UIUtils.build_success_embed(
             "Lượt Nối Từ Hợp Lệ",
-            f"✨ Người chơi {message.author.mention} đã nối từ: **`{content.upper()`**\n🌸 Âm tiết tiếp theo: **`{next_syl.upper()}`**"
+            f"✨ Người chơi {message.author.mention} đã nối từ: **`{content.upper()}`**\n🌸 Âm tiết tiếp theo: **`{next_syl.upper()}`**"
         )
         await message.channel.send(embed=embed)
 
@@ -839,18 +813,15 @@ async def on_message(message: discord.Message) -> None:
         if syllables[0] != required_syl:
             return
             
-        # User valid turn
         session.used_words_history.add(content)
         user_next_syl = syllables[-1]
         
-        # Tìm từ cho Bot phản đòn
         possible_bot_words = [
             w for w in COMBINED_VIETNAMESE_DICTIONARY 
             if w.startswith(user_next_syl + " ") and w not in session.used_words_history
         ]
         
         if not possible_bot_words:
-            # Bot thua!
             embed = UIUtils.build_bot_victory(message.author.mention, user_next_syl, len(COMBINED_VIETNAMESE_DICTIONARY))
             session.reset()
             await message.channel.send(embed=embed)
