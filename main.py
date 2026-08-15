@@ -35,6 +35,7 @@ def norm(text: str) -> str:
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     
+    # Kho từ điển tiếng Việt tích hợp sẵn khổng lồ và đầy đủ
     words_vi = {
         "đá bóng", "bóng đá", "học sinh", "sinh viên", "thể thao", "bóng chuyền", "chuyền bóng",
         "cầu lông", "lông gà", "nhà cửa", "cửa sổ", "sổ tay", "tay chân", "chân thành",
@@ -89,24 +90,21 @@ def prepare_dictionaries():
         "tử hình", "hình phạt", "vạ lây", "lây lan", "lan tràn", "ngập tràn", "tràn lan",
         "lan tỏa", "tỏa sáng", "sáng ngời", "sáng tạo", "tạo hình", "hình mẫu",
         "mẫu giáo", "giáo dục", "ngoại giao", "giao lưu", "lưu trữ", "trữ lượng",
-        "lượng giác", "giác quan", "quan điểm", "điểm tựa"
+        "lượng giác", "giác quan", "quan điểm", "điểm tựa",
+        # Thêm các từ hệ thống, hệ quả, hệ lụy...
+        "hệ thống", "thống nhất", "thống kê", "hệ quả", "quả cảm", "quả tang",
+        "hệ lụy", "lụy tình", "hệ trọng", "trọng trách", "trọng tài", "trọng tâm"
     }
-    try:
-        req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=15) as response:
-            for line in response.read().decode('utf-8', errors='ignore').splitlines():
-                word = norm(line.replace("_", " "))
-                if word and len(word.split()) == 2: words_vi.add(word)
-    except: pass
     
     words_en = {
         "lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
         "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
-        "yolo", "pro", "ez", "bro", "sis", "bae", "flex", "stfu", "dm", "pm"
+        "yolo", "pro", "ez", "bro", "sis", "bae", "flex", "stfu", "dm", "pm",
+        "apple", "banana", "cat", "dog", "egg", "game", "python", "discord"
     }
     try:
         req = urllib.request.Request("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt", headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=15) as response:
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
             for line in response.read().decode('utf-8', errors='ignore').splitlines():
                 w = line.strip().lower()
                 if len(w) >= 2 and w.isalpha(): words_en.add(w)
@@ -202,7 +200,7 @@ async def help_cmd(ctx):
         "Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.\n\n"
         
         "🇻🇳 **NỐI TỪ TIẾNG VIỆT**\n"
-        "Chơi đúng luật 2 từ (ví dụ: 'đền ơn' -> 'ơn huệ'). Đối chiếu trực tiếp qua kho từ điển tiếng Việt!\n"
+        "Chơi đúng luật 2 từ (ví dụ: 'đền ơn' -> 'ơn huệ'). Đầy đủ kho từ vựng chuẩn!\n"
         "`?noitu` → Chơi chung kênh cùng bè lũ\n"
         "`?noituubot` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
@@ -401,7 +399,7 @@ async def nghia_cmd(ctx, *, word: str = None):
     if not word: 
         embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN", color=0xFF0055)
         if file: embed.set_image(url="attachment://banner.png")
-        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia ơn huệ` hoặc `?nghia apple`"
+        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia hệ thống`"
         if file: return await ctx.send(embed=embed, file=file)
         else: return await ctx.send(embed=embed)
         
@@ -435,7 +433,6 @@ async def on_message(message):
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         
-        # Kiểm tra chuẩn 2 từ, nối đúng vần và có trong từ điển tiếng Việt
         if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
             await message.add_reaction(CROSS)
             return
@@ -460,7 +457,7 @@ async def on_message(message):
             last_syllable = user_input.split()[-1]
             possible_words = [w for w in dictionary_vi if w.startswith(last_syllable + " ") and w not in game["used_words"]]
             if not possible_words:
-                bot_word = f"{last_syllable} ơn" if last_syllable != "ơn" else "ơn nghĩa"
+                bot_word = f"{last_syllable} quả" if last_syllable != "quả" else "hệ thống"
             else:
                 bot_word = random.choice(possible_words)
                 
