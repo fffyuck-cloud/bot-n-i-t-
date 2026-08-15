@@ -1,11 +1,11 @@
 # ====================================================================================================
-# ██████╗ ██╗     █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗   ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
-# ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗  ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗ ██║█████╔╝     ██████╔╝██║   ██║   ██║   
-# ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
+# ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
+# ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
+# ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═════╝    ╚═╝   
-#                                                                                                    
+#                                                                                                   
 # PURE FUN ENTERPRISE EDITION - ULTIMATE STRUCTURE (v2.1.1 - FIXED & OPTIMIZED)
 # ====================================================================================================
 
@@ -292,7 +292,7 @@ class GameUtils:
         masked_chars = []
         for index, char in enumerate(characters):
             if char == ' ':
-                masked_chars.append('  ')
+                masked_chars.append(' ')
             elif index == 0 or index == len(characters) - 1:
                 masked_chars.append(char.upper())
             else:
@@ -670,234 +670,165 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
     clean_w = word.strip().lower()
     found_vi = clean_w in COMBINED_VIETNAMESE_DICTIONARY
     found_en = clean_w in ENGLISH_DICT
-    desc = f"Từ khóa: **`{clean_w.upper()}`**\n\n"
     if found_vi or found_en:
-        desc += "✅ **Trạng thái:** Từ này **CÓ** trong cơ sở dữ liệu chuẩn của hệ thống!"
+        lang = "Tiếng Việt" if found_vi else "Tiếng Anh"
+        await ctx.send(embed=UIUtils.create_embed("📖 Tra cứu từ vựng", f"Từ **`{clean_w.upper()}`** có tồn tại trong cơ sở dữ liệu ({lang}).", BotConfig.COLOR_SUCCESS))
     else:
-        desc += "❌ **Trạng thái:** Từ này không có trong từ điển."
-    await ctx.send(embed=UIUtils.create_embed("📖 Tra Cứu Từ Điển", desc, BotConfig.COLOR_INFO))
+        await ctx.send(embed=UIUtils.create_embed("📖 Tra cứu từ vựng", f"Không tìm thấy từ **`{clean_w.upper()}`** trong cơ sở dữ liệu.", BotConfig.COLOR_WARNING))
 
-@bot.command(name="rank", aliases=["level"])
+@bot.command(name="rank", aliases=["top"])
 async def cmd_rank(ctx: commands.Context) -> None:
-    u_data = get_user_data(ctx.author.id)
-    desc = f"👤 **Thành viên:** {ctx.author.mention}\n⭐ **Level:** {u_data['level']}\n✨ **XP:** {u_data['xp']}"
-    await ctx.send(embed=UIUtils.create_embed("📊 Thẻ Xếp Hạng", desc, BotConfig.COLOR_DEFAULT))
+    user_data = get_user_data(ctx.author.id)
+    desc = f"👤 **{ctx.author.name}**\n• Cấp độ: {user_data['level']}\n• Điểm kinh nghiệm (XP): {user_data['xp']}"
+    await ctx.send(embed=UIUtils.create_embed("🏆 Bảng Xếp Hạng Cá Nhân", desc, BotConfig.COLOR_DEFAULT))
 
 @bot.command(name="daily")
 async def cmd_daily(ctx: commands.Context) -> None:
-    u_data = get_user_data(ctx.author.id)
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    if u_data["last_daily"] == today_str:
-        await ctx.send(embed=UIUtils.build_warning_embed("Điểm Danh", "Bạn đã điểm danh hôm nay rồi!"))
-        return
-    u_data["last_daily"] = today_str
-    u_data["xp"] += 50
-    await ctx.send(embed=UIUtils.build_success_embed("Điểm Danh Thành Công", "Bạn đã nhận được **+50 XP**!"))
+    user_data = get_user_data(ctx.author.id)
+    user_data['xp'] += 50
+    await ctx.send(embed=UIUtils.create_embed("🎁 Điểm Danh Hàng Ngày", "Bạn nhận được **50 XP** miễn phí hôm nay!", BotConfig.COLOR_SUCCESS))
 
 # ====================================================================================================
-# PHẦN 10: TRÌNH LẮNG NGHE SỰ KIỆN TIN NHẮN (GAMEPLAY MESSAGE LISTENER - ĐÃ SỬA LỖI PHẢN HỒI)
+# PHẦN 10: XỬ LÝ SỰ KIỆN TIN NHẮN (MESSAGE LISTENER CHO TRÒ CHƠI)
 # ====================================================================================================
 
 @bot.event
 async def on_message(message: discord.Message) -> None:
     if message.author.bot:
         return
-        
+    
     await bot.process_commands(message)
     
     session = global_session_manager.get_session(message.channel.id)
     if not session.is_active:
         return
-        
+
     content = message.content.strip().lower()
-    
+    if content.startswith(BotConfig.PREFIX):
+        return
+
     # 1. Chế độ Vua Tiếng Việt
     if session.active_mode == GameMode.VUA_TIENG_VIET:
         if content == session.scrambled_target.lower():
-            u_data = get_user_data(message.author.id)
-            u_data["xp"] += 20
-            embed = UIUtils.build_game_victory(message.author.mention, session.scrambled_target, "Vua Tiếng Việt")
+            target = session.scrambled_target
             session.reset()
-            await message.channel.send(embed=embed)
-            
+            user_data = get_user_data(message.author.id)
+            user_data['xp'] += 20
+            await message.channel.send(embed=UIUtils.build_game_victory(message.author.mention, target, "Vua Tiếng Việt"))
+        return
+
     # 2. Chế độ Đoán Quốc Gia
-    elif session.active_mode == GameMode.GUESS_COUNTRY:
+    if session.active_mode == GameMode.GUESS_COUNTRY:
         if content == session.secret_country.lower():
-            u_data = get_user_data(message.author.id)
-            u_data["xp"] += 20
-            embed = UIUtils.build_game_victory(message.author.mention, session.secret_country, "Đoán Quốc Gia")
+            target = session.secret_country
             session.reset()
-            await message.channel.send(embed=embed)
-            
-    # 3. Chế độ Nối Từ Tiếng Việt (PvP)
-    elif session.active_mode == GameMode.PVP_VIETNAMESE:
-        syllables = content.split()
-        if len(syllables) != 2:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Việt phải gồm đúng 2 tiếng (ví dụ: học tập)."))
+            user_data = get_user_data(message.author.id)
+            user_data['xp'] += 20
+            await message.channel.send(embed=UIUtils.build_game_victory(message.author.mention, target, "Đoán Quốc Gia"))
+        return
+
+    # 3. Chế độ Nối Từ Tiếng Việt (PvP & Bot)
+    if session.active_mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
+        parts = content.split()
+        if len(parts) != 2:
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ phải gồm đúng 2 tiếng!"))
             return
-            
-        if content in session.used_words_history:
-            await message.channel.send(BotConfig.MSG_ERR_ALREADY_USED)
-            return
-            
+        
         if content not in COMBINED_VIETNAMESE_DICTIONARY:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ `{content}` không tồn tại trong từ điển tiếng Việt."))
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ này không có trong từ điển tiếng Việt!"))
             return
-            
+        
+        if content in session.used_words_history:
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED))
+            return
+        
         current_syllables = session.current_word.split()
         required_syl = current_syllables[-1] if current_syllables else ""
-        
-        if syllables[0] != required_syl:
+        if parts[0] != required_syl:
             await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng âm tiết **`{required_syl.upper()}`**!"))
             return
-            
+        
         session.used_words_history.add(content)
         session.current_word = content
-        next_syl = syllables[-1]
         session.turn_counter += 1
+        user_data = get_user_data(message.author.id)
+        user_data['xp'] += 10
         
-        u_data = get_user_data(message.author.id)
-        u_data["xp"] += 10
+        next_syl = parts[-1]
         
-        embed = UIUtils.build_success_embed(
-            "Lượt Nối Từ Hợp Lệ",
-            f"✨ {message.author.mention} đã nối từ: **`{content.upper()}`**\n🌸 Âm tiết tiếp theo: **`{next_syl.upper()}`**"
-        )
-        await message.channel.send(embed=embed)
-
-    # 4. Chế độ Đấu Với Bot (Bot Tiếng Việt)
-    elif session.active_mode == GameMode.BOT_VIETNAMESE:
-        syllables = content.split()
-        if len(syllables) != 2:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Việt phải gồm đúng 2 tiếng (ví dụ: vui chơi)."))
-            return
+        if session.active_mode == GameMode.PVP_VIETNAMESE:
+            await message.channel.send(embed=UIUtils.create_embed("✨ Nối từ thành công!", f"Từ hợp lệ: **`{content.upper()}`**\nÂm tiếp theo: **`{next_syl.upper()}`**", BotConfig.COLOR_SUCCESS))
+        elif session.active_mode == GameMode.BOT_VIETNAMESE:
+            candidates = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(next_syl, [])
+            valid_candidates = [w for w in candidates if w not in session.used_words_history]
             
+            if not valid_candidates:
+                session.reset()
+                await message.channel.send(embed=UIUtils.build_bot_victory(message.author.mention, next_syl, len(COMBINED_VIETNAMESE_DICTIONARY)))
+                return
+            
+            bot_word = random.choice(valid_candidates)
+            session.used_words_history.add(bot_word)
+            session.current_word = bot_word
+            bot_syllables = bot_word.split()
+            next_bot_syl = bot_syllables[-1] if bot_syllables else bot_word
+            
+            await message.channel.send(embed=UIUtils.build_noitu_bot_turn_success(content, next_syl, bot_word, next_bot_syl))
+        return
+
+    # 4. Chế độ Nối Từ Tiếng Anh (PvP & Bot)
+    if session.active_mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
+        if not content.isalpha():
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Anh chỉ được chứa các ký tự chữ cái!"))
+            return
+        
+        if content not in ENGLISH_DICT:
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ này không có trong từ điển tiếng Anh!"))
+            return
+        
         if content in session.used_words_history:
-            await message.channel.send(BotConfig.MSG_ERR_ALREADY_USED)
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED))
             return
-            
-        if content not in COMBINED_VIETNAMESE_DICTIONARY:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ `{content}` không tồn tại trong từ điển tiếng Việt."))
-            return
-            
-        current_syllables = session.current_word.split()
-        required_syl = current_syllables[-1] if current_syllables else ""
         
-        if syllables[0] != required_syl:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng âm tiết **`{required_syl.upper()}`**!"))
+        required_letter = session.current_word[-1]
+        if content[0] != required_letter:
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Word must start with letter **`{required_letter.upper()}`**!"))
             return
-            
+        
         session.used_words_history.add(content)
-        user_next_syl = syllables[-1]
+        session.current_word = content
+        session.turn_counter += 1
+        user_data = get_user_data(message.author.id)
+        user_data['xp'] += 10
         
-        possible_bot_words = [
-            w for w in VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(user_next_syl, [])
-            if w not in session.used_words_history
-        ]
+        next_letter = content[-1]
         
-        if not possible_bot_words:
-            embed = UIUtils.build_bot_victory(message.author.mention, user_next_syl, len(COMBINED_VIETNAMESE_DICTIONARY))
-            session.reset()
-            await message.channel.send(embed=embed)
-            return
+        if session.active_mode == GameMode.PVP_ENGLISH:
+            await message.channel.send(embed=UIUtils.create_embed("✨ Word chain success!", f"Valid word: **`{content.upper()}`**\nNext letter: **`{next_letter.upper()}`**", BotConfig.COLOR_SUCCESS))
+        elif session.active_mode == GameMode.BOT_ENGLISH:
+            candidates = ENGLISH_INDEX_BY_FIRST_LETTER.get(next_letter, [])
+            valid_candidates = [w for w in candidates if w not in session.used_words_history]
             
-        bot_word = random.choice(possible_bot_words)
-        session.used_words_history.add(bot_word)
-        session.current_word = bot_word
-        bot_next_syl = bot_word.split()[-1]
-        
-        u_data = get_user_data(message.author.id)
-        u_data["xp"] += 10
-        
-        embed = UIUtils.build_noitu_bot_turn_success(content, user_next_syl, bot_word, bot_next_syl)
-        await message.channel.send(embed=embed)
-
-    # 5. Chế độ Nối Từ Tiếng Anh (PvP)
-    elif session.active_mode == GameMode.PVP_ENGLISH:
-        word = content.lower()
-        if not word.isalpha() or len(word) < 2:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Anh phải từ 2 ký tự trở lên và chỉ chứa chữ cái."))
-            return
+            if not valid_candidates:
+                session.reset()
+                await message.channel.send(embed=UIUtils.build_bot_victory(message.author.mention, next_letter, len(ENGLISH_DICT)))
+                return
             
-        if word in session.used_words_history:
-            await message.channel.send(BotConfig.MSG_ERR_ALREADY_USED)
-            return
+            bot_word = random.choice(valid_candidates)
+            session.used_words_history.add(bot_word)
+            session.current_word = bot_word
+            next_bot_letter = bot_word[-1]
             
-        if word not in ENGLISH_DICT:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ `{word}` không tồn tại trong từ điển tiếng Anh chuẩn."))
-            return
-            
-        required_letter = session.current_word[-1]
-        if word[0] != required_letter:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng ký tự **`{required_letter.upper()}`**!"))
-            return
-            
-        session.used_words_history.add(word)
-        session.current_word = word
-        next_letter = word[-1]
-        
-        u_data = get_user_data(message.author.id)
-        u_data["xp"] += 10
-        
-        embed = UIUtils.build_success_embed(
-            "English Word Chain",
-            f"✨ {message.author.mention} accepted word: **`{word.upper()}`**\n🌸 Next starting letter: **`{next_letter.upper()}`**"
-        )
-        await message.channel.send(embed=embed)
-
-    # 6. Chế độ Đấu Với Bot (Bot Tiếng Anh)
-    elif session.active_mode == GameMode.BOT_ENGLISH:
-        word = content.lower()
-        if not word.isalpha() or len(word) < 2:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Anh phải từ 2 ký tự trở lên và chỉ chứa chữ cái."))
-            return
-
-        if word in session.used_words_history:
-            await message.channel.send(BotConfig.MSG_ERR_ALREADY_USED)
-            return
-
-        if word not in ENGLISH_DICT:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ `{word}` không tồn tại trong từ điển tiếng Anh chuẩn."))
-            return
-
-        required_letter = session.current_word[-1]
-        if word[0] != required_letter:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng ký tự **`{required_letter.upper()}`**!"))
-            return
-
-        session.used_words_history.add(word)
-        user_next_letter = word[-1]
-
-        possible_bot_words = [
-            w for w in ENGLISH_INDEX_BY_FIRST_LETTER.get(user_next_letter, [])
-            if w not in session.used_words_history
-        ]
-
-        if not possible_bot_words:
-            embed = UIUtils.build_bot_victory(message.author.mention, user_next_letter, len(ENGLISH_DICT))
-            session.reset()
-            await message.channel.send(embed=embed)
-            return
-
-        bot_word = random.choice(possible_bot_words)
-        session.used_words_history.add(bot_word)
-        session.current_word = bot_word
-        bot_next_letter = bot_word[-1]
-
-        u_data = get_user_data(message.author.id)
-        u_data["xp"] += 10
-
-        embed = UIUtils.build_noitu_bot_english_turn_success(word, user_next_letter, bot_word, bot_next_letter)
-        await message.channel.send(embed=embed)
+            await message.channel.send(embed=UIUtils.build_noitu_bot_english_turn_success(content, next_letter, bot_word, next_bot_letter))
+        return
 
 # ====================================================================================================
-# PHẦN 11: KHỞI CHẠY ỨNG DỤNG CHÍNH (MAIN ENTRY POINT)
+# PHẦN 11: KHỞI CHẠY BOT
 # ====================================================================================================
 
 if __name__ == "__main__":
-    TOKEN = os.getenv("DISCORD_TOKEN")
-    if not TOKEN:
-        logger.error("LỖI: Biến môi trường DISCORD_TOKEN chưa được thiết lập!")
+    token = os.getenv("DISCORD_TOKEN")
+    if not token:
+        logger.warning("Không tìm thấy biến môi trường DISCORD_TOKEN. Vui lòng thiết lập token trước khi chạy bot.")
     else:
-        logger.info("Đang khởi động Discord Bot...")
-        bot.run(TOKEN)
+        bot.run(token)
