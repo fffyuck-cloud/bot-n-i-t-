@@ -36,10 +36,10 @@ def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     
     words_vi = {
-        "đá bóng", "bóng đá", "học sinh", "sinh viên", "thể thao", "bóng chuyền", "chuyền bóng",
-        "cầu lông", "lông gà", "nhà cửa", "cửa sổ", "sổ tay", "tay chân", "chân thành",
-        "thành phố", "phố phường", "phường xã", "xã hội", "hội ngộ", "ngộ nghĩnh",
-        "sách vở", "vở bài", "bài học", "học tập", "tập thể", "thể hình", "hình ảnh",
+        "đá bóng", "bóng đá", "học sinh", "sinh viên", "sinh học", "bài bản", "bài học", "bài tập",
+        "thể thao", "bóng chuyền", "chuyền bóng", "cầu lông", "lông gà", "nhà cửa", "cửa sổ", 
+        "sổ tay", "tay chân", "chân thành", "thành phố", "phố phường", "phường xã", "xã hội", 
+        "hội ngộ", "ngộ nghĩnh", "sách vở", "vở bài", "tập thể", "thể hình", "hình ảnh",
         "máy tính", "tính toán", "toán học", "học hành", "hành động", "động lực", "lực lượng",
         "lượng mưa", "mưa gió", "gió bão", "bão tố", "tố cáo", "cáo trạng", "trạng thái",
         "thái độ", "độ ẩm", "ẩm thực", "thực phẩm", "phẩm chất", "chất lượng", "lượng từ",
@@ -78,7 +78,12 @@ def prepare_dictionaries():
         "neo đậu", "đậu phộng", "rang lạc", "lạc quan", "quan hệ", "hệ trọng",
         "trọng điểm", "trọng trách", "trọng tài", "trọng tâm", "trọng đại", "tiểu đường",
         "đường đi", "đi đứng", "đương thời", "hệ lụy", "lụy tình", "hệ thống", "thống nhất",
-        "thống kê", "hệ quả", "quả cảm", "quả tang"
+        "thống kê", "hệ quả", "quả cảm", "quả tang", "khoa học", "địa lý", "lịch sử",
+        "tự nhiên", "văn hóa", "giáo dục", "y tế", "kho tàng", "ông bà", "cha mẹ",
+        "bạn bè", "thầy cô", "trường lớp", "cây cối", "hoa quả", "động vật", "thực vật",
+        "mây gió", "núi non", "biển cả", "mặt trời", "mặt trăng", "ngôi sao", "không gian",
+        "thời gian", "quá khứ", "tương lai", "hiện tại", "ngày đêm", "năm tháng", "tuần lễ",
+        "buổi sáng", "trưa chiều", "tối đêm", "mùa xuân", "mùa hạ", "mùa thu", "mùa đông"
     }
     
     try:
@@ -205,7 +210,7 @@ async def help_cmd(ctx):
         
         "⚙️ **QUẢN LÝ TRẬN ĐẤU & CÔNG CỤ**\n"
         "`?huynoitu` → Hủy ván chơi nếu thấy chán hoặc lag\n"
-        "`?nghia [t]` → Tra cứu từ điển tiếng Việt/Anh\n\n"
+        "`?nghia [từ]` → Tra cứu từ điển tiếng Việt/Anh\n\n"
         
         "📊 **HỆ THỐNG RANK & DAILY**\n"
         "`?rank` → Xem thẻ rank\n"
