@@ -29,7 +29,8 @@ except Exception:
 def norm(text: str) -> str:
     if not text: return ""
     text = unicodedata.normalize('NFC', str(text).lower().strip())
-    return re.sub(r'\s+', ' ', text)
+    text = re.sub(r'[^\w\sàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]', '', text)
+    return re.sub(r'\s+', ' ', text).strip()
 
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
@@ -72,7 +73,7 @@ async def create_rank_card(member, data):
     draw = ImageDraw.Draw(image)
     overlay = Image.new("RGBA", (600, 200), (0, 0, 0, 140))
     image.alpha_composite(overlay)
-    draw.rectangle([5, 5, 595, 195], outline="#ff007f", width=3)
+    draw.rectangle([5, 5, 595, 195], outline="#FF0055", width=3)
     try:
         avatar_url = member.display_avatar.with_size(128).url
         req = urllib.request.Request(avatar_url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -83,16 +84,16 @@ async def create_rank_card(member, data):
             ImageDraw.Draw(mask).ellipse((0, 0, 110, 110), fill=255)
             image.paste(avatar_img, (40, 45), mask)
     except: pass
-    draw.ellipse((38, 43, 152, 157), outline="#ff007f", width=4)
+    draw.ellipse((38, 43, 152, 157), outline="#FF0055", width=4)
     draw.text((170, 45), f"{member.display_name}", fill="#ffffff", font=font_large)
     draw.text((170, 75), f"@{member.user.username}", fill="#a0a0ab", font=font_small)
-    draw.text((450, 45), f"RANK #{data['rank']}", fill="#ff007f", font=font_large)
+    draw.text((450, 45), f"RANK #{data['rank']}", fill="#FF0055", font=font_large)
     draw.text((450, 75), f"LVL {data['level']}", fill="#ffffff", font=font_medium)
     xp_needed = data["level"] * 300
     progress = min(data["xp"] / xp_needed, 1.0)
     draw.rounded_rectangle([170, 120, 560, 142], radius=11, fill="#1a1a24")
     if progress > 0:
-        draw.rounded_rectangle([170, 120, 170 + int(390 * progress), 142], radius=11, fill="#ff007f")
+        draw.rounded_rectangle([170, 120, 170 + int(390 * progress), 142], radius=11, fill="#FF0055")
     draw.text((180, 124), f"XP: {data['xp']} / {xp_needed}", fill="#ffffff", font=font_small)
     buffer = io.BytesIO()
     image.save(buffer, format="PNG")
@@ -104,7 +105,7 @@ async def create_daily_card(member, reward, success):
     draw = ImageDraw.Draw(image)
     overlay = Image.new("RGBA", (600, 200), (0, 0, 0, 160))
     image.alpha_composite(overlay)
-    draw.rectangle([5, 5, 595, 195], outline="#ff007f", width=3)
+    draw.rectangle([5, 5, 595, 195], outline="#FF0055", width=3)
     status_text = "ĐIỂM DANH THÀNH CÔNG" if success else "ĐÃ ĐIỂM DANH RỒI"
     color = "#57F287" if success else "#ED4245"
     draw.text((170, 60), status_text, fill=color, font=font_large)
@@ -128,33 +129,46 @@ async def on_ready():
 
 @bot.command(name="help")
 async def help_cmd(ctx):
-    embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ULTIMATE ✦", color=0xFF007F)
+    try:
+        file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
+    except:
+        file = None
+        
+    embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ✦", color=0xFF0055)
+    if file:
+        embed.set_image(url="attachment://banner.png")
+        
     embed.description = (
-        "💬 **Word Chain Ultimate Bot Core**\n"
-        "Hệ thống trò chơi nối từ phân tách hoàn toàn tiếng Việt và tiếng Anh, tích hợp bộ đếm số lượng từ chuẩn xác."
+        "💬 **Word Chain Ultimate Bot**\n"
+        "Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.\n"
+        "Hỗ trợ kho từ vựng khổng lồ Tiếng Việt & Tiếng Anh, bot này không chỉ nối từ mà còn dạy đời mấy ông về chính tả đấy nhé!\n\n"
+        
+        "🇻🇳 **NỐI TỪ TIẾNG VIỆT**\n"
+        "Chơi đúng luật 2 từ (ví dụ: 'đá bóng' -> 'bóng đá') không chơi từ đơn, không chơi từ lóng, viết sai chính tả là bot nó vả vào mồm ngay\n"
+        "`?noitu` → Chơi chung kênh cùng bè lũ\n"
+        "`?noituubot` → Solo khô máu với con bot cho biết mùi đời\n\n"
+        
+        "🇬🇧 **NỐI TỪ TIẾNG ANH**\n"
+        "Luật quốc tế chơi 1 từ duy nhất (ví dụ: 'apple' -> 'egg') miễn là có trong từ điển tiếng anh chuẩn quốc tế\n"
+        "`?noitueng` → Chơi chung kênh cùng bè lũ\n"
+        "`?noituuboteng` → Solo khô máu với con bot cho biết mùi đời\n\n"
+        
+        "⚙️ **QUẢN LÝ TRẬN ĐẤU & CÔNG CỤ**\n"
+        "Mấy lệnh này để kiểm soát game, tránh tình trạng spam vớ vẩn\n"
+        "`?huynoitu` → Hủy ván chơi nếu thấy chán hoặc lag\n"
+        "`?nghia [từ]` → Tra cứu từ điển nếu ông giáo nghi ngờ từ đấy méo có thật\n\n"
+        
+        "📊 **HỆ THỐNG RANK & DAILY**\n"
+        "Điểm danh mỗi ngày để húp XP, leo rank làm trùm server\n"
+        "`?rank` → Xem thẻ rank mượt mà xem mình đang ở đâu\n"
+        "`?daily` → Điểm danh tích lũy XP hằng ngày, đừng để đứt chuỗi"
     )
-    embed.add_field(
-        name="🎮 CÁC LỆNH TRÒ CHƠI",
-        value=(
-            "• `?noitu [vi/en]` → Khởi động bàn đấu chung.\n"
-            "• `?noitueng` → Khởi động bàn đấu tiếng Anh nhanh.\n"
-            "• `?noituubot` → Solo 1v1 với AI tiếng Việt.\n"
-            "• `?noituuboteng` → Solo 1v1 với AI tiếng Anh.\n"
-            "• `?huynoitu` → Hủy bỏ ván đấu hiện tại."
-        ),
-        inline=False
-    )
-    embed.add_field(
-        name="📊 TIỆN ÍCH & TRA CỨU",
-        value=(
-            "• `?nghia [từ]` → Tra cứu từ điển Anh.\n"
-            "• `?rank` → Xem thẻ cấp độ và thứ hạng.\n"
-            "• `?daily` → Điểm danh nhận thưởng hằng ngày."
-        ),
-        inline=False
-    )
-    embed.set_footer(text="Hệ thống lọc ngôn ngữ độc lập đã được kích hoạt thành công!")
-    await ctx.send(embed=embed)
+    embed.set_footer(text="Bot được tạo ra bởi dân chơi hệ logic, đừng spam lệnh quá mức kèo bot nó dỗi nó sập đấy nhé")
+    
+    if file:
+        await ctx.send(embed=embed, file=file)
+    else:
+        await ctx.send(embed=embed)
 
 @bot.command(name="rank")
 async def rank_cmd(ctx, member: discord.Member = None):
@@ -162,7 +176,8 @@ async def rank_cmd(ctx, member: discord.Member = None):
     data = get_user_data(member.id)
     file = await create_rank_card(member, data)
     
-    embed = discord.Embed(title=f"📊 HỒ SƠ XẾP HẠNG: {member.display_name.upper()}", color=0xFF007F)
+    embed = discord.Embed(title=f"📊 HỒ SƠ XẾP HẠNG: {member.display_name.upper()}", color=0xFF0055)
+    embed.set_image(url="attachment://rank.png")
     embed.add_field(name="⭐ Cấp Độ", value=f"Level **{data['level']}**", inline=True)
     embed.add_field(name="🏆 Vị Thế", value=f"Rank **#{data['rank']}**", inline=True)
     embed.add_field(name="⚡ Kinh Nghiệm", value=f"**{data['xp']}** / {data['level'] * 300} XP", inline=True)
@@ -185,7 +200,8 @@ async def daily_cmd(ctx):
         data["xp"] += reward
         
     file = await create_daily_card(ctx.author, reward, claimed)
-    embed = discord.Embed(title="🎁 ĐIỂM DANH HẰNG NGÀY", color=0x57F287 if claimed else 0xED4245)
+    embed = discord.Embed(title="🎁 ĐIỂM DANH HẰNG NGÀY", color=0xFF0055)
+    embed.set_image(url="attachment://daily.png")
     if claimed:
         embed.description = f"🎉 Chúc mừng {ctx.author.mention} điểm danh thành công!"
         embed.add_field(name="💰 Phần Thưởng", value=f"+**{reward}** XP", inline=True)
@@ -201,10 +217,16 @@ async def start_noitu(ctx, mode: str = "vi"):
         return await ctx.send("Kênh đang có ván chơi rồi!")
     mode = mode.lower()
     
+    try:
+        file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
+    except:
+        file = None
+
     if mode in ["en", "english", "eng", "noitueng"]:
         word = "apple"
         games[ctx.channel.id] = {"mode": "en_multi", "last_word": word, "used_words": {word}}
-        embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH", color=0xFF007F)
+        embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH", color=0xFF0055)
+        if file: embed.set_image(url="attachment://banner.png")
         embed.description = (
             "🔥 **SÀN ĐẤU QUỐC TẾ KHAI MẠC** 🔥\n\n"
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
@@ -212,11 +234,13 @@ async def start_noitu(ctx, mode: str = "vi"):
             f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**\n"
             f"🛡️ *Lưu ý: Chỉ chấp nhận từ tiếng Anh đơn (chỉ chứa a-z).* "
         )
-        await ctx.send(embed=embed)
+        if file: await ctx.send(embed=embed, file=file)
+        else: await ctx.send(embed=embed)
     else:
         word = "đá bóng"
         games[ctx.channel.id] = {"mode": "vi_multi", "last_word": word, "used_words": {word}}
-        embed = discord.Embed(title="🇻🇳 TRẬN ĐẤU NỐI TỪ TIẾNG VIỆT", color=0xFF007F)
+        embed = discord.Embed(title="🇻🇳 TRẬN ĐẤU NỐI TỪ TIẾNG VIỆT", color=0xFF0055)
+        if file: embed.set_image(url="attachment://banner.png")
         embed.description = (
             "🔥 **SÀN ĐẤU TIẾNG VIỆT KHAI MẠC** 🔥\n\n"
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
@@ -224,49 +248,68 @@ async def start_noitu(ctx, mode: str = "vi"):
             f"⚡ Bắt đầu bằng âm tiết: **{word.split()[-1].upper()}**\n"
             f"🛡️ *Lưu ý: Chỉ chấp nhận cụm từ tiếng Việt đúng 2 tiếng.*"
         )
-        await ctx.send(embed=embed)
+        if file: await ctx.send(embed=embed, file=file)
+        else: await ctx.send(embed=embed)
 
 @bot.command(name="noituubot")
 async def start_game_vi_bot(ctx):
     if ctx.channel.id in games: return await ctx.send("Kênh đang có ván chơi rồi!")
     word = "đá bóng"
     games[ctx.channel.id] = {"mode": "vi_bot", "last_word": word, "used_words": {word}}
-    embed = discord.Embed(title="🤖 THÁCH ĐẤU AI: SOLO TIẾNG VIỆT", color=0xFF007F)
+    try:
+        file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
+    except:
+        file = None
+    embed = discord.Embed(title="🤖 THÁCH ĐẤU AI: SOLO TIẾNG VIỆT", color=0xFF0055)
+    if file: embed.set_image(url="attachment://banner.png")
     embed.description = (
         "⚔️ **1V1 VỚI HỆ THỐNG AI** ⚔️\n\n"
         f"🎯 **TỪ KHÓA MỞ MÀN:** 👉 **`{word.upper()}`**\n"
         f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
         f"⚡ Âm tiết tiếp theo: **{word.split()[-1].upper()}**"
     )
-    await ctx.send(embed=embed)
+    if file: await ctx.send(embed=embed, file=file)
+    else: await ctx.send(embed=embed)
 
 @bot.command(name="noitueng")
 async def start_game_en(ctx):
     if ctx.channel.id in games: return await ctx.send("Kênh đang có ván chơi rồi!")
     word = "apple"
     games[ctx.channel.id] = {"mode": "en_multi", "last_word": word, "used_words": {word}}
-    embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH", color=0xFF007F)
+    try:
+        file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
+    except:
+        file = None
+    embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH", color=0xFF0055)
+    if file: embed.set_image(url="attachment://banner.png")
     embed.description = (
         "🔥 **SÀN ĐẤU QUỐC TẾ KHAI MẠC** 🔥\n\n"
         f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
         f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
         f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**"
     )
-    await ctx.send(embed=embed)
+    if file: await ctx.send(embed=embed, file=file)
+    else: await ctx.send(embed=embed)
 
 @bot.command(name="noituuboteng")
 async def start_game_en_bot(ctx):
     if ctx.channel.id in games: return await ctx.send("Kênh đang có ván chơi rồi!")
     word = "apple"
     games[ctx.channel.id] = {"mode": "en_bot", "last_word": word, "used_words": {word}}
-    embed = discord.Embed(title="🤖 THÁCH ĐẤU AI: SOLO TIẾNG ANH", color=0xFF007F)
+    try:
+        file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
+    except:
+        file = None
+    embed = discord.Embed(title="🤖 THÁCH ĐẤU AI: SOLO TIẾNG ANH", color=0xFF0055)
+    if file: embed.set_image(url="attachment://banner.png")
     embed.description = (
         "⚔️ **1V1 VỚI HỆ THỐNG AI QUỐC TẾ** ⚔️\n\n"
         f"🎯 **TỪ KHÓA MỞ MÀN:** 👉 **`{word.upper()}`**\n"
         f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
         f"⚡ Ký tự tiếp theo: **{word[-1].upper()}**"
     )
-    await ctx.send(embed=embed)
+    if file: await ctx.send(embed=embed, file=file)
+    else: await ctx.send(embed=embed)
 
 @bot.command(name="huynoitu")
 async def stop_game(ctx):
@@ -336,7 +379,6 @@ async def on_message(message):
         w = user_input
         prev_char = game["last_word"][-1]
         
-        # Bắt buộc phải là từ đơn tiếng Anh thuần ASCII (a-z), chặn hoàn toàn tiếng Việt có dấu/khoảng trắng
         if len(w.split()) != 1 or not (w.isascii() and w.isalpha()) or w[0] != prev_char or w in game["used_words"] or w not in dictionary_en:
             await message.add_reaction(CROSS)
             return
