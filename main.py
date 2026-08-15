@@ -33,9 +33,10 @@ def norm(text: str) -> str:
     return re.sub(r'\s+', ' ', text).strip()
 
 def prepare_dictionaries():
-    ctx = ssl._create_unverified_context()
+    words_vi = set()
     
-    words_vi = {
+    # Danh sách từ điển dự phòng đầy đủ các từ ghép thông dụng
+    default_vi_words = [
         "đá bóng", "bóng đá", "học sinh", "sinh viên", "sinh học", "bài bản", "bài học", "bài tập",
         "thể thao", "bóng chuyền", "chuyền bóng", "cầu lông", "lông gà", "nhà cửa", "cửa sổ", 
         "sổ tay", "tay chân", "chân thành", "thành phố", "phố phường", "phường xã", "xã hội", 
@@ -46,68 +47,62 @@ def prepare_dictionaries():
         "từ vựng", "phát triển", "triển khai", "khai thác", "thác nước", "nước ngọt",
         "ngọt ngào", "ngào ngạt", "ngạt thở", "thở dài", "dài lâu", "lâu đời", "đời sống",
         "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", "thanh niên",
-        "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn",
-        "bùn lầy", "lầy lội", "lội nước", "nước mắt", "mắt cá", "cá tính",
-        "tính cách", "cách mạng", "mạng lưới", "lưới cá", "cá mập", "mập mạp",
-        "ít ỏi", "ương bướng", "bướng bỉnh", "bút chì", "chìa khóa", "khóa cửa",
-        "cửa hàng", "hàng hóa", "hóa đơn", "đơn ca", "ca sĩ", "tử vong", "vong hồn",
-        "hồn nhiên", "nhiên liệu", "liệu pháp", "pháp luật", "luật sư", "sư phạm",
-        "phạm nhân", "nhân dân", "dân tộc", "tộc họ", "họ hàng", "hàng xóm",
-        "xóm giềng", "giềng mối", "mối tình", "tình yêu", "yêu thương", "thương nhớ",
-        "nhớ mong", "mong mỏi", "mỏi mệt", "mệt mỏi", "tử thần", "thần tốc", "tốc độ",
-        "độ lượng", "lượng thứ", "thứ bậc", "bậc thang", "thang máy", "máy bay",
-        "bay lượn", "lượn lờ", "lờ đờ", "đờ đẫn", "dắt dìu", "lái xe", "xe cộ",
-        "kiệu hoa", "hoa hồng", "ngoại ô", "ô tô", "tô điểm", "điểm số", "hồng hộc",
-        "hộc bàn", "bàn ghế", "ghế đá", "đá quý", "quý mến", "mến yêu", "yêu đương",
-        "đương nhiên", "thủy tinh", "tinh tế", "tế bào", "bào thai", "thai nghén",
-        "suy nghĩ", "nghĩ ngợi", "ngợi ca", "ca tụng", "tụng kinh", "kinh điển",
-        "điển hình", "hình thức", "thức ăn", "ăn uống", "uống nước", "nước non",
-        "non sông", "sông ngòi", "ngòi bút", "bút mực", "tàu thủy", "thủy thủ",
-        "thủ đô", "đô la", "la cà", "cà phê", "pha lê", "lê thê", "thê lương",
-        "lương tâm", "tâm sự", "sự nghiệp", "nghiệp dư", "dưa hấu", "kính cận",
-        "cận thị", "thị xã", "xã tắc", "tắc nghẽn", "mạch máu", "máu me", "chua chát",
-        "chúa tể", "tể tướng", "tướng quân", "quân đội", "đội ngũ", "ngũ cốc",
-        "cốc chén", "chén trà", "trà đá", "đá lạnh", "lạnh lùng", "sục sôi",
-        "sôi nổi", "nổi bật", "bật mí", "mí mắt", "mắt kính", "kính chào", "chào hỏi",
-        "hỏi thăm", "thăm nom", "rõ ràng", "buộc tội", "tội lỗi", "lỗi lầm",
-        "nhịp nhàng", "rượu chè", "anh em", "em út", "nam thanh", "thanh tú",
-        "tài năng", "kinh tế", "tế nhị", "vị trí", "trí tuệ", "cán bộ", "bộ đội",
-        "đội trưởng", "trưởng thành", "thành đạt", "được mùa", "mùa màng", "mục tiêu",
-        "tiêu cực", "kỳ diệu", "kỳ quan", "quan sát", "phạt đền", "đền ơn", "ơn huệ",
-        "ơn nghĩa", "nghĩa vụ", "vụ án", "án mạng", "mạng sống", "sống chết", "mỏ neo",
-        "neo đậu", "đậu phộng", "rang lạc", "lạc quan", "quan hệ", "hệ trọng",
-        "trọng điểm", "trọng trách", "trọng tài", "trọng tâm", "trọng đại", "tiểu đường",
-        "đường đi", "đi đứng", "đương thời", "hệ lụy", "lụy tình", "hệ thống", "thống nhất",
-        "thống kê", "hệ quả", "quả cảm", "quả tang", "khoa học", "địa lý", "lịch sử",
-        "tự nhiên", "văn hóa", "giáo dục", "y tế", "kho tàng", "ông bà", "cha mẹ",
-        "bạn bè", "thầy cô", "trường lớp", "cây cối", "hoa quả", "động vật", "thực vật",
-        "mây gió", "núi non", "biển cả", "mặt trời", "mặt trăng", "ngôi sao", "không gian",
-        "thời gian", "quá khứ", "tương lai", "hiện tại", "ngày đêm", "năm tháng", "tuần lễ",
-        "buổi sáng", "trưa chiều", "tối đêm", "mùa xuân", "mùa hạ", "mùa thu", "mùa đông"
-    }
-    
+        "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn", "rõ ràng", 
+        "ràng buộc", "buộc tội", "tội lỗi", "lỗi lầm", "nhịp nhàng", "rượu chè", "anh em", 
+        "em út", "nam thanh", "thanh tú", "tài năng", "kinh tế", "tế nhị", "vị trí", 
+        "trí tuệ", "cán bộ", "bộ đội", "đội trưởng", "trưởng thành", "thành đạt", 
+        "được mùa", "mùa màng", "mục tiêu", "tiêu cực", "kỳ diệu", "kỳ quan", "quan sát", 
+        "phạt đền", "đền ơn", "ơn huệ", "ơn nghĩa", "nghĩa vụ", "vụ án", "án mạng", 
+        "mạng sống", "sống chết", "mỏ neo", "neo đậu", "đậu phộng", "rang lạc", "lạc quan", 
+        "quan hệ", "hệ trọng", "trọng điểm", "trọng trách", "trọng tài", "trọng tâm", 
+        "trọng đại", "tiểu đường", "đường đi", "đi đứng", "đương thời", "hệ lụy", 
+        "lụy tình", "hệ thống", "thống nhất", "thống kê", "hệ quả", "quả cảm", "quả tang", 
+        "khoa học", "địa lý", "lịch sử", "tự nhiên", "văn hóa", "giáo dục", "y tế", 
+        "kho tàng", "ông bà", "cha mẹ", "bạn bè", "thầy cô", "trường lớp", "cây cối", 
+        "hoa quả", "động vật", "thực vật", "mây gió", "núi non", "biển cả", "mặt trời", 
+        "mặt trăng", "ngôi sao", "không gian", "thời gian", "quá khứ", "tương lai", 
+        "hiện tại", "ngày đêm", "năm tháng", "tuần lễ", "buổi sáng", "trưa chiều", 
+        "tối đêm", "mùa xuân", "mùa hạ", "mùa thu", "mùa đông"
+    ]
+
+    # Kiểm tra hoặc tạo file words.txt cục bộ để người dùng dễ dàng nạp full từ điển
+    if not os.path.exists("words.txt"):
+        try:
+            with open("words.txt", "w", encoding="utf-8") as f:
+                f.write("\n".join(default_vi_words))
+        except: pass
+
+    if os.path.exists("words.txt"):
+        try:
+            with open("words.txt", "r", encoding="utf-8") as f:
+                for line in f:
+                    w = norm(line.replace("_", " "))
+                    if w: words_vi.add(w)
+        except: pass
+
+    # Thử nạp thêm từ online nếu có kết nối
+    ctx_ssl = ssl._create_unverified_context()
     try:
         req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+        with urllib.request.urlopen(req, context=ctx_ssl, timeout=10) as response:
             for line in response.read().decode('utf-8', errors='ignore').splitlines():
                 word = norm(line.replace("_", " "))
-                if word and len(word.split()) == 2: words_vi.add(word)
+                if word: words_vi.add(word)
     except Exception as e:
-        print(f"Không tải được từ điển online, sử dụng từ điển nội bộ: {e}")
+        print(f"Dùng từ điển cục bộ: {e}")
 
-    words_en = {
-        "lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
-        "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
-        "yolo", "pro", "ez", "bro", "sis", "bae", "flex", "stfu", "dm", "pm",
-        "apple", "banana", "cat", "dog", "egg", "game", "python", "discord"
-    }
+    words_en = {"lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
+                "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
+                "yolo", "pro", "ez", "bro", "sis", "bae", "flex", "stfu", "dm", "pm",
+                "apple", "banana", "cat", "dog", "egg", "game", "python", "discord"}
     try:
         req = urllib.request.Request("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt", headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+        with urllib.request.urlopen(req, context=ctx_ssl, timeout=10) as response:
             for line in response.read().decode('utf-8', errors='ignore').splitlines():
                 w = line.strip().lower()
                 if len(w) >= 2 and w.isalpha(): words_en.add(w)
     except: pass
+    
     return words_vi, words_en
 
 dictionary_vi, dictionary_en = prepare_dictionaries()
@@ -199,7 +194,7 @@ async def help_cmd(ctx):
         "Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.\n\n"
         
         "🇻🇳 **NỐI TỪ TIẾNG VIỆT (BẮT BUỘC 2 TỪ)**\n"
-        "Chơi đúng luật 2 từ (ví dụ: 'đền ơn' -> 'ơn huệ'). Gõ 1 từ hoặc từ không có trong từ điển sẽ bị tính là sai!\n"
+        "Chơi đúng luật 2 từ (ví dụ: 'đền ơn' -> 'ơn huệ'). Gõ sai định dạng hoặc từ không có trong từ điển sẽ bị tính là sai!\n"
         "`?noitu` → Chơi chung kênh cùng bè lũ\n"
         "`?noituubot` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
