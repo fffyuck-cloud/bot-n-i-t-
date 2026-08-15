@@ -33,54 +33,35 @@ def norm(text: str) -> str:
     return re.sub(r'\s+', ' ', text).strip()
 
 def prepare_dictionaries():
-    words_vi = set()
-    
-    # Danh sách từ điển dự phòng đầy đủ các từ ghép thông dụng
-    default_vi_words = [
+    words_vi = {
         "đá bóng", "bóng đá", "học sinh", "sinh viên", "sinh học", "bài bản", "bài học", "bài tập",
         "thể thao", "bóng chuyền", "chuyền bóng", "cầu lông", "lông gà", "nhà cửa", "cửa sổ", 
         "sổ tay", "tay chân", "chân thành", "thành phố", "phố phường", "phường xã", "xã hội", 
-        "hội ngộ", "ngộ nghĩnh", "sách vở", "vở bài", "tập thể", "thể hình", "hình ảnh",
-        "máy tính", "tính toán", "toán học", "học hành", "hành động", "động lực", "lực lượng",
-        "lượng mưa", "mưa gió", "gió bão", "bão tố", "tố cáo", "cáo trạng", "trạng thái",
-        "thái độ", "độ ẩm", "ẩm thực", "thực phẩm", "phẩm chất", "chất lượng", "lượng từ",
-        "từ vựng", "phát triển", "triển khai", "khai thác", "thác nước", "nước ngọt",
-        "ngọt ngào", "ngào ngạt", "ngạt thở", "thở dài", "dài lâu", "lâu đời", "đời sống",
-        "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", "thanh niên",
-        "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn", "rõ ràng", 
-        "ràng buộc", "buộc tội", "tội lỗi", "lỗi lầm", "nhịp nhàng", "rượu chè", "anh em", 
-        "em út", "nam thanh", "thanh tú", "tài năng", "kinh tế", "tế nhị", "vị trí", 
-        "trí tuệ", "cán bộ", "bộ đội", "đội trưởng", "trưởng thành", "thành đạt", 
-        "được mùa", "mùa màng", "mục tiêu", "tiêu cực", "kỳ diệu", "kỳ quan", "quan sát", 
-        "phạt đền", "đền ơn", "ơn huệ", "ơn nghĩa", "nghĩa vụ", "vụ án", "án mạng", 
-        "mạng sống", "sống chết", "mỏ neo", "neo đậu", "đậu phộng", "rang lạc", "lạc quan", 
-        "quan hệ", "hệ trọng", "trọng điểm", "trọng trách", "trọng tài", "trọng tâm", 
-        "trọng đại", "tiểu đường", "đường đi", "đi đứng", "đương thời", "hệ lụy", 
-        "lụy tình", "hệ thống", "thống nhất", "thống kê", "hệ quả", "quả cảm", "quả tang", 
-        "khoa học", "địa lý", "lịch sử", "tự nhiên", "văn hóa", "giáo dục", "y tế", 
-        "kho tàng", "ông bà", "cha mẹ", "bạn bè", "thầy cô", "trường lớp", "cây cối", 
-        "hoa quả", "động vật", "thực vật", "mây gió", "núi non", "biển cả", "mặt trời", 
-        "mặt trăng", "ngôi sao", "không gian", "thời gian", "quá khứ", "tương lai", 
-        "hiện tại", "ngày đêm", "năm tháng", "tuần lễ", "buổi sáng", "trưa chiều", 
-        "tối đêm", "mùa xuân", "mùa hạ", "mùa thu", "mùa đông"
-    ]
+        "hội ngộ", "ngộ nghĩnh", "sách vở", "vở bài", "ghi bàn", "bàn ghế", "ghế đá", "đá quý",
+        "tập thể", "thể hình", "hình ảnh", "máy tính", "tính toán", "toán học", "học hành", 
+        "hành động", "động lực", "lực lượng", "lượng mưa", "mưa gió", "gió bão", "bão tố", 
+        "tố cáo", "cáo trạng", "trạng thái", "thái độ", "độ ẩm", "ẩm thực", "thực phẩm", 
+        "phẩm chất", "chất lượng", "lượng từ", "từ vựng", "phát triển", "triển khai", 
+        "khai thác", "thác nước", "nước ngọt", "ngọt ngào", "ngào ngạt", "ngạt thở", 
+        "thở dài", "dài lâu", "lâu đời", "đời sống", "sống ảo", "ảo tưởng", "tưởng tượng", 
+        "tượng đài", "phát thanh", "thanh niên", "hạn chế", "chế độ", "độ bền", "bền vững", 
+        "vững chắc", "chắc chắn", "rõ ràng", "ràng buộc", "buộc tội", "tội lỗi", "lỗi lầm", 
+        "nhịp nhàng", "rượu chè", "anh em", "em út", "nam thanh", "thanh tú", "tài năng", 
+        "kinh tế", "tế nhị", "vị trí", "trí tuệ", "cán bộ", "bộ đội", "đội trưởng", 
+        "trưởng thành", "thành đạt", "được mùa", "mùa màng", "mục tiêu", "tiêu cực", 
+        "kỳ diệu", "kỳ quan", "quan sát", "phạt đền", "đền ơn", "ơn huệ", "ơn nghĩa", 
+        "nghĩa vụ", "vụ án", "án mạng", "mạng sống", "sống chết", "mỏ neo", "neo đậu", 
+        "đậu phộng", "rang lạc", "lạc quan", "quan hệ", "hệ trọng", "trọng điểm", 
+        "trọng trách", "trọng tài", "trọng tâm", "trọng đại", "tiểu đường", "đường đi", 
+        "đi đứng", "đương thời", "hệ lụy", "lụy tình", "hệ thống", "thống nhất", "thống kê", 
+        "hệ quả", "quả cảm", "quả tang", "khoa học", "địa lý", "lịch sử", "tự nhiên", 
+        "văn hóa", "giáo dục", "y tế", "kho tàng", "ông bà", "cha mẹ", "bạn bè", 
+        "thầy cô", "trường lớp", "cây cối", "hoa quả", "động vật", "thực vật", "mây gió", 
+        "núi non", "biển cả", "mặt trời", "mặt trăng", "ngôi sao", "không gian", "thời gian", 
+        "quá khứ", "tương lai", "hiện tại", "ngày đêm", "năm tháng", "tuần lễ", "buổi sáng", 
+        "trưa chiều", "tối đêm", "mùa xuân", "mùa hạ", "mùa thu", "mùa đông"
+    }
 
-    # Kiểm tra hoặc tạo file words.txt cục bộ để người dùng dễ dàng nạp full từ điển
-    if not os.path.exists("words.txt"):
-        try:
-            with open("words.txt", "w", encoding="utf-8") as f:
-                f.write("\n".join(default_vi_words))
-        except: pass
-
-    if os.path.exists("words.txt"):
-        try:
-            with open("words.txt", "r", encoding="utf-8") as f:
-                for line in f:
-                    w = norm(line.replace("_", " "))
-                    if w: words_vi.add(w)
-        except: pass
-
-    # Thử nạp thêm từ online nếu có kết nối
     ctx_ssl = ssl._create_unverified_context()
     try:
         req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
@@ -89,7 +70,7 @@ def prepare_dictionaries():
                 word = norm(line.replace("_", " "))
                 if word: words_vi.add(word)
     except Exception as e:
-        print(f"Dùng từ điển cục bộ: {e}")
+        print(f"Sử dụng từ điển nội bộ: {e}")
 
     words_en = {"lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
                 "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
