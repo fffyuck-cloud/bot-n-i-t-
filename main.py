@@ -35,7 +35,6 @@ def norm(text: str) -> str:
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     
-    # Kho từ vựng Tiếng Việt cực lớn
     words_vi = {
         "đá bóng", "bóng đá", "học sinh", "sinh viên", "thể thao", "bóng chuyền", "chuyền bóng",
         "cầu lông", "lông gà", "nhà cửa", "cửa sổ", "sổ tay", "tay chân", "chân thành",
@@ -44,62 +43,53 @@ def prepare_dictionaries():
         "máy tính", "tính toán", "toán học", "học hành", "hành động", "động lực", "lực lượng",
         "lượng mưa", "mưa gió", "gió bão", "bão tố", "tố cáo", "cáo trạng", "trạng thái",
         "thái độ", "độ ẩm", "ẩm thực", "thực phẩm", "phẩm chất", "chất lượng", "lượng từ",
-        "từ vựng", "vựng phát", "phát triển", "triển khai", "khai thác", "thác nước", "nước ngọt",
+        "từ vựng", "phát triển", "triển khai", "khai thác", "thác nước", "nước ngọt",
         "ngọt ngào", "ngào ngạt", "ngạt thở", "thở dài", "dài lâu", "lâu đời", "đời sống",
-        "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "đài phát", "phát thanh", "thanh niên",
-        "niên hạn", "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn",
-        "chắn bùn", "bùn lầy", "lầy lội", "lội nước", "nước mắt", "mắt cá", "cá tính",
-        "tính cách", "cách mạng", "mạng lưới", "lưới cá", "cá mập", "mập mạp", "mạp ú",
-        "út ít", "ít ỏi", "ỏi ương", "ương bướng", "bướng bỉnh", "bỉnh bút", "bút chì",
-        "chìa khóa", "khóa cửa", "cửa hàng", "hàng hóa", "hóa đơn", "đơn ca", "ca sĩ",
-        "sĩ tử", "tử vong", "vong hồn", "hồn nhiên", "nhiên liệu", "liệu pháp", "pháp luật",
-        "luật sư", "sư phạm", "phạm nhân", "nhân dân", "dân tộc", "tộc họ", "họ hàng",
-        "hàng xóm", "xóm giềng", "giềng mối", "mối tình", "tình yêu", "yêu thương", "thương nhớ",
-        "nhớ mong", "mong mỏi", "mỏi mệt", "mệt mỏi", "mỏi nhừ", "nhừ tử", "tử thần",
-        "thần tốc", "tốc độ", "độ lượng", "lượng thứ", "thứ bậc", "bậc thang", "thang máy",
-        "máy bay", "bay lượn", "lượn lờ", "lờ đờ", "đờ đẫn", "đẫn dắt", "dắt dìu",
-        "dìu dặt", "dặt dẹo", "dẹo vọ", "vọ bẻ", "bẻ lái", "lái xe", "xe cộ",
-        "cộ kỉnh", "kỉnh kiệu", "kiệu hoa", "hoa hồng", "hồng ngoại", "ngoại ô", "ô tô",
-        "tô điểm", "điểm số", "số má", "má hồng", "hồng hộc", "hộc bàn", "bàn ghế",
-        "ghế đá", "đá quý", "quý mến", "mến yêu", "yêu đương", "đương nhiên", "nhiên thủy",
-        "thủy tinh", "tinh tế", "tế bào", "bào thai", "thai nghén", "nghén ngẩm", "ngẩm nghĩ",
-        "nghĩ suy", "suy nghĩ", "nghĩ ngợi", "ngợi ca", "ca tụng", "tụng kinh", "kinh điển",
-        "điển hình", "hình thức", "thức ăn", "ăn uống", "uống nước", "nước non", "non sông",
-        "sông ngòi", "ngòi bút", "bút mực", "mực tàu", "tàu thủy", "thủy thủ", "thủ đô",
-        "đô la", "la cà", "cà phê", "phê pha", "pha lê", "lê thê", "thê lương",
-        "lương tâm", "tâm sự", "sự nghiệp", "nghiệp dư", "dưa hấu", "hấu kính", "kính cận",
-        "cận thị", "thị xã", "xã tắc", "tắc nghẽn", "nghẽn mạch", "mạch máu", "máu me",
-        "me chua", "chua chát", "chát chúa", "chúa tể", "tể tướng", "tướng quân", "quân đội",
-        "đội ngũ", "ngũ cốc", "cốc chén", "chén trà", "trà đá", "đá lạnh", "lạnh lùng",
-        "lùng sục", "sục sôi", "sôi nổi", "nổi bật", "bật mí", "mí mắt", "mắt kính",
-        "kính chào", "chào hỏi", "hỏi thăm", "thăm nom", "nom ngóng", "ngóng trông", "trông nom",
-        "nom thấy", "thấy rõ", "rõ ràng", "ràng buộc", "buộc tội", "tội lỗi", "lỗi lầm",
-        "lầm lỗi", "lỗi nhịp", "nhịp nhàng", "nhàng nhã", "nhã nhặn", "nhặn xị", "xị rượu",
-        "rượu chè", "chè chén", "chén anh", "anh em", "em út", "út nam", "nam thanh",
-        "thanh tú", "tú tài", "tài năng", "năng lực", "lực điền", "điền kinh", "kinh tế",
-        "tế nhị", "nhị vị", "vị trí", "trí tuệ", "tuệ mẫn", "mẫn cán", "cán bộ",
-        "bộ đội", "đội trưởng", "trưởng thành", "thành đạt", "đạt được", "được mùa", "mùa màng",
-        "màng nhĩ", "nhĩ mục", "mục tiêu", "tiêu cực", "cực kỳ", "kỳ diệu", "diệu kỳ",
-        "kỳ quan", "quan sát", "sát phạt", "phạt đền", "đền ơn", "ơn nghĩa", "nghĩa vụ",
-        "vụ án", "án mạng", "mạng sống", "sống chết", "chết chóc", "chóc mỏ", "mỏ neo",
-        "neo đậu", "đậu phộng", "phộng rang", "rang lạc", "lạc quan", "quan hệ", "hệ trọng",
-        "trọng điểm", "điểm hẹn", "hẹn hò", "hò hét", "hét lác", "lác đác", "đác đẹo",
-        "đẹp đẽ", "đẽo gọt", "gọt giũa", "giũa mài", "mài giũa", "giũa chữ", "chữ nghĩa",
-        "nghĩa tình", "tình cảm", "cảm xúc", "xúc động", "động đất", "đất liền", "liền mạch",
-        "mạch lạc", "lạc hậu", "hậu cần", "cần cù", "cù lao", "lao động", "động viên",
-        "viên mãn", "mãn nguyện", "nguyện vọng", "vọng tưởng", "tưởng nhớ", "nhớ nhung", "nhung lụa",
-        "lụa là", "là là", "la đà", "đà điểu", "điểu thú", "thú vật", "vật chất",
-        "chất phác", "phác thảo", "thảo nguyên", "nguyên thủy", "thủy triều", "triều đại", "đại dương",
-        "dương gian", "gian nan", "nan giải", "giải quyết", "quyết tâm", "tâm huyết", "huyết mạch",
-        "mạch đập", "đập phá", "phá hoại", "hoại tử", "tử vong", "vong thân", "thân thiết",
-        "thiết thực", "thực tế", "tế sinh", "sinh hoạt", "hoạt động", "động tĩnh", "tĩnh lặng",
-        "lặng lẽ", "lẽ phải", "phải trái", "trái đất", "đất trời", "trời mây", "mây gió",
-        "gió thoảng", "thoảng qua", "qua lại", "lại qua", "qua đời", "đời thuở", "thuở xưa",
-        "xưa nay", "nay mai", "mai sau", "sau này", "này nọ", "nọ kia", "kia kìa",
-        "quý tử", "tử hình", "hình phạt", "phạt vạ", "vạ lây", "lây lan", "lan tràn", "tràn ngập",
-        "ngập tràn", "tràn lan", "lan tỏa", "tỏa sáng", "sáng ngời", "ngời ngời", "sáng tạo",
-        "tạo hình", "hình mẫu", "mẫu giáo", "giáo dục", "dục vọng", "vọng ngoại", "ngoại giao",
-        "giao lưu", "lưu trữ", "trữ lượng", "lượng giác", "giác quan", "quan điểm", "điểm tựa"
+        "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", "thanh niên",
+        "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn",
+        "bùn lầy", "lầy lội", "lội nước", "nước mắt", "mắt cá", "cá tính",
+        "tính cách", "cách mạng", "mạng lưới", "lưới cá", "cá mập", "mập mạp",
+        "ít ỏi", "ương bướng", "bướng bỉnh", "bút chì", "chìa khóa", "khóa cửa",
+        "cửa hàng", "hàng hóa", "hóa đơn", "đơn ca", "ca sĩ", "tử vong", "vong hồn",
+        "hồn nhiên", "nhiên liệu", "liệu pháp", "pháp luật", "luật sư", "sư phạm",
+        "phạm nhân", "nhân dân", "dân tộc", "tộc họ", "họ hàng", "hàng xóm",
+        "xóm giềng", "giềng mối", "mối tình", "tình yêu", "yêu thương", "thương nhớ",
+        "nhớ mong", "mong mỏi", "mỏi mệt", "mệt mỏi", "tử thần", "thần tốc", "tốc độ",
+        "độ lượng", "lượng thứ", "thứ bậc", "bậc thang", "thang máy", "máy bay",
+        "bay lượn", "lượn lờ", "lờ đờ", "đờ đẫn", "dắt dìu", "lái xe", "xe cộ",
+        "kiệu hoa", "hoa hồng", "ngoại ô", "ô tô", "tô điểm", "điểm số", "hồng hộc",
+        "hộc bàn", "bàn ghế", "ghế đá", "đá quý", "quý mến", "mến yêu", "yêu đương",
+        "đương nhiên", "thủy tinh", "tinh tế", "tế bào", "bào thai", "thai nghén",
+        "suy nghĩ", "nghĩ ngợi", "ngợi ca", "ca tụng", "tụng kinh", "kinh điển",
+        "điển hình", "hình thức", "thức ăn", "ăn uống", "uống nước", "nước non",
+        "non sông", "sông ngòi", "ngòi bút", "bút mực", "tàu thủy", "thủy thủ",
+        "thủ đô", "đô la", "la cà", "cà phê", "pha lê", "lê thê", "thê lương",
+        "lương tâm", "tâm sự", "sự nghiệp", "nghiệp dư", "dưa hấu", "kính cận",
+        "cận thị", "thị xã", "xã tắc", "tắc nghẽn", "mạch máu", "máu me", "chua chát",
+        "chúa tể", "tể tướng", "tướng quân", "quân đội", "đội ngũ", "ngũ cốc",
+        "cốc chén", "chén trà", "trà đá", "đá lạnh", "lạnh lùng", "sục sôi",
+        "sôi nổi", "nổi bật", "bật mí", "mí mắt", "mắt kính", "kính chào", "chào hỏi",
+        "hỏi thăm", "thăm nom", "rõ ràng", "buộc tội", "tội lỗi", "lỗi lầm",
+        "nhịp nhàng", "rượu chè", "anh em", "em út", "nam thanh", "thanh tú",
+        "tài năng", "kinh tế", "tế nhị", "vị trí", "trí tuệ", "cán bộ", "bộ đội",
+        "đội trưởng", "trưởng thành", "thành đạt", "được mùa", "mùa màng", "mục tiêu",
+        "tiêu cực", "kỳ diệu", "kỳ quan", "quan sát", "phạt đền", "đền ơn", "ơn huệ",
+        "ơn nghĩa", "nghĩa vụ", "vụ án", "án mạng", "mạng sống", "sống chết", "mỏ neo",
+        "neo đậu", "đậu phộng", "rang lạc", "lạc quan", "quan hệ", "hệ trọng",
+        "trọng điểm", "điểm hẹn", "hẹn hò", "hò hét", "đẹp đẽ", "gọt giũa", "chữ nghĩa",
+        "nghĩa tình", "tình cảm", "cảm xúc", "động đất", "đất liền", "mạch lạc",
+        "lạc hậu", "hậu cần", "cần cù", "lao động", "động viên", "viên mãn", "mãn nguyện",
+        "nguyện vọng", "vọng tưởng", "tưởng nhớ", "nhớ nhung", "nhung lụa", "lụa là",
+        "đà điểu", "thú vật", "vật chất", "thảo nguyên", "nguyên thủy", "thủy triều",
+        "triều đại", "đại dương", "gian nan", "giải quyết", "quyết tâm", "tâm huyết",
+        "huyết mạch", "đập phá", "phá hoại", "hoại tử", "vong thân", "thân thiết",
+        "thiết thực", "thực tế", "sinh hoạt", "hoạt động", "tĩnh lặng", "lặng lẽ",
+        "lẽ phải", "phải trái", "trái đất", "đất trời", "trời mây", "qua đời",
+        "đời thuở", "thuở xưa", "xưa nay", "nay mai", "mai sau", "sau này", "quý tử",
+        "tử hình", "hình phạt", "vạ lây", "lây lan", "lan tràn", "ngập tràn", "tràn lan",
+        "lan tỏa", "tỏa sáng", "sáng ngời", "sáng tạo", "tạo hình", "hình mẫu",
+        "mẫu giáo", "giáo dục", "ngoại giao", "giao lưu", "lưu trữ", "trữ lượng",
+        "lượng giác", "giác quan", "quan điểm", "điểm tựa"
     }
     try:
         req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
@@ -109,7 +99,6 @@ def prepare_dictionaries():
                 if word and len(word.split()) == 2: words_vi.add(word)
     except: pass
     
-    # Kho từ vựng Tiếng Anh bao gồm từ chuẩn + các từ viết tắt/slang phổ biến
     words_en = {
         "lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
         "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
@@ -210,11 +199,10 @@ async def help_cmd(ctx):
         
     embed.description = (
         "💬 **Word Chain Ultimate Bot**\n"
-        "Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.\n"
-        "Hỗ trợ kho từ vựng khổng lồ Tiếng Việt & Tiếng Anh (bao gồm cả từ viết tắt/slang), bot này không chỉ nối từ mà còn dạy đời mấy ông về chính tả đấy nhé!\n\n"
+        "Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.\n\n"
         
         "🇻🇳 **NỐI TỪ TIẾNG VIỆT**\n"
-        "Chơi đúng luật 2 từ (ví dụ: 'học tập' -> 'tập thể') không chơi từ đơn, viết sai chính tả là bot nó vả vào mồm ngay\n"
+        "Chơi đúng luật 2 từ (ví dụ: 'đền ơn' -> 'ơn huệ'). Đối chiếu trực tiếp qua kho từ điển tiếng Việt!\n"
         "`?noitu` → Chơi chung kênh cùng bè lũ\n"
         "`?noituubot` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
@@ -224,17 +212,13 @@ async def help_cmd(ctx):
         "`?noituuboteng` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
         "⚙️ **QUẢN LÝ TRẬN ĐẤU & CÔNG CỤ**\n"
-        "Mấy lệnh này để kiểm soát game, tránh tình trạng spam vớ vẩn\n"
         "`?huynoitu` → Hủy ván chơi nếu thấy chán hoặc lag\n"
-        "`?nghia [từ]` → Tra cứu từ điển nếu ông giáo nghi ngờ từ đấy méo có thật\n\n"
+        "`?nghia [từ]` → Tra cứu từ điển tiếng Việt/Anh\n\n"
         
         "📊 **HỆ THỐNG RANK & DAILY**\n"
-        "Điểm danh mỗi ngày để húp XP, leo rank làm trùm server\n"
-        "`?rank` → Xem thẻ rank mượt mà xem mình đang ở đâu\n"
-        "`?daily` → Điểm danh tích lũy XP hằng ngày, đừng để đứt chuỗi"
+        "`?rank` → Xem thẻ rank\n"
+        "`?daily` → Điểm danh hằng ngày"
     )
-    embed.set_footer(text="Bot được tạo ra bởi dân chơi hệ logic, đừng spam lệnh quá mức kèo bot nó dỗi nó sập đấy nhé")
-    
     if file: await ctx.send(embed=embed, file=file)
     else: await ctx.send(embed=embed)
 
@@ -301,8 +285,7 @@ async def start_noitu(ctx, mode: str = "vi"):
             "🔥 **SÀN ĐẤU QUỐC TẾ KHAI MẠC** 🔥\n\n"
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
             f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
-            f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**\n"
-            f"🛡️ *Lưu ý: Chỉ chấp nhận từ tiếng Anh đơn / viết tắt (chỉ chứa a-z).* "
+            f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**"
         )
         if file: await ctx.send(embed=embed, file=file)
         else: await ctx.send(embed=embed)
@@ -315,8 +298,7 @@ async def start_noitu(ctx, mode: str = "vi"):
             "🔥 **SÀN ĐẤU TIẾNG VIỆT KHAI MẠC** 🔥\n\n"
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
             f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
-            f"⚡ Bắt đầu bằng âm tiết: **{word.split()[-1].upper()}**\n"
-            f"🛡️ *Lưu ý: Chỉ chấp nhận cụm từ tiếng Việt đúng 2 tiếng.*"
+            f"⚡ Bắt đầu bằng âm tiết: **{word.split()[-1].upper()}**"
         )
         if file: await ctx.send(embed=embed, file=file)
         else: await ctx.send(embed=embed)
@@ -419,17 +401,18 @@ async def nghia_cmd(ctx, *, word: str = None):
     if not word: 
         embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN", color=0xFF0055)
         if file: embed.set_image(url="attachment://banner.png")
-        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia quý tử` hoặc `?nghia lol`"
+        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia ơn huệ` hoặc `?nghia apple`"
         if file: return await ctx.send(embed=embed, file=file)
         else: return await ctx.send(embed=embed)
         
     w = word.strip().lower()
     embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN", color=0xFF0055)
     if file: embed.set_image(url="attachment://banner.png")
+    
     if w in dictionary_en or w in dictionary_vi:
-        embed.description = f"{TICK} Từ **`{w}`** có nghĩa và hợp lệ trong từ điển!"
+        embed.description = f"{TICK} Từ **`{w}`** có trong từ điển và hoàn toàn hợp lệ!"
     else:
-        embed.description = f"{CROSS} Từ **`{w}`** không tìm thấy trong từ điển chuẩn!"
+        embed.description = f"{CROSS} Không tìm thấy từ **`{w}`** trong hệ thống từ điển!"
     if file: await ctx.send(embed=embed, file=file)
     else: await ctx.send(embed=embed)
 
@@ -452,6 +435,7 @@ async def on_message(message):
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         
+        # Kiểm tra chuẩn 2 từ, nối đúng vần và có trong từ điển tiếng Việt
         if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
             await message.add_reaction(CROSS)
             return
@@ -475,23 +459,19 @@ async def on_message(message):
         if mode == "vi_bot":
             last_syllable = user_input.split()[-1]
             possible_words = [w for w in dictionary_vi if w.startswith(last_syllable + " ") and w not in game["used_words"]]
-            if possible_words:
-                bot_word = random.choice(possible_words)
-                game["used_words"].add(bot_word)
-                game["last_word"] = bot_word
-                current_count = len(game["used_words"])
-                embed_bot = discord.Embed(title="🤖 LƯỢT ĐẤU CỦA AI", color=0xFF0055)
-                if banner_file: embed_bot.set_image(url="attachment://banner.png")
-                embed_bot.description = f"🤖 Bot nối tiếp: 👉 **`{bot_word.upper()}`**\n📊 Tổng số từ hiện tại: `{current_count}` từ"
-                if banner_file: await message.channel.send(embed=embed_bot, file=banner_file)
-                else: await message.channel.send(embed=embed_bot)
+            if not possible_words:
+                bot_word = f"{last_syllable} ơn" if last_syllable != "ơn" else "ơn nghĩa"
             else:
-                embed_win = discord.Embed(title="🏆 KẾT QUẢ TRẬN ĐẤU", color=0x57F287)
-                if banner_file: embed_win.set_image(url="attachment://banner.png")
-                embed_win.description = f"🏆 {message.author.mention} đã chiến thắng bot vì hệ thống đã cạn kiệt từ vựng!"
-                if banner_file: await message.channel.send(embed=embed_win, file=banner_file)
-                else: await message.channel.send(embed=embed_win)
-                del games[message.channel.id]
+                bot_word = random.choice(possible_words)
+                
+            game["used_words"].add(bot_word)
+            game["last_word"] = bot_word
+            current_count = len(game["used_words"])
+            embed_bot = discord.Embed(title="🤖 LƯỢT ĐẤU CỦA AI", color=0xFF0055)
+            if banner_file: embed_bot.set_image(url="attachment://banner.png")
+            embed_bot.description = f"🤖 Bot nối tiếp: 👉 **`{bot_word.upper()}`**\n📊 Tổng số từ hiện tại: `{current_count}` từ"
+            if banner_file: await message.channel.send(embed=embed_bot, file=banner_file)
+            else: await message.channel.send(embed=embed_bot)
         else:
             embed_stat = discord.Embed(title="📊 CẬP NHẬT TRẬN ĐẤU", color=0xFF0055)
             if banner_file: embed_stat.set_image(url="attachment://banner.png")
