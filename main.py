@@ -6,7 +6,7 @@
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE EDITION - FULL FILE I/O & MULTI-DICTIONARY INTEGRATED (v2.1.5)
+# PURE FUN ENTERPRISE ULTIMATE EDITION - MASSIVE 1000-LINE ARCHITECTURE (v3.0.0)
 # ====================================================================================================
 
 import os
@@ -15,18 +15,20 @@ import random
 import logging
 import asyncio
 import threading
-from datetime import datetime
+import json
+from datetime import datetime, timedelta
 from typing import Set, List, Dict, Optional, Any, Union
 from flask import Flask, jsonify
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
+from discord.ui import View, Button, Select
 
 # ====================================================================================================
-# PHẦN 1: CẤU HÌNH HỆ THỐNG & DỮ LIỆU DỰ PHÒNG
+# PHẦN 1: CẤU HÌNH HỆ THỐNG & DỮ LIỆU DỰ PHÒNG TOÀN DIỆN
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "2.1.5 Full Integrated Enterprise"
+    VERSION: str = "3.0.0 Ultimate Enterprise Edition"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     
@@ -36,12 +38,14 @@ class BotConfig:
     FILE_VIETNAMESE_DICT: str = "tu_dien.txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
+    FILE_ECONOMY_DATA: str = "economy_data.json"
     
     COLOR_DEFAULT: int = 0xFF69B4     # Hot Pink
     COLOR_SUCCESS: int = 0x2ECC71     # Green
     COLOR_WARNING: int = 0xF1C40F     # Yellow
     COLOR_ERROR: int = 0xE74C3C       # Red
     COLOR_BLACK: int = 0x000000       # Black
+    COLOR_GOLD: int = 0xF1C40F        # Gold
     
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
 
@@ -50,12 +54,15 @@ DEFAULT_VIETNAMESE_FALLBACK: Set[str] = {
     "chiếu tướng", "tướng quân", "quân đội", "đội ngũ", "ngũ cốc", "cốc sấy", "sấy khô", "khô khan", "khan hiếm",
     "yêu thương", "thương nhớ", "nhớ mong", "mong mỏi", "mỏi mệt", "mệt mỏi", "thời gian", "gian nan", "nan giải",
     "giải quyết", "quyết tâm", "tâm hồn", "hồn nhiên", "nhiên liệu", "liệu định", "định hướng", "hướng dẫn", "dẫn dắt",
-    "đất nước", "nước nhà", "hòa bình", "bình yên", "yên vui", "vui vẻ", "vẻ vang", "vang dội", "dội ngược", "ngược xuôi"
+    "đất nước", "nước nhà", "hòa bình", "bình yên", "yên vui", "vui vẻ", "vẻ vang", "vang dội", "dội ngược", "ngược xuôi",
+    "thông minh", "minh bạch", "bạch dương", "dương lịch", "lịch sử", "sử sách", "sách vở", "vở bài", "bài tập",
+    "cộng hòa", "hà nội", "nội bộ", "bộ đội", "đội trưởng", "trưởng thành", "thành phố", "phố phường", "phường xã"
 }
 
 DEFAULT_ENGLISH_FALLBACK: Set[str] = {
     "apple", "elephant", "tiger", "rabbit", "turtle", "eagle", "room", "mouse", "engine",
-    "nest", "train", "night", "rose", "ear", "toe", "egg", "goal", "lemon", "nut", "rest"
+    "nest", "train", "night", "rose", "ear", "toe", "egg", "goal", "lemon", "nut", "rest",
+    "table", "energy", "yellow", "water", "river", "earth", "house", "school", "friend", "dance"
 }
 
 DEFAULT_COUNTRIES_FALLBACK: Set[str] = {
@@ -63,8 +70,25 @@ DEFAULT_COUNTRIES_FALLBACK: Set[str] = {
     "thái lan", "lào", "campuchia", "singapore", "malaysia", "indonesia", "philippines", "ấn độ", "canada", "úc"
 }
 
+COUNTRY_CODES: Dict[str, str] = {
+    "việt nam": "vn", "nhật bản": "jp", "hàn quốc": "kr", "pháp": "fr",
+    "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru",
+    "trung quốc": "cn", "thái lan": "th", "lào": "la", "campuchia": "kh",
+    "singapore": "sg", "malaysia": "my", "indonesia": "id", "philippines": "ph",
+    "ấn độ": "in", "canada": "ca", "úc": "au", "australia": "au",
+    "tây ban nha": "es", "bồ đào nha": "pt", "brazil": "br", "argentina": "ar",
+    "hà lan": "nl", "thụy sĩ": "ch", "thụy điển": "se", "bỉ": "be", "hy lạp": "gr"
+}
+
+SHOP_ITEMS: Dict[str, Dict[str, Union[str, int]]] = {
+    "kiem_vang": {"name": "⚔️ Kiếm Vàng Huyền Thoại", "price": 5000, "desc": "Tăng uy lực khi chém gió trong server."},
+    "khien_kim_cuong": {"name": "🛡️ Khiên Kim Cương", "price": 10000, "desc": "Bảo vệ tài sản khỏi trộm cắp."},
+    "nhan_than_thoai": {"name": "💍 Nhẫn Thần Thoại", "price": 25000, "desc": "Biểu tượng của sự giàu có tối thượng."},
+    "the_doi_doi": {"name": "🎟️ Thẻ Đổi Đời", "price": 50000, "desc": "Vật phẩm tối cao của giới thượng lưu."}
+}
+
 # ====================================================================================================
-# PHẦN 2: HỆ THỐNG LOGGING & WEB SERVER (KEEP-ALIVE)
+# PHẦN 2: HỆ THỐNG LOGGING & WEB SERVER (KEEP-ALIVE ENTERPRISE)
 # ====================================================================================================
 
 class LoggerSetup:
@@ -78,18 +102,18 @@ class LoggerSetup:
         )
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(formatter)
-        logger_instance = logging.getLogger("EnterpriseBot")
+        logger_instance = logging.getLogger("EnterpriseUltimateBot")
         logger_instance.setLevel(logging.INFO)
         logger_instance.addHandler(console_handler)
         return logger_instance
 
 logger = LoggerSetup.initialize_logger()
 
-keep_alive_app = Flask("EnterpriseKeepAlive")
+keep_alive_app = Flask("EnterpriseKeepAliveUltimate")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Black & Pink Pure Fun Bot - Enterprise Edition</h1><p>Status: <strong>ONLINE</strong></p>"
+    return "<h1>Black & Pink Pure Fun Bot - Ultimate Enterprise Edition (3.0.0)</h1><p>Status: <strong>ONLINE & HEALTHY</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -102,7 +126,7 @@ def launch_web_server() -> None:
 threading.Thread(target=launch_web_server, daemon=True).start()
 
 # ====================================================================================================
-# PHẦN 3: HỆ THỐNG QUẢN LÝ FILE DỮ LIỆU (DATA MANAGER)
+# PHẦN 3: QUẢN LÝ DỮ LIỆU & FILE TỐC ĐỘ CAO (MASSIVE DATA MANAGER)
 # ====================================================================================================
 
 class DataManager:
@@ -116,7 +140,7 @@ class DataManager:
                         clean = line.strip().lower()
                         if clean:
                             words.add(clean)
-                logger.info(f"Đã nạp {len(words)} mục từ file [{filepath}].")
+                logger.info(f"Đã nạp thành công {len(words):,} mục từ file [{filepath}].")
             except Exception as err:
                 logger.error(f"Lỗi đọc file {filepath}: {err}")
         else:
@@ -139,7 +163,6 @@ class DataManager:
             logger.error(f"Lỗi ghi file {filepath}: {err}")
             return False
 
-# Nạp toàn bộ dữ liệu từ các file tương ứng
 COMBINED_VIETNAMESE_DICTIONARY: Set[str] = DataManager.load_text_file(BotConfig.FILE_VIETNAMESE_DICT, DEFAULT_VIETNAMESE_FALLBACK)
 ENGLISH_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_ENGLISH_DICT, DEFAULT_ENGLISH_FALLBACK)
 COUNTRIES_VN_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_COUNTRIES_DICT, DEFAULT_COUNTRIES_FALLBACK)
@@ -168,8 +191,23 @@ VIETNAMESE_INDEX_BY_FIRST_SYLLABLE: Dict[str, List[str]] = build_syllable_index(
 ENGLISH_INDEX_BY_FIRST_LETTER: Dict[str, List[str]] = build_letter_index(ENGLISH_DICT)
 
 # ====================================================================================================
-# PHẦN 4: QUẢN LÝ PHIÊN CHƠI (SESSION ARCHITECTURE)
+# PHẦN 4: HỆ THỐNG KINH TẾ & NGƯỜI DÙNG (ECONOMY & USER SESSIONS)
 # ====================================================================================================
+
+USER_DATABASE: Dict[int, Dict[str, Any]] = {}
+
+def get_user_data(user_id: int) -> Dict[str, Any]:
+    if user_id not in USER_DATABASE:
+        USER_DATABASE[user_id] = {
+            "wallet": 1000,
+            "bank": 0,
+            "xp": 0,
+            "level": 1,
+            "inventory": [],
+            "last_daily": None,
+            "last_work": None
+        }
+    return USER_DATABASE[user_id]
 
 class GameMode:
     NONE = "none"
@@ -179,6 +217,7 @@ class GameMode:
     BOT_ENGLISH = "bot_en"
     VUA_TIENG_VIET = "vua_vi"
     GUESS_COUNTRY = "doan_quoc_gia"
+    TICTACTOE = "tictactoe"
 
 class ChannelSession:
     def __init__(self, channel_id: int):
@@ -190,6 +229,8 @@ class ChannelSession:
         self.turn_counter = 0
         self.scrambled_target = ""
         self.secret_country = ""
+        self.tictactoe_board = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        self.tictactoe_turn = ""
 
     def initialize_session(self, mode: str, start_word: str = "", target: str = "") -> None:
         self.reset()
@@ -203,6 +244,8 @@ class ChannelSession:
             self.scrambled_target = target
         elif mode == GameMode.GUESS_COUNTRY:
             self.secret_country = target
+        elif mode == GameMode.TICTACTOE:
+            self.tictactoe_board = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
     def reset(self) -> None:
         self.active_mode = GameMode.NONE
@@ -212,6 +255,7 @@ class ChannelSession:
         self.turn_counter = 0
         self.scrambled_target = ""
         self.secret_country = ""
+        self.tictactoe_board = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 class SessionManager:
     def __init__(self):
@@ -223,15 +267,9 @@ class SessionManager:
         return self._sessions[channel_id]
 
 global_session_manager = SessionManager()
-USER_DATA: Dict[int, Dict[str, Any]] = {}
-
-def get_user_data(user_id: int) -> Dict[str, Any]:
-    if user_id not in USER_DATA:
-        USER_DATA[user_id] = {"xp": 0, "level": 1}
-    return USER_DATA[user_id]
 
 # ====================================================================================================
-# PHẦN 5: GIAO DIỆN & TIỆN ÍCH UI
+# PHẦN 5: TIỆN ÍCH ĐỒ HỌA & UI COMPONENTS
 # ====================================================================================================
 
 class GameUtils:
@@ -268,7 +306,7 @@ class UIUtils:
     @staticmethod
     def create_embed(title: str, description: str, color: int = BotConfig.COLOR_DEFAULT) -> discord.Embed:
         embed = discord.Embed(title=title, description=description, color=color, timestamp=datetime.now())
-        embed.set_footer(text="Vườn hoa Đen Hồng 🖤💗", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        embed.set_footer(text="Vườn hoa Đen Hồng Ultimate 🖤💗", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         return embed
 
     @staticmethod
@@ -278,9 +316,10 @@ class UIUtils:
     @staticmethod
     def build_invalid_word_embed(reason: str) -> discord.Embed:
         description = (
-            f"⚠️ **Từ bạn vừa nhập không hợp lệ!**\n\n"
+            f"❌ **Từ bạn vừa nhập không hợp lệ (Trả lời sai)!**\n\n"
             f"📌 **Nguyên nhân:** {reason}\n"
-            f"🌸 *Dùng lệnh `{BotConfig.PREFIX}themtu [từ]` để bổ sung ngay lập tức vào file từ điển!*"
+            f"🌸 *Lưu ý: Từ tiếng Việt phải viết đúng chính tả, có dấu đầy đủ và gồm đúng 2 tiếng!*\n"
+            f"💡 *Dùng lệnh `{BotConfig.PREFIX}themtu [từ]` để bổ sung ngay vào file từ điển!*"
         )
         embed = discord.Embed(title="❌💗 [ TỪ KHÔNG HỢP LỆ ] 💗❌", description=description, color=BotConfig.COLOR_ERROR, timestamp=datetime.now())
         embed.set_footer(text="Hệ thống kiểm duyệt Black & Pink", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
@@ -293,24 +332,29 @@ class UIUtils:
     @staticmethod
     def build_help_embed() -> discord.Embed:
         description = (
-            f"💬 **Word Chain Ultimate Bot**\n"
-            f"Hỗ trợ nối từ Tiếng Việt & Tiếng Anh đọc file tự động.\n\n"
-            f"🇻🇳💗 **[ NỐI TỪ TIẾNG VIỆT ]** 💗🇻🇳\n"
+            f"💬 **Word Chain Ultimate Bot (v3.0.0)**\n"
+            f"Hệ thống trò chơi, kinh tế và từ điển khổng lồ!\n\n"
+            f"🇻🇳💗 **[ NỐI TỪ TIẾNG VIỆT (Bắt buộc 2 tiếng, có dấu) ]** 💗🇻🇳\n"
             f"🌸 `{BotConfig.PREFIX}noitu` → PvP chung kênh\n"
             f"🖤 `{BotConfig.PREFIX}botnoitu` → Solo với Bot TV\n\n"
             f"🇬🇧💗 **[ NỐI TỪ TIẾNG ANH ]** 🇬🇧\n"
             f"🌸 `{BotConfig.PREFIX}noitueng` | `{BotConfig.PREFIX}botnoitueng`\n\n"
-            f"👑💗 **[ TRÒ CHƠI KHÁC ]** 👑\n"
-            f"🌸 `{BotConfig.PREFIX}vuatiengviet` | `{BotConfig.PREFIX}doanquocgia`\n\n"
-            f"⚙️💗 **[ QUẢN LÝ TỪ ĐIỂN & HỆ THỐNG ]** ⚙️\n"
-            f"🌸 `{BotConfig.PREFIX}themtu [từ]` → Thêm từ vào file từ điển\n"
+            f"👑💗 **[ TRÒ CHƠI GIẢI ĐỐ & TRÍ TUỆ ]** 👑\n"
+            f"🌸 `{BotConfig.PREFIX}vuatiengviet`\n"
+            f"🌍 `{BotConfig.PREFIX}doanquocgia` (Có kèm ảnh lá cờ)\n"
+            f"❌ `{BotConfig.PREFIX}tictactoe` (Cờ caro đối kháng)\n\n"
+            f"💰💎 **[ HỆ THỐNG KINH TẾ & SHOP ]** 💎💰\n"
+            f"🌸 `{BotConfig.PREFIX}balance` | `{BotConfig.PREFIX}daily` | `{BotConfig.PREFIX}work`\n"
+            f"🖤 `{BotConfig.PREFIX}shop` | `{BotConfig.PREFIX}buy [item]` | `{BotConfig.PREFIX}inventory`\n\n"
+            f"⚙️💗 **[ QUẢN LÝ TỪ ĐIỂN & TIỆN ÍCH ]** ⚙️\n"
+            f"🌸 `{BotConfig.PREFIX}themtu [từ]` → Thêm từ mới vào file\n"
             f"🖤 `{BotConfig.PREFIX}nghia [từ]` → Tra cứu từ vựng\n"
-            f"🌸 `{BotConfig.PREFIX}huynoitu` | `{BotConfig.PREFIX}rank` | `{BotConfig.PREFIX}daily`"
+            f"🌸 `{BotConfig.PREFIX}rank` | `{BotConfig.PREFIX}ping` | `{BotConfig.PREFIX}huynoitu`"
         )
-        return discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ✦", description=description, color=0xFF69B4, timestamp=datetime.now())
+        return discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP ULTIMATE ✦", description=description, color=0xFF69B4, timestamp=datetime.now())
 
 # ====================================================================================================
-# PHẦN 6: KHỞI TẠO BOT & CÁC LỆNH
+# PHẦN 6: KHỞI TẠO BOT & CÁC LỆNH HỆ THỐNG & KINH TẾ
 # ====================================================================================================
 
 bot_intents = discord.Intents.default()
@@ -322,8 +366,8 @@ bot = commands.Bot(command_prefix=BotConfig.PREFIX, intents=bot_intents, help_co
 
 @bot.event
 async def on_ready() -> None:
-    logger.info(f"✅ Bot đã đăng nhập: {bot.user}")
-    activity = discord.Activity(type=discord.ActivityType.playing, name=f"{BotConfig.PREFIX}help | File I/O Active")
+    logger.info(f"✅ Bot Ultimate đã đăng nhập: {bot.user}")
+    activity = discord.Activity(type=discord.ActivityType.playing, name=f"{BotConfig.PREFIX}help | 1000-Line Architecture")
     await bot.change_presence(status=discord.Status.online, activity=activity)
 
 @bot.event
@@ -331,22 +375,117 @@ async def on_command_error(ctx: commands.Context, error: Exception) -> None:
     if isinstance(error, commands.CommandNotFound):
         pass
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(embed=UIUtils.create_embed("⚠️ Thiếu Thông Tin", f"Vui lòng gõ `{BotConfig.PREFIX}help` để xem hướng dẫn.", BotConfig.COLOR_WARNING))
+        await ctx.send(embed=UIUtils.create_embed("⚠️ Thiếu Thông Tin", f"Vui lòng gõ `{BotConfig.PREFIX}help` để xem hướng dẫn chi tiết.", BotConfig.COLOR_WARNING))
     else:
         logger.error(f"Lỗi lệnh: {error}")
 
 @bot.command(name="ping")
 async def sys_ping(ctx: commands.Context) -> None:
-    await ctx.send(embed=UIUtils.create_embed("🏓 Pong!", f"Độ trễ: **{round(bot.latency * 1000)}ms**", BotConfig.COLOR_SUCCESS))
+    await ctx.send(embed=UIUtils.create_embed("🏓 Pong!", f"Độ trễ hệ thống: **{round(bot.latency * 1000)}ms**", BotConfig.COLOR_SUCCESS))
 
 @bot.command(name="about")
 async def sys_about(ctx: commands.Context) -> None:
-    desc = f"🤖 **Black & PiNk ({BotConfig.VERSION})**\n• Từ điển Tiếng Việt: {len(COMBINED_VIETNAMESE_DICTIONARY):,} từ\n• Từ điển Tiếng Anh: {len(ENGLISH_DICT):,} từ\n• Danh sách Quốc Gia: {len(COUNTRIES_VN_DICT):,} nước"
-    await ctx.send(embed=UIUtils.create_embed("🖤💗 Về Hệ Thống", desc, BotConfig.COLOR_DEFAULT))
+    desc = (
+        f"🤖 **Black & PiNk Ultimate ({BotConfig.VERSION})**\n"
+        f"• Từ điển Tiếng Việt: {len(COMBINED_VIETNAMESE_DICTIONARY):,} từ\n"
+        f"• Từ điển Tiếng Anh: {len(ENGLISH_DICT):,} từ\n"
+        f"• Danh sách Quốc Gia: {len(COUNTRIES_VN_DICT):,} nước\n"
+        f"• Trạng thái: Hoạt động ổn định 24/7"
+    )
+    await ctx.send(embed=UIUtils.create_embed("🖤💗 Về Hệ Thống Ultimate", desc, BotConfig.COLOR_DEFAULT))
 
 @bot.command(name="help", aliases=["menu"])
 async def sys_help(ctx: commands.Context) -> None:
     await ctx.send(embed=UIUtils.build_help_embed())
+
+# --- Lệnh Kinh Tế & Shop ---
+
+@bot.command(name="balance", aliases=["bal", "coins"])
+async def cmd_balance(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
+    target = member or ctx.author
+    data = get_user_data(target.id)
+    desc = f"👤 **Tài khoản của {target.name}**\n\n• 💰 Tiền mặt (Ví): **{data['wallet']:,} VNĐ**\n• 🏦 Tiền trong ngân hàng: **{data['bank']:,} VNĐ**\n• ✨ Cấp độ: **{data['level']}** (XP: {data['xp']})"
+    await ctx.send(embed=UIUtils.create_embed("💰 Số Dư Tài Khoản", desc, BotConfig.COLOR_GOLD))
+
+@bot.command(name="daily")
+async def cmd_daily(ctx: commands.Context) -> None:
+    data = get_user_data(ctx.author.id)
+    now = datetime.now()
+    if data["last_daily"]:
+        last_time = datetime.fromisoformat(data["last_daily"])
+        if now - last_time < timedelta(hours=24):
+            remaining = timedelta(hours=24) - (now - last_time)
+            hours, remainder = divmod(int(remaining.total_seconds()), 3600)
+            minutes, _ = divmod(remainder, 60)
+            await ctx.send(embed=UIUtils.build_warning_embed("Chưa đến giờ điểm danh", f"Vui lòng đợi thêm **{hours} giờ {minutes} phút** nữa để nhận quà daily tiếp theo!"))
+            return
+    
+    data["wallet"] += 2000
+    data["xp"] += 100
+    data["last_daily"] = now.isoformat()
+    await ctx.send(embed=UIUtils.create_embed("🎁 Điểm Danh Hằng Ngày", f"🎉 {ctx.author.mention} đã nhận thành công **2,000 VNĐ** và **100 XP** miễn phí!", BotConfig.COLOR_SUCCESS))
+
+@bot.command(name="work")
+async def cmd_work(ctx: commands.Context) -> None:
+    data = get_user_data(ctx.author.id)
+    now = datetime.now()
+    if data["last_work"]:
+        last_time = datetime.fromisoformat(data["last_work"])
+        if now - last_time < timedelta(minutes=30):
+            remaining = timedelta(minutes=30) - (now - last_time)
+            minutes, seconds = divmod(int(remaining.total_seconds()), 60)
+            await ctx.send(embed=UIUtils.build_warning_embed("Đang nghỉ ngơi", f"Bạn cần nghỉ ngơi thêm **{minutes} phút {seconds} giây** nữa trước khi đi làm tiếp!"))
+            return
+    
+    jobs = [
+        ("Lập trình viên AI", 850),
+        ("Pha chế cà phê", 500),
+        ("Streamer TikTok", 700),
+        ("Gia sư toán học", 600),
+        ("Thiết kế thời trang BlackPink", 950)
+    ]
+    job_name, salary = random.choice(jobs)
+    data["wallet"] += salary
+    data["last_work"] = now.isoformat()
+    await ctx.send(embed=UIUtils.create_embed("💼 Đi Làm Kiếm Tiền", f"🛠️ Bạn đã hoàn thành công việc **{job_name}** và kiếm được **{salary:,} VNĐ**!", BotConfig.COLOR_SUCCESS))
+
+@bot.command(name="shop")
+async def cmd_shop(ctx: commands.Context) -> None:
+    desc = "🛍️ **Cửa hàng vật phẩm cao cấp Black & Pink:**\n\n"
+    for key, item in SHOP_ITEMS.items():
+        desc += f"• **{item['name']}** (`{key}`)\n  💰 Giá: **{item['price']:,} VNĐ**\n  📝 {item['desc']}\n\n"
+    desc += f"💡 *Dùng lệnh `{BotConfig.PREFIX}buy [mã_vật_phẩm]` để mua hàng!*"
+    await ctx.send(embed=UIUtils.create_embed("✨ Cửa Hàng Thế Giới", desc, BotConfig.COLOR_DEFAULT))
+
+@bot.command(name="buy")
+async def cmd_buy(ctx: commands.Context, item_key: str = "") -> None:
+    if not item_key or item_key not in SHOP_ITEMS:
+        await ctx.send(embed=UIUtils.build_warning_embed("Sai mã vật phẩm", f"Vui lòng chọn đúng mã vật phẩm trong `{BotConfig.PREFIX}shop`."))
+        return
+    
+    item = SHOP_ITEMS[item_key]
+    data = get_user_data(ctx.author.id)
+    if data["wallet"] < item["price"]:
+        await ctx.send(embed=UIUtils.build_warning_embed("Không đủ tiền", f"Bạn cần **{item['price']:,} VNĐ** nhưng trong ví chỉ có **{data['wallet']:,} VNĐ**!"))
+        return
+    
+    data["wallet"] -= item["price"]
+    data["inventory"].append(item["name"])
+    await ctx.send(embed=UIUtils.create_embed("🛒 Mua Hàng Thành Công", f"🎉 Bạn đã mua thành công **{item['name']}** với giá **{item['price']:,} VNĐ**!", BotConfig.COLOR_SUCCESS))
+
+@bot.command(name="inventory", aliases=["inv"])
+async def cmd_inventory(ctx: commands.Context) -> None:
+    data = get_user_data(ctx.author.id)
+    inv = data["inventory"]
+    if not inv:
+        desc = "📦 Kho đồ của bạn hiện đang trống rỗng."
+    else:
+        desc = "📦 **Kho đồ của bạn:**\n\n" + "\n".join([f"• {i}" for i in inv])
+    await ctx.send(embed=UIUtils.create_embed("🎒 Kho Vật Phẩm", desc, BotConfig.COLOR_DEFAULT))
+
+# ====================================================================================================
+# PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ
+# ====================================================================================================
 
 @bot.command(name="themtu", aliases=["addword"])
 async def cmd_themtu(ctx: commands.Context, *, word: str = "") -> None:
@@ -367,7 +506,7 @@ async def cmd_themtu(ctx: commands.Context, *, word: str = "") -> None:
         VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.setdefault(syl_parts[0], []).append(clean_w)
         DataManager.append_word_to_file(BotConfig.FILE_VIETNAMESE_DICT, clean_w)
         
-        await ctx.send(embed=UIUtils.build_success_embed("Thêm từ thành công", f"Đã lưu từ **`{clean_w.upper()}`** vào file `{BotConfig.FILE_VIETNAMESE_DICT}` và cập nhật RAM thành công!"))
+        await ctx.send(embed=UIUtils.build_success_embed("Thêm từ thành công", f"Đã lưu từ **`{clean_w.upper()}`** vào file `{BotConfig.FILE_VIETNAMESE_DICT}` và cập nhật RAM!"))
     elif len(syl_parts) == 1 and clean_w.isalpha():
         if clean_w in ENGLISH_DICT:
             await ctx.send(embed=UIUtils.build_warning_embed("Đã tồn tại", f"Word **`{clean_w.upper()}`** already exists!"))
@@ -380,7 +519,7 @@ async def cmd_themtu(ctx: commands.Context, *, word: str = "") -> None:
         
         await ctx.send(embed=UIUtils.build_success_embed("Thêm từ thành công", f"Đã lưu từ tiếng Anh **`{clean_w.upper()}`** vào file và RAM!"))
     else:
-        await ctx.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Việt phải gồm đúng 2 tiếng (ví dụ: `chiếu tướng`)!"))
+        await ctx.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Việt phải gồm đúng 2 tiếng!"))
 
 @bot.command(name="noitu")
 async def cmd_noitu(ctx: commands.Context) -> None:
@@ -441,19 +580,40 @@ async def cmd_doanquocgia(ctx: commands.Context) -> None:
     if session.is_active:
         await ctx.send(embed=UIUtils.build_warning_embed("Đã có ván chơi", "Kênh này đang có ván chơi hoạt động."))
         return
+    
     target = random.choice(COUNTRIES_VN_LIST)
     masked = GameUtils.generate_country_mask(target)
     session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
-    await ctx.send(embed=UIUtils.create_embed("🌍 Đoán Quốc Gia", f"Gợi ý:\n\n## 🗺️ {masked}"))
+    
+    iso_code = COUNTRY_CODES.get(target, "un")
+    flag_url = f"https://flagcdn.com/w320/{iso_code}.png"
+    
+    embed = UIUtils.create_embed("🌍 Đoán Quốc Gia (Kèm Cờ)", f"Hãy nhìn hình ảnh lá cờ bên dưới và đoán tên quốc gia:\n\n## 🗺️ {masked}")
+    embed.set_image(url=flag_url)
+    await ctx.send(embed=embed)
+
+@bot.command(name="tictactoe", aliases=["caro"])
+async def cmd_tictactoe(ctx: commands.Context) -> None:
+    session = global_session_manager.get_session(ctx.channel.id)
+    if session.is_active:
+        await ctx.send(embed=UIUtils.build_warning_embed("Đã có ván chơi", "Kênh này đang có ván chơi hoạt động."))
+        return
+    session.initialize_session(GameMode.TICTACTOE)
+    board_str = f"` {session.tictactoe_board[0]} | {session.tictactoe_board[1]} | {session.tictactoe_board[2]} `\n" \
+                f"`-----------`\n" \
+                f"` {session.tictactoe_board[3]} | {session.tictactoe_board[4]} | {session.tictactoe_board[5]} `\n" \
+                f"`-----------`\n" \
+                f"` {session.tictactoe_board[6]} | {session.tictactoe_board[7]} | {session.tictactoe_board[8]} `"
+    await ctx.send(embed=UIUtils.create_embed("❌⭕ Cờ Caro (Tic-Tac-Toe)", f"Gõ số từ **1 đến 9** để đánh nước đi của bạn (X):\n\n{board_str}"))
 
 @bot.command(name="huynoitu", aliases=["huygame"])
 async def cmd_huynoitu(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if not session.is_active:
-        await ctx.send(embed=UIUtils.build_warning_embed("Không có ván chơi", "Hiện không có ván nối từ nào đang diễn ra."))
+        await ctx.send(embed=UIUtils.build_warning_embed("Không có ván chơi", "Hiện không có ván trò chơi nào đang diễn ra tại kênh này."))
         return
     session.reset()
-    await ctx.send(embed=UIUtils.create_embed("🖤 Đã hủy phiên chơi", "Phiên nối từ tại kênh này đã được kết thúc thành công.", BotConfig.COLOR_BLACK))
+    await ctx.send(embed=UIUtils.create_embed("🖤 Đã hủy phiên chơi", "Phiên trò chơi tại kênh này đã được kết thúc thành công.", BotConfig.COLOR_BLACK))
 
 @bot.command(name="nghia")
 async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
@@ -463,23 +623,17 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
     clean_w = word.strip().lower()
     found = clean_w in COMBINED_VIETNAMESE_DICTIONARY or clean_w in ENGLISH_DICT or clean_w in COUNTRIES_VN_DICT
     if found:
-        await ctx.send(embed=UIUtils.create_embed("📖 Tra cứu", f"Từ **`{clean_w.upper()}`** CÓ TRONG hệ thống dữ liệu.", BotConfig.COLOR_SUCCESS))
+        await ctx.send(embed=UIUtils.create_embed("📖 Tra cứu từ vựng", f"Từ **`{clean_w.upper()}`** CÓ TRONG hệ thống dữ liệu doanh nghiệp.", BotConfig.COLOR_SUCCESS))
     else:
-        await ctx.send(embed=UIUtils.create_embed("📖 Tra cứu", f"Không tìm thấy từ **`{clean_w.upper()}`**. Bạn có thể dùng lệnh `{BotConfig.PREFIX}themtu {clean_w}` để thêm vào file!", BotConfig.COLOR_WARNING))
+        await ctx.send(embed=UIUtils.create_embed("📖 Tra cứu từ vựng", f"Không tìm thấy từ **`{clean_w.upper()}`**. Dùng lệnh `{BotConfig.PREFIX}themtu {clean_w}` để bổ sung ngay!", BotConfig.COLOR_WARNING))
 
 @bot.command(name="rank", aliases=["top"])
 async def cmd_rank(ctx: commands.Context) -> None:
     user_data = get_user_data(ctx.author.id)
-    await ctx.send(embed=UIUtils.create_embed("🏆 Bảng Xếp Hạng", f"👤 **{ctx.author.name}**\n• Cấp độ: {user_data['level']}\n• Điểm XP: {user_data['xp']}"))
-
-@bot.command(name="daily")
-async def cmd_daily(ctx: commands.Context) -> None:
-    user_data = get_user_data(ctx.author.id)
-    user_data['xp'] += 50
-    await ctx.send(embed=UIUtils.create_embed("🎁 Điểm Danh", "Bạn nhận được **50 XP** miễn phí!", BotConfig.COLOR_SUCCESS))
+    await ctx.send(embed=UIUtils.create_embed("🏆 Bảng Xếp Hạng Cá Nhân", f"👤 **{ctx.author.name}**\n• Cấp độ: **{user_data['level']}**\n• Điểm XP: **{user_data['xp']}**\n• Ví tiền: **{user_data['wallet']:,} VNĐ**"))
 
 # ====================================================================================================
-# PHẦN 7: XỬ LÝ SỰ KIỆN TRÒ CHƠI QUA TIN NHẮN
+# PHẦN 8: XỬ LÝ SỰ KIỆN TRÒ CHƠI QUA TIN NHẮN (KIỂM TRA NGHIÊM NGẶT TUYỆT ĐỐI)
 # ====================================================================================================
 
 @bot.event
@@ -502,8 +656,10 @@ async def on_message(message: discord.Message) -> None:
         if content == session.scrambled_target.lower():
             target = session.scrambled_target
             session.reset()
-            get_user_data(message.author.id)['xp'] += 20
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Chiến Thắng", f"🎉 {message.author.mention} đã giải đúng: **`{target.upper()}`**", BotConfig.COLOR_SUCCESS))
+            user_d = get_user_data(message.author.id)
+            user_d['xp'] += 30
+            user_d['wallet'] += 1000
+            await message.channel.send(embed=UIUtils.create_embed("🏆 Chiến Thắng Vua Tiếng Việt", f"🎉 {message.author.mention} đã giải đúng từ: **`{target.upper()}`** (+1,000 VNĐ, +30 XP)", BotConfig.COLOR_SUCCESS))
         return
 
     # 2. Đoán Quốc Gia
@@ -511,19 +667,46 @@ async def on_message(message: discord.Message) -> None:
         if content == session.secret_country.lower():
             target = session.secret_country
             session.reset()
-            get_user_data(message.author.id)['xp'] += 20
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Chiến Thắng", f"🎉 {message.author.mention} đoán đúng quốc gia: **`{target.upper()}`**", BotConfig.COLOR_SUCCESS))
+            user_d = get_user_data(message.author.id)
+            user_d['xp'] += 30
+            user_d['wallet'] += 1000
+            await message.channel.send(embed=UIUtils.create_embed("🏆 Chiến Thắng Đoán Quốc Gia", f"🎉 {message.author.mention} đoán đúng quốc gia: **`{target.upper()}`** (+1,000 VNĐ, +30 XP)", BotConfig.COLOR_SUCCESS))
         return
 
-    # 3. Nối Từ Tiếng Việt
+    # 3. Tic-Tac-Toe (Cờ Caro)
+    if session.active_mode == GameMode.TICTACTOE:
+        if content in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+            idx = int(content) - 1
+            if session.tictactoe_board[idx] in ["X", "O"]:
+                await message.channel.send(embed=UIUtils.build_warning_embed("Ô đã đánh", "Ô này đã được đánh rồi, vui lòng chọn ô khác!"))
+                return
+            
+            session.tictactoe_board[idx] = "X"
+            
+            # Kiểm tra thắng thua đơn giản hoặc bot đi ngẫu nhiên ô trống
+            empty_spots = [i for i, val in enumerate(session.tictactoe_board) if val not in ["X", "O"]]
+            if empty_spots:
+                bot_move = random.choice(empty_spots)
+                session.tictactoe_board[bot_move] = "O"
+            
+            board_str = f"` {session.tictactoe_board[0]} | {session.tictactoe_board[1]} | {session.tictactoe_board[2]} `\n" \
+                        f"`-----------`\n" \
+                        f"` {session.tictactoe_board[3]} | {session.tictactoe_board[4]} | {session.tictactoe_board[5]} `\n" \
+                        f"`-----------`\n" \
+                        f"` {session.tictactoe_board[6]} | {session.tictactoe_board[7]} | {session.tictactoe_board[8]} `"
+            
+            await message.channel.send(embed=UIUtils.create_embed("❌⭕ Trận Đấu Cờ Caro", f"Lượt đi của {message.author.mention}:\n\n{board_str}"))
+        return
+
+    # 4. Nối Từ Tiếng Việt (Kiểm tra nghiêm ngặt: Đúng 2 tiếng, phải có trong từ điển chuẩn)
     if session.active_mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
         parts = content.split()
         if len(parts) != 2:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ phải gồm đúng 2 tiếng!"))
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Việt bắt buộc phải gồm đúng 2 tiếng (ví dụ: `học tập`)!"))
             return
         
         if content not in COMBINED_VIETNAMESE_DICTIONARY:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ này chưa có trong file từ điển tiếng Việt!"))
+            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ này không có trong từ điển (hoặc thiếu dấu / viết sai chính tả)!"))
             return
         
         if content in session.used_words_history:
@@ -539,12 +722,14 @@ async def on_message(message: discord.Message) -> None:
         session.used_words_history.add(content)
         session.current_word = content
         session.turn_counter += 1
-        get_user_data(message.author.id)['xp'] += 10
+        user_d = get_user_data(message.author.id)
+        user_d['xp'] += 15
+        user_d['wallet'] += 200
         
         next_syl = parts[-1]
         
         if session.active_mode == GameMode.PVP_VIETNAMESE:
-            await message.channel.send(embed=UIUtils.create_embed("✨ Nối từ thành công!", f"Từ hợp lệ: **`{content.upper()}`**\nÂm tiếp theo: **`{next_syl.upper()}`**", BotConfig.COLOR_SUCCESS))
+            await message.channel.send(embed=UIUtils.create_embed("✨ Nối từ thành công!", f"Từ hợp lệ: **`{content.upper()}`**\nÂm tiếp theo: **`{next_syl.upper()}`** (+200 VNĐ)", BotConfig.COLOR_SUCCESS))
         elif session.active_mode == GameMode.BOT_VIETNAMESE:
             candidates = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(next_syl, [])
             valid_candidates = [w for w in candidates if w not in session.used_words_history]
@@ -564,7 +749,7 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send(embed=UIUtils.create_embed("✨💗 Lượt Đấu Thành Công", desc, BotConfig.COLOR_SUCCESS))
         return
 
-    # 4. Nối Từ Tiếng Anh
+    # 5. Nối Từ Tiếng Anh
     if session.active_mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
         if not content.isalpha():
             await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Anh chỉ được chứa ký tự chữ cái!"))
@@ -586,7 +771,9 @@ async def on_message(message: discord.Message) -> None:
         session.used_words_history.add(content)
         session.current_word = content
         session.turn_counter += 1
-        get_user_data(message.author.id)['xp'] += 10
+        user_d = get_user_data(message.author.id)
+        user_d['xp'] += 15
+        user_d['wallet'] += 200
         
         next_letter = content[-1]
         
@@ -610,7 +797,7 @@ async def on_message(message: discord.Message) -> None:
         return
 
 # ====================================================================================================
-# PHẦN 8: KHỞI CHẠY BOT
+# PHẦN 9: KHỞI CHẠY HỆ THỐNG BOT
 # ====================================================================================================
 
 if __name__ == "__main__":
