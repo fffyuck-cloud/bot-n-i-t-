@@ -45,6 +45,7 @@ class BotConfig:
     COLOR_WARNING: int = 0xF1C40F     # Yellow
     COLOR_ERROR: int = 0xE74C3C       # Red
     COLOR_INFO: int = 0x3498DB        # Blue
+    COLOR_BLACK: int = 0x000000       # Black — dùng cho các embed hủy/kết thúc phiên
     
     MSG_ERR_NO_DATA: str = "Kho dữ liệu hiện đang trống. Vui lòng kiểm tra lại file txt."
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
@@ -96,7 +97,6 @@ keep_alive_app = Flask("EnterpriseKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    logger.info("Ping nhận được tại endpoint: /")
     return (
         "<h1>Black & Pink Pure Fun Bot - Enterprise Edition</h1>"
         "<p>Hệ thống đang hoạt động 24/7 một cách ổn định.</p>"
@@ -121,7 +121,8 @@ def launch_web_server() -> None:
             host=BotConfig.WEB_SERVER_HOST, 
             port=BotConfig.WEB_SERVER_PORT, 
             debug=False, 
-            use_reloader=False
+            use_reloader=False,
+            threaded=True
         )
     except Exception as server_err:
         logger.error(f"Lỗi nghiêm trọng khi khởi chạy Flask Server: {server_err}")
@@ -168,6 +169,42 @@ COUNTRIES_EN_DICT = DataManager.load_text_file(BotConfig.FILE_COUNTRIES_EN, BotC
 
 COMBINED_VIETNAMESE_DICTIONARY: Set[str] = VIETNAMESE_DICT.union(WORDS_DICT)
 logger.info(f"Tổng hợp dữ liệu: {len(COMBINED_VIETNAMESE_DICTIONARY)} từ TV, {len(ENGLISH_DICT)} từ TA, {len(COUNTRIES_VN_DICT)} quốc gia.")
+
+# ----------------------------------------------------------------------------------------------
+# TỐI ƯU HIỆU NĂNG (chống lag):
+# 1) Cache sẵn bản list của mỗi bộ từ điển — random.choice() cần list, trước đây code convert
+#    set -> list lại từ đầu MỖI LẦN có người gõ lệnh, rất tốn với từ điển lớn.
+# 2) Lập chỉ mục theo âm tiết đầu (tiếng Việt) / ký tự đầu (tiếng Anh). Trước đây mỗi lượt
+#    trong chế độ đấu Bot, code phải quét TOÀN BỘ từ điển (hàng chục nghìn từ) để tìm từ hợp lệ
+#    — và vì đây là hàm đồng bộ (không có await) chạy trong vòng lặp asyncio, nó CHẶN CỨNG
+#    toàn bộ bot (mọi kênh, mọi server) trong lúc quét. Đây chính là nguyên nhân chính gây lag.
+#    Có chỉ mục rồi thì chỉ cần tra đúng nhóm âm tiết/ký tự cần tìm, gần như tức thời.
+# ----------------------------------------------------------------------------------------------
+COMBINED_VIETNAMESE_LIST: List[str] = list(COMBINED_VIETNAMESE_DICTIONARY)
+ENGLISH_LIST: List[str] = list(ENGLISH_DICT)
+COUNTRIES_VN_LIST: List[str] = list(COUNTRIES_VN_DICT) if COUNTRIES_VN_DICT else list(BotConfig.FALLBACK_COUNTRIES)
+VUA_TIENG_VIET_CANDIDATES: List[str] = [w for w in COMBINED_VIETNAMESE_DICTIONARY if len(w.split()) >= 2] or list(BotConfig.FALLBACK_VIETNAMESE)
+
+def build_syllable_index(dictionary: Set[str]) -> Dict[str, List[str]]:
+    index: Dict[str, List[str]] = {}
+    for word_entry in dictionary:
+        parts = word_entry.split()
+        if not parts:
+            continue
+        index.setdefault(parts[0], []).append(word_entry)
+    return index
+
+def build_letter_index(dictionary: Set[str]) -> Dict[str, List[str]]:
+    index: Dict[str, List[str]] = {}
+    for word_entry in dictionary:
+        if not word_entry:
+            continue
+        index.setdefault(word_entry[0], []).append(word_entry)
+    return index
+
+VIETNAMESE_INDEX_BY_FIRST_SYLLABLE: Dict[str, List[str]] = build_syllable_index(COMBINED_VIETNAMESE_DICTIONARY)
+ENGLISH_INDEX_BY_FIRST_LETTER: Dict[str, List[str]] = build_letter_index(ENGLISH_DICT)
+logger.info(f"Đã lập chỉ mục tra cứu nhanh: {len(VIETNAMESE_INDEX_BY_FIRST_SYLLABLE)} nhóm âm tiết TV, {len(ENGLISH_INDEX_BY_FIRST_LETTER)} nhóm ký tự TA.")
 
 # ====================================================================================================
 # PHẦN 5: CẤU TRÚC QUẢN LÝ PHIÊN CHƠI (GAME SESSION ARCHITECTURE)
@@ -314,6 +351,39 @@ class UIUtils:
             color=BotConfig.COLOR_WARNING,
             timestamp=datetime.now()
         )
+        return embed
+
+    @staticmethod
+    def build_huygame_embed() -> discord.Embed:
+        description = (
+            f"🥀 Một cánh hoa vừa lìa cành, phiên chơi tại kênh này chính thức khép lại.\n\n"
+            f"🖤 **Trạng thái:** Đã hủy thành công — toàn bộ dữ liệu ván đấu "
+            f"(từ đã dùng, tiến trình, lượt chơi) đã được xóa sạch khỏi hệ thống.\n\n"
+            f"🖤 *Bóng tối lại phủ xuống khu vườn, chờ đợi một ván đấu mới bắt đầu...*\n\n"
+            f"🌸 Muốn chơi tiếp? Gõ `{BotConfig.PREFIX}help` để xem lại toàn bộ các chế độ."
+        )
+        embed = discord.Embed(
+            title="🖤 [ PHIÊN NỐI TỪ ĐÃ KẾT THÚC ] 🖤",
+            description=description,
+            color=BotConfig.COLOR_BLACK,
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Hệ thống Black & Pink • Phiên chơi đã kết thúc 🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        return embed
+
+    @staticmethod
+    def build_huygame_no_active_embed() -> discord.Embed:
+        description = (
+            f"🖤 Khu vườn nơi đây đang tĩnh lặng, chưa có ván nối từ nào được mở ra để hủy cả.\n\n"
+            f"🌸 Gõ `{BotConfig.PREFIX}help` để xem toàn bộ chế độ chơi và bắt đầu một phiên mới."
+        )
+        embed = discord.Embed(
+            title="🖤 Không Có Phiên Nào Đang Diễn Ra 🖤",
+            description=description,
+            color=BotConfig.COLOR_BLACK,
+            timestamp=datetime.now()
+        )
+        embed.set_footer(text="Hệ thống Black & Pink 🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         return embed
 
     @staticmethod
@@ -652,7 +722,7 @@ async def cmd_noitu(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.build_error_embed(BotConfig.MSG_ERR_NO_DATA))
         return
         
-    start_word = random.choice(list(COMBINED_VIETNAMESE_DICTIONARY))
+    start_word = random.choice(COMBINED_VIETNAMESE_LIST)
     syllables = start_word.split()
     next_syl = syllables[-1] if syllables else start_word
     
@@ -671,7 +741,7 @@ async def cmd_noituubot(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.build_error_embed(BotConfig.MSG_ERR_NO_DATA))
         return
         
-    start_word = random.choice(list(COMBINED_VIETNAMESE_DICTIONARY))
+    start_word = random.choice(COMBINED_VIETNAMESE_LIST)
     syllables = start_word.split()
     next_syl = syllables[-1] if syllables else start_word
     
@@ -690,7 +760,7 @@ async def cmd_noitueng(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.build_error_embed(BotConfig.MSG_ERR_NO_DATA))
         return
         
-    start_word = random.choice(list(ENGLISH_DICT))
+    start_word = random.choice(ENGLISH_LIST)
     next_letter = start_word[-1]
     
     session.initialize_session(GameMode.PVP_ENGLISH, start_word=start_word)
@@ -708,7 +778,7 @@ async def cmd_noituubotteng(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.build_error_embed(BotConfig.MSG_ERR_NO_DATA))
         return
 
-    start_word = random.choice(list(ENGLISH_DICT))
+    start_word = random.choice(ENGLISH_LIST)
     next_letter = start_word[-1]
 
     session.initialize_session(GameMode.BOT_ENGLISH, start_word=start_word)
@@ -722,11 +792,7 @@ async def cmd_vuatiengviet(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.build_warning_embed("Đã có ván chơi", "Kênh này đang có một ván chơi hoạt động."))
         return
     
-    valid_phrases = [w for w in COMBINED_VIETNAMESE_DICTIONARY if len(w.split()) >= 2]
-    if not valid_phrases:
-        valid_phrases = list(BotConfig.FALLBACK_VIETNAMESE)
-        
-    target = random.choice(valid_phrases)
+    target = random.choice(VUA_TIENG_VIET_CANDIDATES)
     scrambled = GameUtils.scramble_vietnamese_syllables(target)
     
     session.initialize_session(GameMode.VUA_TIENG_VIET, target=target)
@@ -741,8 +807,7 @@ async def cmd_doanquocgia(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.build_warning_embed("Đã có ván chơi", "Kênh này đang có một ván chơi hoạt động."))
         return
         
-    countries = list(COUNTRIES_VN_DICT) if COUNTRIES_VN_DICT else list(BotConfig.FALLBACK_COUNTRIES)
-    target = random.choice(countries)
+    target = random.choice(COUNTRIES_VN_LIST)
     masked = GameUtils.generate_country_mask(target)
     
     session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
@@ -754,10 +819,10 @@ async def cmd_doanquocgia(ctx: commands.Context) -> None:
 async def cmd_huygame(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if not session.is_active:
-        await ctx.send(embed=UIUtils.build_warning_embed("Không có ván chơi", BotConfig.MSG_NO_ACTIVE_GAME))
+        await ctx.send(embed=UIUtils.build_huygame_no_active_embed())
         return
     session.reset()
-    embed = UIUtils.create_embed("🚫 Đã Hủy Phiên Trò Chơi", BotConfig.MSG_GAME_CANCELLED, BotConfig.COLOR_WARNING)
+    embed = UIUtils.build_huygame_embed()
     await ctx.send(embed=embed)
 
 @bot.command(name="nghia", aliases=["tracupha"])
@@ -888,8 +953,8 @@ async def on_message(message: discord.Message) -> None:
         user_next_syl = syllables[-1]
         
         possible_bot_words = [
-            w for w in COMBINED_VIETNAMESE_DICTIONARY 
-            if w.startswith(user_next_syl + " ") and w not in session.used_words_history
+            w for w in VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(user_next_syl, [])
+            if w not in session.used_words_history
         ]
         
         if not possible_bot_words:
@@ -960,8 +1025,8 @@ async def on_message(message: discord.Message) -> None:
         user_next_letter = word[-1]
 
         possible_bot_words = [
-            w for w in ENGLISH_DICT
-            if w.startswith(user_next_letter) and w not in session.used_words_history
+            w for w in ENGLISH_INDEX_BY_FIRST_LETTER.get(user_next_letter, [])
+            if w not in session.used_words_history
         ]
 
         if not possible_bot_words:
