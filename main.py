@@ -45,7 +45,7 @@ def prepare_dictionaries():
         "thái độ", "độ ẩm", "ẩm thực", "thực phẩm", "phẩm chất", "chất lượng", "lượng từ",
         "từ vựng", "phát triển", "triển khai", "khai thác", "thác nước", "nước ngọt",
         "ngọt ngào", "ngào ngạt", "ngạt thở", "thở dài", "dài lâu", "lâu đời", "đời sống",
-        "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", "thanh niên",
+        "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", "th thanh niên",
         "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn",
         "bùn lầy", "lầy lội", "lội nước", "nước mắt", "mắt cá", "cá tính",
         "tính cách", "cách mạng", "mạng lưới", "lưới cá", "cá mập", "mập mạp",
@@ -90,9 +90,8 @@ def prepare_dictionaries():
         "lan tỏa", "tỏa sáng", "sáng ngời", "sáng tạo", "tạo hình", "hình mẫu",
         "mẫu giáo", "giáo dục", "ngoại giao", "giao lưu", "lưu trữ", "trữ lượng",
         "lượng giác", "giác quan", "quan điểm", "điểm tựa", "hệ thống", "thống nhất", 
-        "thống kê", "hệ quả", "quả cảm", "quả tang", "hệ lụy", "lụy tình", "hệ trọng", 
-        "trọng trách", "trọng tài", "trọng tâm", "nước đái", "đái dầm", "uống nước",
-        "nước ngọt", "nước khoáng", "nước tiểu", "tiểu đường", "đường đi", "đi đứng"
+        "thống kê", "hệ quả", "quả cảm", "quả tang", "hệ lụy", "lụy tình", "trọng trách", 
+        "trọng tài", "trọng tâm", "tiểu đường", "đường đi", "đi đứng", "đương thời"
     }
     
     try:
@@ -207,8 +206,8 @@ async def help_cmd(ctx):
         "💬 **Word Chain Ultimate Bot**\n"
         "Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.\n\n"
         
-        "🇻🇳 **NỐI TỪ TIẾNG VIỆT**\n"
-        "Chơi đúng luật 2 từ (ví dụ: 'đền ơn' -> 'ơn huệ'). Đầy đủ kho từ vựng chuẩn!\n"
+        "🇻🇳 **NỐI TỪ TIẾNG VIỆT (BẮT BUỘC 2 TỪ)**\n"
+        "Chơi đúng luật 2 từ (ví dụ: 'đền ơn' -> 'ơn huệ'). Gõ 1 từ hoặc từ không có trong từ điển sẽ bị tính là sai!\n"
         "`?noitu` → Chơi chung kênh cùng bè lũ\n"
         "`?noituubot` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
@@ -407,7 +406,7 @@ async def nghia_cmd(ctx, *, word: str = None):
     if not word: 
         embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN", color=0xFF0055)
         if file: embed.set_image(url="attachment://banner.png")
-        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia nước đái`"
+        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia học tập`"
         if file: return await ctx.send(embed=embed, file=file)
         else: return await ctx.send(embed=embed)
         
@@ -441,13 +440,8 @@ async def on_message(message):
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         
-        is_valid = False
-        if len(words) == 2 and words[0] == prev_last and user_input not in game["used_words"]:
-            if user_input in dictionary_vi or (len(words[0]) > 0 and len(words[1]) > 0):
-                dictionary_vi.add(user_input)
-                is_valid = True
-
-        if not is_valid:
+        # Bắt buộc đúng 2 từ (2 âm tiết), khớp âm tiết, chưa dùng và phải có trong từ điển
+        if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
             await message.add_reaction(CROSS)
             return
             
@@ -471,19 +465,23 @@ async def on_message(message):
             last_syllable = user_input.split()[-1]
             possible_words = [w for w in dictionary_vi if w.startswith(last_syllable + " ") and w not in game["used_words"]]
             if not possible_words:
-                unused_dict = [w for w in dictionary_vi if w not in game["used_words"]]
-                bot_word = random.choice(unused_dict) if unused_dict else "học tập"
+                embed_win = discord.Embed(title="🏆 KẾT QUẢ TRẬN ĐẤU", color=0x57F287)
+                if banner_file: embed_win.set_image(url="attachment://banner.png")
+                embed_win.description = f"🏆 {message.author.mention} đã chiến thắng bot vì bot đã bí từ (không tìm được từ nào bắt đầu bằng **`{last_syllable.upper()}`**)!"
+                if banner_file: await message.channel.send(embed=embed_win, file=banner_file)
+                else: await message.channel.send(embed=embed_win)
+                del games[message.channel.id]
+                return
             else:
                 bot_word = random.choice(possible_words)
-                
-            game["used_words"].add(bot_word)
-            game["last_word"] = bot_word
-            current_count = len(game["used_words"])
-            embed_bot = discord.Embed(title="🤖 LƯỢT ĐẤU CỦA AI", color=0xFF0055)
-            if banner_file: embed_bot.set_image(url="attachment://banner.png")
-            embed_bot.description = f"🤖 Bot nối tiếp: 👉 **`{bot_word.upper()}`**\n📊 Tổng số từ hiện tại: `{current_count}` từ"
-            if banner_file: await message.channel.send(embed=embed_bot, file=banner_file)
-            else: await message.channel.send(embed=embed_bot)
+                game["used_words"].add(bot_word)
+                game["last_word"] = bot_word
+                current_count = len(game["used_words"])
+                embed_bot = discord.Embed(title="🤖 LƯỢT ĐẤU CỦA AI", color=0xFF0055)
+                if banner_file: embed_bot.set_image(url="attachment://banner.png")
+                embed_bot.description = f"🤖 Bot nối tiếp: 👉 **`{bot_word.upper()}`**\n📊 Tổng số từ hiện tại: `{current_count}` từ"
+                if banner_file: await message.channel.send(embed=embed_bot, file=banner_file)
+                else: await message.channel.send(embed=embed_bot)
         else:
             embed_stat = discord.Embed(title="📊 CẬP NHẬT TRẬN ĐẤU", color=0xFF0055)
             if banner_file: embed_stat.set_image(url="attachment://banner.png")
