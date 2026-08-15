@@ -6,7 +6,7 @@
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═════╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE EDITION - ULTIMATE STRUCTURE (v2.1.1 - FIXED & OPTIMIZED)
+# PURE FUN ENTERPRISE EDITION - ULTIMATE STRUCTURE (v2.1.2 - ADD WORD FEATURE)
 # ====================================================================================================
 
 import os
@@ -27,7 +27,7 @@ from discord.ext import commands
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "2.1.1 Enterprise Fixed"
+    VERSION: str = "2.1.2 Enterprise with AddWord"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     
@@ -158,6 +158,17 @@ class DataManager:
         except Exception as err:
             logger.error(f"LỖI KHI ĐỌC TỆP [{filepath}]: {err}")
             return set(fallback_dataset)
+
+    @staticmethod
+    def append_word_to_file(filepath: str, word: str) -> bool:
+        try:
+            mode = "a" if os.path.exists(filepath) else "w"
+            with open(filepath, mode, encoding="utf-8") as file_object:
+                file_object.write(f"\n{word}")
+            return True
+        except Exception as err:
+            logger.error(f"LỖI KHI GHI TỆP [{filepath}]: {err}")
+            return False
 
 logger.info("Bắt đầu tiến trình nạp dữ liệu từ kho lưu trữ (Local Cache)...")
 
@@ -515,8 +526,10 @@ class UIUtils:
             f"🖤 `{BotConfig.PREFIX}noituubotteng` → Solo với Bot Tiếng Anh\n\n"
             f"👑💗 **[ TRÒ CHƠI KHÁC ]** 👑\n"
             f"🌸 `{BotConfig.PREFIX}vuatiengviet` | `{BotConfig.PREFIX}doanquocgia`\n\n"
-            f"⚙️💗 **[ HỆ THỐNG ]** ⚙️\n"
-            f"🌸 `{BotConfig.PREFIX}huynoitu` | `{BotConfig.PREFIX}nghia [từ]` | `{BotConfig.PREFIX}rank` | `{BotConfig.PREFIX}daily`"
+            f"⚙️💗 **[ HỆ THỐNG & TỪ ĐIỂN ]** ⚙️\n"
+            f"🌸 `{BotConfig.PREFIX}themtu [vi/en] [từ]` → Thêm từ mới vào từ điển\n"
+            f"🖤 `{BotConfig.PREFIX}nghia [từ]` → Tra cứu từ vựng\n"
+            f"🌸 `{BotConfig.PREFIX}huynoitu` | `{BotConfig.PREFIX}rank` | `{BotConfig.PREFIX}daily`"
         )
         embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP NỐI TỪ ✦", description=description, color=0xFF69B4, timestamp=datetime.now())
         embed.set_footer(text="Black & Pink Edition", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
@@ -572,6 +585,60 @@ async def sys_about(ctx: commands.Context) -> None:
 @bot.command(name="help", aliases=["menu"])
 async def sys_help(ctx: commands.Context) -> None:
     await ctx.send(embed=UIUtils.build_help_embed())
+
+@bot.command(name="themtu", aliases=["addword"])
+async def cmd_themtu(ctx: commands.Context, *, text: str = "") -> None:
+    if not text:
+        await ctx.send(embed=UIUtils.build_warning_embed("Thiếu thông tin", f"Vui lòng nhập từ cần thêm.\nVí dụ:\n• `{BotConfig.PREFIX}themtu học tập` (Mặc định Tiếng Việt)\n• `{BotConfig.PREFIX}themtu vi học tập`\n• `{BotConfig.PREFIX}themtu en apple`"))
+        return
+    
+    parts = text.split(maxsplit=1)
+    if parts[0].lower() in ["vi", "vn"]:
+        if len(parts) < 2:
+            await ctx.send(embed=UIUtils.build_warning_embed("Thiếu từ", "Vui lòng nhập từ tiếng Việt cần thêm."))
+            return
+        lang = "vi"
+        word = parts[1].strip().lower()
+    elif parts[0].lower() == "en":
+        if len(parts) < 2:
+            await ctx.send(embed=UIUtils.build_warning_embed("Thiếu từ", "Vui lòng nhập từ tiếng Anh cần thêm."))
+            return
+        lang = "en"
+        word = parts[1].strip().lower()
+    else:
+        lang = "vi"
+        word = text.strip().lower()
+
+    if lang == "vi":
+        syl_parts = word.split()
+        if len(syl_parts) != 2:
+            await ctx.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Việt bổ sung phải gồm đúng 2 tiếng (ví dụ: `học tập`)!"))
+            return
+        if word in COMBINED_VIETNAMESE_DICTIONARY:
+            await ctx.send(embed=UIUtils.build_warning_embed("Đã tồn tại", f"Từ **`{word.upper()}`** đã có sẵn trong cơ sở dữ liệu Tiếng Việt!"))
+            return
+        
+        COMBINED_VIETNAMESE_DICTIONARY.add(word)
+        COMBINED_VIETNAMESE_LIST.append(word)
+        VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.setdefault(syl_parts[0], []).append(word)
+        
+        DataManager.append_word_to_file(BotConfig.FILE_VIETNAMESE_DICT, word)
+        await ctx.send(embed=UIUtils.build_success_embed("Thêm từ thành công", f"Đã thêm từ tiếng Việt: **`{word.upper()}`** vào cơ sở dữ liệu!"))
+    
+    elif lang == "en":
+        if not word.isalpha():
+            await ctx.send(embed=UIUtils.build_invalid_word_embed("Từ tiếng Anh chỉ được chứa các ký tự chữ cái!"))
+            return
+        if word in ENGLISH_DICT:
+            await ctx.send(embed=UIUtils.build_warning_embed("Đã tồn tại", f"Word **`{word.upper()}`** already exists in English dictionary!"))
+            return
+        
+        ENGLISH_DICT.add(word)
+        ENGLISH_LIST.append(word)
+        ENGLISH_INDEX_BY_FIRST_LETTER.setdefault(word[0], []).append(word)
+        
+        DataManager.append_word_to_file(BotConfig.FILE_ENGLISH_DICT, word)
+        await ctx.send(embed=UIUtils.build_success_embed("Thêm từ thành công", f"Đã thêm từ tiếng Anh: **`{word.upper()}`** vào cơ sở dữ liệu!"))
 
 @bot.command(name="noitu")
 async def cmd_noitu(ctx: commands.Context) -> None:
