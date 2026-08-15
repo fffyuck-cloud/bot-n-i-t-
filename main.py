@@ -4,6 +4,7 @@ import re
 import unicodedata
 from datetime import datetime, timedelta
 import io
+import urllib.request
 
 import discord
 from discord.ext import commands
@@ -31,56 +32,35 @@ def norm(text: str) -> str:
     return re.sub(r'\s+', ' ', text).strip()
 
 def prepare_dictionaries():
-    default_words_vi = {
+    words_vi = {
         "học sinh", "sinh viên", "sinh hoạt", "sinh học", "bài học", "bài tập", "bài bản",
         "thể thao", "thể hình", "bóng đá", "đá bóng", "bóng chuyền", "chuyền bóng",
-        "cầu lông", "lông gà", "nhà cửa", "cửa sổ", "sổ tay", "tay chân", "chân thành", 
-        "thành phố", "phố phường", "phường xã", "xã hội", "hội ngộ", "ngộ nghĩnh", 
-        "sách vở", "vở bài", "ghi bàn", "bàn ghế", "ghế đá", "tập thể", "hình ảnh", 
-        "máy tính", "tính toán", "toán học", "học hành", "hành động", "động lực", 
-        "lực lượng", "lượng mưa", "mưa gió", "gió bão", "bão tố", "tố cáo", "cáo trạng", 
-        "trạng thái", "thái độ", "độ ẩm", "ẩm thực", "thực phẩm", "phẩm chất", "chất lượng", 
-        "lượng từ", "từ vựng", "phát triển", "triển khai", "khai thác", "thác nước", 
-        "nước ngọt", "ngọt ngào", "ngào ngạt", "ngạt thở", "thở dài", "dài lâu", "lâu đời", 
-        "đời sống", "sống ảo", "ảo tưởng", "tưởng tượng", "tượng đài", "phát thanh", 
-        "thanh niên", "hạn chế", "chế độ", "độ bền", "bền vững", "vững chắc", "chắc chắn", 
-        "rõ ràng", "ràng buộc", "buộc tội", "tội lỗi", "lỗi lầm", "nhịp nhàng", "anh em", 
-        "em út", "nam thanh", "thanh tú", "tài năng", "kinh tế", "tế nhị", "vị trí", 
-        "trí tuệ", "cán bộ", "bộ đội", "đội trưởng", "trưởng thành", "thành đạt", 
-        "được mùa", "mùa màng", "mục tiêu", "tiêu cực", "kỳ diệu", "kỳ quan", "quan sát", 
-        "phạt đền", "đền ơn", "ơn huệ", "ơn nghĩa", "nghĩa vụ", "vụ án", "án mạng", 
-        "mạng sống", "sống chết", "mỏ neo", "neo đậu", "đậu phộng", "rang lạc", "lạc quan", 
-        "quan hệ", "hệ trọng", "trọng điểm", "trọng trách", "trọng tài", "trọng tâm", 
-        "trọng đại", "tiểu đường", "đường đi", "đi đứng", "đương thời", "hệ lụy", "lụy tình", 
-        "hệ thống", "thống nhất", "thống kê", "hệ quả", "quả cảm", "quả tang", "khoa học", 
-        "địa lý", "lịch sử", "tự nhiên", "văn hóa", "giáo dục", "y tế", "kho tàng", 
-        "ông bà", "cha mẹ", "mẹ hiền", "mẹ ghẻ", "mẹ đẻ", "mẹ con", "bạn bè", "thầy cô", 
-        "trường lớp", "cây cối", "hoa quả", "động vật", "thực vật", "mây gió", "núi non", 
-        "biển cả", "mặt trời", "mặt trăng", "ngôi sao", "không gian", "thời gian", "quá khứ", 
-        "tương lai", "hiện tại", "ngày đêm", "năm tháng", "tuần lễ", "buổi sáng", "trưa chiều", 
-        "tối đêm", "mùa xuân", "mùa hạ", "mùa thu", "mùa đông"
+        "cầu lông", "lông gà", "gà trống", "trống mái", "mái nhà", "nhà cửa", "cửa sổ"
     }
-
-    words_vi = set(default_words_vi)
-    if os.path.exists("words.txt"):
+    
+    # Nạp từ file tudien.txt (Hỗ trợ từ điển lớn lên tới 500k từ)
+    if os.path.exists("tudien.txt"):
         try:
-            with open("words.txt", "r", encoding="utf-8") as f:
+            print("Đang nạp từ điển từ tudien.txt...")
+            with open("tudien.txt", "r", encoding="utf-8", errors="ignore") as f:
                 for line in f:
                     w = norm(line.replace("_", " "))
                     if w: words_vi.add(w)
-            print(f"Đã nạp thành công tổng cộng {len(words_vi)} từ tiếng Việt.")
+            print(f"Đã nạp thành công tổng cộng {len(words_vi)} từ từ tudien.txt.")
         except Exception as e:
-            print(f"Lỗi đọc file words.txt: {e}")
+            print(f"Lỗi đọc file tudien.txt: {e}")
     else:
         try:
-            with open("words.txt", "w", encoding="utf-8") as f:
+            with open("tudien.txt", "w", encoding="utf-8") as f:
                 f.write("\n".join(sorted(words_vi)))
+            print("Đã tạo file tudien.txt mặc định thành công.")
         except: pass
 
     words_en = {"lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
                 "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
                 "yolo", "pro", "ez", "bro", "sis", "bae", "flex", "stfu", "dm", "pm",
-                "apple", "banana", "cat", "dog", "egg", "game", "python", "discord",
+                "apple", "egg", "game", "elephant", "tiger", "rabbit", "tomatoes", 
+                "snake", "eagle", "earth", "house", "engine", "python", "discord", 
                 "network", "system", "coding", "server", "channel", "message", "bot"}
     
     return words_vi, words_en
@@ -258,18 +238,19 @@ async def start_game_en_bot(ctx):
 async def stop_game(ctx):
     if ctx.channel.id in games:
         del games[ctx.channel.id]
-        await ctx.send(embed=discord.Embed(title="⚙️ HỦY BỎ TRẬN ĐẤU", description=f"{TICK} Đã hủy ván chơi.", color=0xED4245))
+        await ctx.send(embed=discord.Embed(title="⚙️ HỦY BỎ TRẬN ĐẤU", description=f"{TICK} Đã hủy ván chơi thành công.", color=0xED4245))
     else:
-        await ctx.send(embed=discord.Embed(title="⚙️ HỦY BỎ TRẬN ĐẤU", description=f"{CROSS} Không có ván nào đang chạy!", color=0xED4245))
+        await ctx.send(embed=discord.Embed(title="⚙️ HỦY BỎ TRẬN ĐẤU", description=f"{CROSS} Không có ván nào đang chạy trong kênh này!", color=0xED4245))
 
 @bot.command(name="nghia")
 async def nghia_cmd(ctx, *, word: str = None):
-    if not word: return await ctx.send("Vui lòng nhập từ cần tra!")
+    if not word: 
+        return await ctx.send(embed=discord.Embed(title="TRA CỨU TỪ ĐIỂN", description=f"{CROSS} Vui lòng nhập từ cần tra!", color=0xED4245))
     w = word.strip().lower()
     if w in dictionary_vi or w in dictionary_en:
-        await ctx.send(f"{TICK} Từ **`{w}`** hợp lệ và có trong từ điển!")
+        await ctx.send(embed=discord.Embed(title="TRA CỨU TỪ ĐIỂN", description=f"{TICK} Từ **`{w}`** hợp lệ và có trong hệ thống từ điển!", color=0x57F287))
     else:
-        await ctx.send(f"{CROSS} Không tìm thấy từ **`{w}`** trong hệ thống!")
+        await ctx.send(embed=discord.Embed(title="TRA CỨU TỪ ĐIỂN", description=f"{CROSS} Không tìm thấy từ **`{w}`** trong hệ thống!", color=0xED4245))
 
 @bot.event
 async def on_message(message):
@@ -295,13 +276,19 @@ async def on_message(message):
             last_syllable = user_input.split()[-1]
             possible_words = [w for w in dictionary_vi if w.startswith(last_syllable + " ") and w not in game["used_words"]]
             if not possible_words:
-                await message.channel.send(f"🏆 {message.author.mention} chiến thắng bot vì bot đã bí từ!")
-                del games[message.channel.id]
+                win_embed = discord.Embed(title="🏆 KẾT QUẢ TRẬN ĐẤU", description=f"🎉 {message.author.mention} đã chiến thắng bot vì bot đã bí từ!", color=0xFEE75C)
+                await message.channel.send(embed=win_embed)
+                games.pop(message.channel.id, None)
             else:
                 bot_word = random.choice(possible_words)
                 game["used_words"].add(bot_word)
                 game["last_word"] = bot_word
-                await message.channel.send(f"🤖 Bot nối tiếp: 👉 **`{bot_word.upper()}`**")
+                bot_embed = discord.Embed(
+                    title="🤖 AI NỐI TIẾP", 
+                    description=f"Bot nối tiếp: 👉 **`{bot_word.upper()}`**\n⚡ Âm tiết tiếp theo: **{bot_word.split()[-1].upper()}**", 
+                    color=0xFF0055
+                )
+                await message.channel.send(embed=bot_embed)
 
     elif mode in ["en_multi", "en_bot"]:
         w = user_input
@@ -320,10 +307,16 @@ async def on_message(message):
                 bot_word = random.choice(possible_words)
                 game["used_words"].add(bot_word)
                 game["last_word"] = bot_word
-                await message.channel.send(f"🤖 Bot nối tiếp: 👉 **`{bot_word.upper()}`**")
+                bot_embed = discord.Embed(
+                    title="🤖 AI NỐI TIẾP (ANH)", 
+                    description=f"Bot nối tiếp: 👉 **`{bot_word.upper()}`**\n⚡ Ký tự tiếp theo: **{bot_word[-1].upper()}**", 
+                    color=0xFF0055
+                )
+                await message.channel.send(embed=bot_embed)
             else:
-                await message.channel.send(f"🏆 {message.author.mention} chiến thắng bot vì hết từ tiếng Anh!")
-                del games[message.channel.id]
+                win_embed = discord.Embed(title="🏆 KẾT QUẢ TRẬN ĐẤU", description=f"🎉 {message.author.mention} đã chiến thắng bot vì hết từ tiếng Anh!", color=0xFEE75C)
+                await message.channel.send(embed=win_embed)
+                games.pop(message.channel.id, None)
 
 keep_alive()
 bot.run(os.getenv("DISCORD_TOKEN"))
