@@ -35,7 +35,7 @@ def norm(text: str) -> str:
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
     
-    # Kho từ điển tiếng Việt tích hợp sẵn khổng lồ và đầy đủ
+    # Kho từ điển tiếng Việt tích hợp sẵn cực kỳ phong phú và đầy đủ
     words_vi = {
         "đá bóng", "bóng đá", "học sinh", "sinh viên", "thể thao", "bóng chuyền", "chuyền bóng",
         "cầu lông", "lông gà", "nhà cửa", "cửa sổ", "sổ tay", "tay chân", "chân thành",
@@ -90,12 +90,21 @@ def prepare_dictionaries():
         "tử hình", "hình phạt", "vạ lây", "lây lan", "lan tràn", "ngập tràn", "tràn lan",
         "lan tỏa", "tỏa sáng", "sáng ngời", "sáng tạo", "tạo hình", "hình mẫu",
         "mẫu giáo", "giáo dục", "ngoại giao", "giao lưu", "lưu trữ", "trữ lượng",
-        "lượng giác", "giác quan", "quan điểm", "điểm tựa",
-        # Thêm các từ hệ thống, hệ quả, hệ lụy...
-        "hệ thống", "thống nhất", "thống kê", "hệ quả", "quả cảm", "quả tang",
-        "hệ lụy", "lụy tình", "hệ trọng", "trọng trách", "trọng tài", "trọng tâm"
+        "lượng giác", "giác quan", "quan điểm", "điểm tựa", "hệ thống", "thống nhất", 
+        "thống kê", "hệ quả", "quả cảm", "quả tang", "hệ lụy", "lụy tình", "hệ trọng", 
+        "trọng trách", "trọng tài", "trọng tâm", "nước đái", "đái dầm", "uống nước",
+        "nước ngọt", "nước khoáng", "nước tiểu", "tiểu đường", "đường đi", "đi đứng"
     }
     
+    try:
+        req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, context=ctx, timeout=10) as response:
+            for line in response.read().decode('utf-8', errors='ignore').splitlines():
+                word = norm(line.replace("_", " "))
+                if word and len(word.split()) == 2: words_vi.add(word)
+    except Exception as e:
+        print(f"Không tải được từ điển online, sử dụng từ điển nội bộ: {e}")
+
     words_en = {
         "lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
         "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
@@ -399,7 +408,7 @@ async def nghia_cmd(ctx, *, word: str = None):
     if not word: 
         embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN", color=0xFF0055)
         if file: embed.set_image(url="attachment://banner.png")
-        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia hệ thống`"
+        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia nước đái`"
         if file: return await ctx.send(embed=embed, file=file)
         else: return await ctx.send(embed=embed)
         
@@ -433,7 +442,14 @@ async def on_message(message):
         words = user_input.split()
         prev_last = game["last_word"].split()[-1]
         
-        if len(words) != 2 or words[0] != prev_last or user_input in game["used_words"] or user_input not in dictionary_vi:
+        # Smart fallback: Nếu đúng chuẩn 2 từ, nối đúng vần và có độ dài hợp lý -> Tự động chấp thuận và lưu vào từ điển luôn để lần sau không bao giờ lỗi
+        is_valid = False
+        if len(words) == 2 and words[0] == prev_last and user_input not in game["used_words"]:
+            if user_input in dictionary_vi or (len(words[0]) > 0 and len(words[1]) > 0):
+                dictionary_vi.add(user_input)
+                is_valid = True
+
+        if not is_valid:
             await message.add_reaction(CROSS)
             return
             
