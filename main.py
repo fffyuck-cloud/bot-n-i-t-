@@ -34,7 +34,8 @@ def norm(text: str) -> str:
 
 def prepare_dictionaries():
     ctx = ssl._create_unverified_context()
-    # Kho từ vựng Tiếng Việt khổng lồ tích hợp sẵn với hàng ngàn từ thông dụng
+    
+    # Kho từ vựng Tiếng Việt cực lớn
     words_vi = {
         "đá bóng", "bóng đá", "học sinh", "sinh viên", "thể thao", "bóng chuyền", "chuyền bóng",
         "cầu lông", "lông gà", "nhà cửa", "cửa sổ", "sổ tay", "tay chân", "chân thành",
@@ -108,7 +109,12 @@ def prepare_dictionaries():
                 if word and len(word.split()) == 2: words_vi.add(word)
     except: pass
     
-    words_en = set()
+    # Kho từ vựng Tiếng Anh bao gồm từ chuẩn + các từ viết tắt/slang phổ biến
+    words_en = {
+        "lol", "omg", "btw", "asap", "fyi", "gg", "idk", "tbh", "imo", "imho", 
+        "rip", "afk", "brb", "gn", "gm", "np", "thx", "ty", "wth", "wtf", 
+        "yolo", "pro", "ez", "bro", "sis", "bae", "flex", "stfu", "dm", "pm"
+    }
     try:
         req = urllib.request.Request("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt", headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, context=ctx, timeout=15) as response:
@@ -205,15 +211,15 @@ async def help_cmd(ctx):
     embed.description = (
         "💬 **Word Chain Ultimate Bot**\n"
         "Chào mừng mấy dân chơi đã lạc vào con bot nối từ đỉnh nhất server. Đây là nơi để mấy ông so trình từ vựng, flex vốn từ và leo rank đến cùng trời cuối đất.\n"
-        "Hỗ trợ kho từ vựng khổng lồ Tiếng Việt & Tiếng Anh, bot này không chỉ nối từ mà còn dạy đời mấy ông về chính tả đấy nhé!\n\n"
+        "Hỗ trợ kho từ vựng khổng lồ Tiếng Việt & Tiếng Anh (bao gồm cả từ viết tắt/slang), bot này không chỉ nối từ mà còn dạy đời mấy ông về chính tả đấy nhé!\n\n"
         
         "🇻🇳 **NỐI TỪ TIẾNG VIỆT**\n"
-        "Chơi đúng luật 2 từ (ví dụ: 'học tập' -> 'tập thể') không chơi từ đơn, không chơi từ lóng, viết sai chính tả là bot nó vả vào mồm ngay\n"
+        "Chơi đúng luật 2 từ (ví dụ: 'học tập' -> 'tập thể') không chơi từ đơn, viết sai chính tả là bot nó vả vào mồm ngay\n"
         "`?noitu` → Chơi chung kênh cùng bè lũ\n"
         "`?noituubot` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
         "🇬🇧 **NỐI TỪ TIẾNG ANH**\n"
-        "Luật quốc tế chơi 1 từ duy nhất (ví dụ: 'apple' -> 'egg') miễn là có trong từ điển tiếng anh chuẩn quốc tế\n"
+        "Luật quốc tế chơi 1 từ duy nhất (ví dụ: 'apple' -> 'egg' hoặc từ viết tắt 'lol') chuẩn quốc tế\n"
         "`?noitueng` → Chơi chung kênh cùng bè lũ\n"
         "`?noituuboteng` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
@@ -296,7 +302,7 @@ async def start_noitu(ctx, mode: str = "vi"):
             f"🎯 **TỪ KHÓA KHỞI ĐẦU:** 👉 **`{word.upper()}`**\n"
             f"📊 **Tổng số từ hiện tại:** `1` từ\n\n"
             f"⚡ Bắt đầu bằng ký tự: **{word[-1].upper()}**\n"
-            f"🛡️ *Lưu ý: Chỉ chấp nhận từ tiếng Anh đơn (chỉ chứa a-z).* "
+            f"🛡️ *Lưu ý: Chỉ chấp nhận từ tiếng Anh đơn / viết tắt (chỉ chứa a-z).* "
         )
         if file: await ctx.send(embed=embed, file=file)
         else: await ctx.send(embed=embed)
@@ -405,7 +411,7 @@ async def stop_game(ctx):
         else: await ctx.send(embed=embed)
 
 @bot.command(name="nghia")
-async def nghia_cmd(ctx, word: str = None):
+async def nghia_cmd(ctx, *, word: str = None):
     try:
         file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
     except:
@@ -413,7 +419,7 @@ async def nghia_cmd(ctx, word: str = None):
     if not word: 
         embed = discord.Embed(title="📖 TRA CỨU TỪ ĐIỂN", color=0xFF0055)
         if file: embed.set_image(url="attachment://banner.png")
-        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia apple`"
+        embed.description = f"{CROSS} Vui lòng nhập từ cần tra cứu! Ví dụ: `?nghia quý tử` hoặc `?nghia lol`"
         if file: return await ctx.send(embed=embed, file=file)
         else: return await ctx.send(embed=embed)
         
