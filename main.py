@@ -1,5 +1,5 @@
 # =====================================================================
-# HỆ THỐNG DISCORD BOT NỐI TỪ - BLACK & PINK EDITION (AUTO-RANDOM START)
+# HỆ THỐNG DISCORD BOT NỐI TỪ - BLACK & PINK EDITION (BIG BOT WORD)
 # =====================================================================
 
 import os
@@ -26,7 +26,7 @@ app = Flask("BlackPinkServer")
 
 @app.route('/')
 def home_route():
-    return "Black & Pink Word Chain Bot is running with Auto-Random Start!"
+    return "Black & Pink Word Chain Bot is running smoothly!"
 
 def run_web_server():
     try:
@@ -187,10 +187,10 @@ async def on_message(incoming_message):
                 "✨ Chào mừng các bạn đến với phòng chơi đối kháng tiếng Việt đỉnh cao!\n"
                 "🌸 Không gian được thiết kế hoàn toàn theo phong cách Đen & Hồng cá tính.\n"
                 "🖤 Hệ thống đã tự động random từ mở màn cho ván đấu:\n"
-                f"  • Từ khởi đầu: **`{start_word}`**\n"
-                f"  • Ký tự / âm tiết tiếp theo: **`{next_char}`**\n"
-                "🌸 Người chơi tiếp theo hãy nhập từ bắt đầu bằng âm tiết trên.\n"
-                "🖤 Chúc các bạn có những giây phút giải trí thật bùng nổ và thăng hoa."
+                f"# {start_word}\n"
+                f"🌸 Ký tự / âm tiết tiếp theo: **`{next_char}`**\n"
+                "🖤 Người chơi tiếp theo hãy nhập từ bắt đầu bằng âm tiết trên.\n"
+                "🌸 Chúc các bạn có những giây phút giải trí thật bùng nổ và thăng hoa."
             ),
             color=COLOR_PINK_NEON
         )
@@ -218,10 +218,10 @@ async def on_message(incoming_message):
                 "✨ Thử thách trí tuệ trực tiếp cùng Trí tuệ nhân tạo (AI Bot) tiếng Việt!\n"
                 "🌸 Giao diện Black & Pink huyền bí sẽ đồng hành cùng bạn trong trận chiến này.\n"
                 "🖤 Hệ thống đã tự động random từ mở màn cho bạn:\n"
-                f"  • Từ khởi đầu: **`{start_word}`**\n"
-                f"  • Ký tự / âm tiết tiếp theo: **`{next_char}`**\n"
-                "🌸 Hãy nhập từ nối tiếp theo đúng quy tắc để tiếp tục đấu với Bot.\n"
-                "🖤 Chúc bạn đánh bại Bot và thiết lập kỷ lục điểm số mới."
+                f"# {start_word}\n"
+                f"🌸 Ký tự / âm tiết tiếp theo: **`{next_char}`**\n"
+                "🖤 Hãy nhập từ nối tiếp theo đúng quy tắc để tiếp tục đấu với Bot.\n"
+                "🌸 Chúc bạn đánh bại Bot và thiết lập kỷ lục điểm số mới."
             ),
             color=COLOR_HOT_PINK
         )
@@ -253,10 +253,10 @@ async def on_message(incoming_message):
                 "✨ Welcome to the ultimate English vocabulary challenge room!\n"
                 "🌸 Styled exclusively with modern Black & Pink aesthetics.\n"
                 "🖤 System has automatically randomized the starting word:\n"
-                f"  • Starting word: **`{start_word}`**\n"
-                f"  • Required starting letter: **`{next_char}`**\n"
-                "🌸 Players can now type the next word beginning with this letter.\n"
-                "🖤 Have fun and may the best vocabulary master win."
+                f"# {start_word}\n"
+                f"🌸 Required starting letter: **`{next_char}`**\n"
+                "🖤 Players can now type the next word beginning with this letter.\n"
+                "🌸 Have fun and may the best vocabulary master win."
             ),
             color=COLOR_PINK_NEON
         )
@@ -284,10 +284,10 @@ async def on_message(incoming_message):
                 "✨ Step into the arena and fight against the English AI Bot!\n"
                 "🌸 Wrapped in our signature dark-pink visual theme.\n"
                 "🖤 System has automatically randomized the opening word:\n"
-                f"  • Starting word: **`{start_word}`**\n"
-                f"  • Required starting letter: **`{next_char}`**\n"
-                "🌸 Type your matching English word to continue the duel.\n"
-                "🖤 Good luck defeating the English Bot master."
+                f"# {start_word}\n"
+                f"🌸 Required starting letter: **`{next_char}`**\n"
+                "🖤 Type your matching English word to continue the duel.\n"
+                "🌸 Good luck defeating the English Bot master."
             ),
             color=COLOR_HOT_PINK
         )
@@ -485,7 +485,7 @@ async def on_message(incoming_message):
         next_target_char = raw_content.split()[-1]
         response_description = (
             "✨ **Đường đi nước bước hoàn hảo! (+10 điểm tích lũy)**\n"
-            f"🌸 Từ vừa được hệ thống ghi nhận: **`{raw_content}`**\n"
+            f"🌸 Từ vừa được hệ thống ghi nhận: `{raw_content}`\n"
             f"🖤 Ký tự / âm tiết bắt buộc cho lượt kế tiếp: **`{next_target_char}`**\n"
             "🌸 Sẵn sàng tinh thần chưa? Đưa ra câu trả lời tiếp theo thật nhanh nào!"
         )
@@ -502,10 +502,11 @@ async def on_message(incoming_message):
                 session_data.last_author_id = discord_client.user.id
                 bot_next_char = chosen_bot_word.split()[-1]
                 
+                # Làm to từ bot nối bằng ký tự # (Heading)
                 response_description += (
                     f"\n\n🤖💗 **Phản đòn chớp nhoáng từ AI Bot:**\n"
-                    f"  • Bot lựa chọn từ: **`{chosen_bot_word}`**\n"
-                    f"  • Lượt tiếp theo dành cho bạn, bắt đầu bằng: **`{bot_next_char}`**"
+                    f"# {chosen_bot_word}\n"
+                    f"🌸 Lượt tiếp theo dành cho bạn, bắt đầu bằng: **`{bot_next_char}`**"
                 )
             else:
                 response_description += (
