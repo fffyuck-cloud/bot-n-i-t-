@@ -90,7 +90,15 @@ def prepare_dictionaries():
         "lụa là", "là là", "la đà", "đà điểu", "điểu thú", "thú vật", "vật chất",
         "chất phác", "phác thảo", "thảo nguyên", "nguyên thủy", "thủy triều", "triều đại", "đại dương",
         "dương gian", "gian nan", "nan giải", "giải quyết", "quyết tâm", "tâm huyết", "huyết mạch",
-        "mạch đập", "đập phá", "phá hoại", "hoại tử", "tử vong", "vong thân", "thân thiết"
+        "mạch đập", "đập phá", "phá hoại", "hoại tử", "tử vong", "vong thân", "thân thiết",
+        "thiết thực", "thực tế", "tế sinh", "sinh hoạt", "hoạt động", "động tĩnh", "tĩnh lặng",
+        "lặng lẽ", "lẽ phải", "phải trái", "trái đất", "đất trời", "trời mây", "mây gió",
+        "gió thoảng", "thoảng qua", "qua lại", "lại qua", "qua đời", "đời thuở", "thuở xưa",
+        "xưa nay", "nay mai", "mai sau", "sau này", "này nọ", "nọ kia", "kia kìa",
+        "quý tử", "tử hình", "hình phạt", "phạt vạ", "vạ lây", "lây lan", "lan tràn", "tràn ngập",
+        "ngập tràn", "tràn lan", "lan tỏa", "tỏa sáng", "sáng ngời", "ngời ngời", "sáng tạo",
+        "tạo hình", "hình mẫu", "mẫu giáo", "giáo dục", "dục vọng", "vọng ngoại", "ngoại giao",
+        "giao lưu", "lưu trữ", "trữ lượng", "lượng giác", "giác quan", "quan điểm", "điểm tựa"
     }
     try:
         req = urllib.request.Request("https://raw.githubusercontent.com/NguyenAnhTuan1997/Vietnamese-Dictionary/master/words.txt", headers={'User-Agent': 'Mozilla/5.0'})
@@ -200,7 +208,7 @@ async def help_cmd(ctx):
         "Hỗ trợ kho từ vựng khổng lồ Tiếng Việt & Tiếng Anh, bot này không chỉ nối từ mà còn dạy đời mấy ông về chính tả đấy nhé!\n\n"
         
         "🇻🇳 **NỐI TỪ TIẾNG VIỆT**\n"
-        "Chơi đúng luật 2 từ (ví dụ: 'đá bóng' -> 'bóng đá') không chơi từ đơn, không chơi từ lóng, viết sai chính tả là bot nó vả vào mồm ngay\n"
+        "Chơi đúng luật 2 từ (ví dụ: 'học tập' -> 'tập thể') không chơi từ đơn, không chơi từ lóng, viết sai chính tả là bot nó vả vào mồm ngay\n"
         "`?noitu` → Chơi chung kênh cùng bè lũ\n"
         "`?noituubot` → Solo khô máu với con bot cho biết mùi đời\n\n"
         
@@ -279,7 +287,7 @@ async def start_noitu(ctx, mode: str = "vi"):
         file = None
 
     if mode in ["en", "english", "eng", "noitueng"]:
-        word = "apple"
+        word = random.choice(list(dictionary_en)) if dictionary_en else "apple"
         games[ctx.channel.id] = {"mode": "en_multi", "last_word": word, "used_words": {word}}
         embed = discord.Embed(title="🇬🇧 TRẬN ĐẤU NỐI TỪ TIẾNG ANH", color=0xFF0055)
         if file: embed.set_image(url="attachment://banner.png")
@@ -293,7 +301,7 @@ async def start_noitu(ctx, mode: str = "vi"):
         if file: await ctx.send(embed=embed, file=file)
         else: await ctx.send(embed=embed)
     else:
-        word = "đá bóng"
+        word = random.choice(list(dictionary_vi)) if dictionary_vi else "học tập"
         games[ctx.channel.id] = {"mode": "vi_multi", "last_word": word, "used_words": {word}}
         embed = discord.Embed(title="🇻🇳 TRẬN ĐẤU NỐI TỪ TIẾNG VIỆT", color=0xFF0055)
         if file: embed.set_image(url="attachment://banner.png")
@@ -313,7 +321,7 @@ async def start_game_vi_bot(ctx):
         embed = discord.Embed(title="⚠️ THÔNG BÁO", color=0xED4245)
         embed.description = f"{CROSS} Kênh này đang có ván chơi nối từ diễn ra rồi!"
         return await ctx.send(embed=embed)
-    word = "đá bóng"
+    word = random.choice(list(dictionary_vi)) if dictionary_vi else "học tập"
     games[ctx.channel.id] = {"mode": "vi_bot", "last_word": word, "used_words": {word}}
     try:
         file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
@@ -336,7 +344,7 @@ async def start_game_en(ctx):
         embed = discord.Embed(title="⚠️ THÔNG BÁO", color=0xED4245)
         embed.description = f"{CROSS} Kênh này đang có ván chơi nối từ diễn ra rồi!"
         return await ctx.send(embed=embed)
-    word = "apple"
+    word = random.choice(list(dictionary_en)) if dictionary_en else "apple"
     games[ctx.channel.id] = {"mode": "en_multi", "last_word": word, "used_words": {word}}
     try:
         file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
@@ -359,7 +367,7 @@ async def start_game_en_bot(ctx):
         embed = discord.Embed(title="⚠️ THÔNG BÁO", color=0xED4245)
         embed.description = f"{CROSS} Kênh này đang có ván chơi nối từ diễn ra rồi!"
         return await ctx.send(embed=embed)
-    word = "apple"
+    word = random.choice(list(dictionary_en)) if dictionary_en else "apple"
     games[ctx.channel.id] = {"mode": "en_bot", "last_word": word, "used_words": {word}}
     try:
         file = discord.File("d89db057-b415-48f7-8603-47052617b39e.png", filename="banner.png")
