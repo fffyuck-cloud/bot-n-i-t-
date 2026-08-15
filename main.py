@@ -1,147 +1,86 @@
-# ==============================================================================
-# BLACK & PINK PURE FUN - ENTERPRISE EDITION (CODE LENGTH OPTIMIZED)
-# ==============================================================================
-# - Tính năng: Nối từ (PvP & Bot), Vua Tiếng Việt.
-# - Loại bỏ: Hệ thống kinh tế (Coins, Shop, Rank, Work, Daily, Cờ bạc).
-# - Cấu trúc: 800+ dòng mã nguồn phân lớp chuyên nghiệp.
-# ==============================================================================
+# =====================================================================
+# BLACK & PINK PURE FUN - ULTIMATE ENTERPRISE (FULL FILE INTEGRATION)
+# Tích hợp toàn bộ dữ liệu từ các file .txt trên GitHub repository.
+# Không có hệ thống kinh tế (Không Coins, Shop, Rank, Cờ bạc).
+# =====================================================================
 
 import os
 import random
 import logging
-import asyncio
 import threading
-from datetime import datetime
 from flask import Flask
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 
-# ==============================================================================
-# 1. CẤU HÌNH LOGGING CHUYÊN SÂU
-# ==============================================================================
+# =====================================================================
+# 1. CẤU HÌNH LOGGING & KEEP-ALIVE WEB SERVER
+# =====================================================================
 
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S"
 )
-logger = logging.getLogger("BlackPinkPureFun")
+logger = logging.getLogger("BlackPinkPureFunEnterprise")
 
-# ==============================================================================
-# 2. HỆ THỐNG KEEP-ALIVE (FLASK)
-# ==============================================================================
-
-app = Flask("KeepAlive")
+app = Flask("KeepAliveServer")
 
 @app.route('/')
 def home():
-    return "Black & Pink Pure Fun Bot is active!"
+    return "Black & Pink Pure Fun Bot is active and running 24/7!"
 
 def run_flask():
-    logger.info("Khởi chạy Web Server cho Keep-Alive...")
     try:
         app.run(host='0.0.0.0', port=8080)
     except Exception as e:
-        logger.error(f"Lỗi Flask: {e}")
+        logger.error(f"Lỗi khởi chạy Web Server Keep-Alive: {e}")
 
 threading.Thread(target=run_flask, daemon=True).start()
 
-# ==============================================================================
-# 3. TỪ ĐIỂN KHỔNG LỒ (HÀNG TRĂM TỪ VỰNG - ĐẢM BẢO CHIỀU DÀI & ĐỘ PHONG PHÚ)
-# ==============================================================================
+# =====================================================================
+# 2. HỆ THỐNG NẠP DỮ LIỆU TỪ CÁC FILE .TXT TRÊN GITHUB
+# =====================================================================
 
-VIETNAMESE_DICTIONARY = {
-    # Nhóm: Đời sống & Động từ
-    "học tập", "tập thể", "thể thao", "áo quần", "nước non", "non sông", "sông núi",
-    "núi cao", "cao cấp", "cấp tốc", "tốc độ", "độ lượng", "lượng từ", "từ ngữ",
-    "ngữ pháp", "pháp luật", "luật sư", "sư phạm", "phạm vi", "vi tính", "tính toán",
-    "toán học", "học hỏi", "hỏi han", "hanh thông", "thông minh", "minh bạch",
-    "bạch tuộc", "tuộc vòi", "vòi sen", "sen hồng", "hồng ngoại", "ngoại ngữ",
-    "ngữ nghĩa", "nghĩa trang", "trang hoàng", "hoàng hôn", "hôn lễ", "lễ vật",
-    "vật chất", "chất lượng", "lượng giá", "giá trị", "trị giá", "giá cả", "cả thể",
-    "thể hình", "hình ảnh", "ảnh hưởng", "hưởng thụ", "thụ động", "động lực",
-    "lực lượng", "lượng cư", "cư trú", "trú ngụ", "ngụ ngôn", "ngôn ngữ", "ngữ âm",
-    "âm thanh", "thanh niên", "niên thiếu", "thiếu niên", "niên giám", "giám đốc",
-    "đốc công", "công nhân", "nhân dân", "dân tộc", "tộc họ", "họ hàng", "hàng hóa",
-    "hóa đơn", "đơn ca", "ca sĩ", "sĩ quan", "quan lại", "lại lịch", "lịch sử",
-    "sử sách", "sách vở", "vở bài", "bài tập", "tập trung", "chung kết", "kết quả",
-    "quả đất", "đất nước", "nước ngọt", "ngọt ngào", "ngào ngạt", "ngạt thở",
-    "thở dài", "dài lâu", "lâu năm", "năm tháng", "tháng ngày", "ngày đêm",
-    "đêm khuya", "khuya khoắt", "khoắt khoeo", "khoe mẽ", "mẽ đẹp", "đẹp đẽ",
-    "đẽ gọt", "gọt đũa", "đũa ngọc", "ngọc ngà", "ngà voi", "voi rừng", "rừng rậm",
-    "rậm rạp", "rạp hát", "hát ca", "ca khúc", "khúc nhạc", "nhạc cụ", "cụ già",
-    "già làng", "làng bản", "bản sắc", "sắc màu", "màu mè", "mè xửng", "xử lý",
-    "lý do", "do dự", "dự án", "án mạng", "mạng lưới", "lưới cá", "cá tính",
-    "tính nết", "nết na", "na ná", "náo nhiệt", "nhiệt huyết", "huyết mạch",
-    "mạch lạc", "lạc quan", "quan điểm", "điểm số", "số lượng", "lượng tiền",
-    "tiền tài", "tài sản", "sản phẩm", "phẩm chất", "chất phác", "phác thảo",
-    "thảo nguyên", "nguyên vẹn", "vẹn toàn", "toàn diện", "diện tích", "tích cực",
-    "cực nhọc", "nhọc nhằn", "nhằn nhặn", "nhặn xị", "xị rượu", "rượu chè",
-    "chè chén", "chén bát", "bát đĩa", "đĩa bay", "bay lượn", "lượn lờ", "lờ mờ",
-    "mờ ảo", "ảo ảnh", "ảnh hưởng", "hưởng ứng", "ứng xử", "xử trí", "trí tuệ",
-    "tuệ mẫn", "mẫn cảm", "cảm xúc", "xúc động", "động đất", "đất liền",
-    "liền mạch", "mạch nước", "nước mát", "mát mẻ", "mẻ lưới", "lưới trời",
-    "trời cao", "cao xa", "xa xăm", "xăm mình", "mình trần", "trần gian",
-    "gian lao", "lao động", "động tác", "tác phẩm", "phẩm hạnh", "hạnh phúc",
-    "phúc đức", "đức độ", "độ cao", "cao ốc", "ốc đảo", "đảo xa", "xa cách",
-    "cách mạng", "mạng sống", "sống sót", "sót lại", "lại gần", "gần gũi",
-    "gũi nhau", "nhau thai", "thai nghén", "nghén ngẩm", "ngẩm nghĩ", "nghĩ suy",
-    "suy nghĩ", "nghĩ ngợi", "ngợi ca", "ca ngợi", "ngợi khen", "khen chê",
-    "chê bai", "bai nhải", "nhải điệu", "điệu đà", "đà điểu", "điểu thú",
-    "thú vị", "vị tha", "tha hương", "hương thơm", "thơm tho", "thoải mái",
-    "mái nhà", "nhà cửa", "cửa ngõ", "ngõ cụt", "cụt ngủn", "ngủ ngon",
-    "ngon lành", "lành mạnh", "mạnh mẽ", "mẽo mó", "mó máy", "máy móc",
-    "móc túi", "túi sách", "sách mới", "mới lạ", "lạ lùng", "lùng sục",
-    "sục sạo", "sạo sự", "sự việc", "việc làm", "làm việc", "việc tư",
-    "tư duy", "du mục", "mục đích", "đích thực", "thực hiện", "hiện đại",
-    "đại gia", "gia đình", "đình đám", "đám cưới", "cưới hỏi", "hỏi thăm",
-    "thăm hỏi", "hỏi han", "hanh thông", "thông suốt", "suốt ngày", "ngày mới"
-}
+def load_words_from_file(filename, default_set):
+    """Hàm đọc file .txt linh hoạt, tự động fallback nếu file trống hoặc lỗi."""
+    if os.path.exists(filename):
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                words = {line.strip().lower() for line in f if line.strip()}
+            if words:
+                logger.info(f"Đã nạp thành công {len(words)} dòng từ file: {filename}")
+                return words
+        except Exception as e:
+            logger.error(f"Lỗi khi đọc file {filename}: {e}")
+    logger.warning(f"Không tìm thấy hoặc file {filename} trống. Sử dụng dữ liệu dự phòng.")
+    return default_set
 
-# (Tiếp tục mở rộng từ điển để đảm bảo độ dày của code)
-def get_extended_dictionary():
-    # Thêm hàng trăm từ khác để đảm bảo sự đa dạng cho BOT
-    extra_words = {
-        "bàn ghế", "ghế đá", "đá bóng", "bóng chuyền", "chuyền tay", "tay chân",
-        "chân giò", "giò chả", "chả cá", "cá kho", "kho tộ", "tộ bát", "bát cơm",
-        "cơm canh", "canh chua", "chua cay", "cay nồng", "nồng nàn", "nàn nỉ",
-        "nỉ non", "non nớt", "nớt nhát", "nhát gan", "gan góc", "góc nhìn",
-        "nhìn ngắm", "ngắm cảnh", "cảnh sắc", "sắc bén", "bén duyên", "duyên nợ",
-        "nợ nần", "nần nẫn", "nẫn nại", "nại lý", "lý thuyết", "thuyết phục",
-        "phục vụ", "vụ việc", "việc đại", "đại học", "học đường", "đường phố",
-        "phố thị", "thị thành", "thành phố", "phố phường", "phường xã", "xã hội",
-        "hội họp", "họp bàn", "bàn bạc", "bạc bẽo", "bẽ bàng", "bàng hoàng",
-        "hoàng đạo", "đạo đức", "đức tin", "tin tưởng", "tưởng nhớ", "nhớ mong",
-        "mong đợi", "đợi chờ", "chờ đợi", "đợi mong", "mong chờ", "chờ xem",
-        "xem xét", "xét hỏi", "hỏi đáp", "đáp trả", "trả lời", "lời nói",
-        "nói chuyện", "chuyện trò", "trò vui", "vui vẻ", "vẻ vang", "vang dội",
-        "dội lại", "lại quả", "quả báo", "báo cáo", "cáo trạng", "trạng thái",
-        "thái độ", "độ lượng", "lượng lớn", "lớn bé", "bé bỏng", "bỏ mặc",
-        "mặc kệ", "kệ sách", "sách giáo", "giáo viên", "viên chức", "chức vụ",
-        "vụ án", "án lệ", "lệ phí", "phí tổn", "tổn hại", "hại điện", "điện ảnh",
-        "ảnh chụp", "chụp hình", "hình thái", "thái dương", "dương quang",
-        "quang cảnh", "cảnh quan", "quan sát", "sát thủ", "thủ môn", "môn học"
-    }
-    return VIETNAMESE_DICTIONARY.union(extra_words)
+# Dữ liệu dự phòng mặc định nếu file chưa được tạo kịp trên GitHub
+DEFAULT_VIETNAMESE = {"học tập", "tập thể", "thể thao", "áo quần", "nước non", "non sông"}
+DEFAULT_ENGLISH = {"learning code", "code python", "python bot", "discord api"}
+DEFAULT_COUNTRIES_VN = {"việt nam", "pháp", "mỹ", "nhật bản", "hàn quốc", "anh", "đức"}
+DEFAULT_COUNTRIES_EN = {"vietnam", "france", "usa", "japan", "south korea", "uk", "germany"}
 
-# Cập nhật từ điển chính thức
-FULL_DICTIONARY = get_extended_dictionary()
+# Nạp toàn bộ dữ liệu từ các file .txt của bạn
+VIETNAMESE_DICT = load_words_from_file("tu dien.txt", DEFAULT_VIETNAMESE)
+WORDS_DICT = load_words_from_file("words.txt", DEFAULT_VIETNAMESE)
+ENGLISH_DICT = load_words_from_file("tu dien tieng anh.txt", DEFAULT_ENGLISH)
+COUNTRIES_VN_DICT = load_words_from_file("quoc gia vn.txt", DEFAULT_COUNTRIES_VN)
+COUNTRIES_EN_DICT = load_words_from_file("quoc gia en.txt", DEFAULT_COUNTRIES_EN)
 
-# ==============================================================================
-# 4. QUẢN LÝ PHIÊN CHƠI (GAME SESSIONS)
-# ==============================================================================
+# =====================================================================
+# 3. QUẢN LÝ PHIÊN CHƠI (GAME SESSIONS)
+# =====================================================================
 
 class GameSession:
-    """Quản lý trạng thái của một phiên chơi trong một kênh."""
     def __init__(self):
         self.active = False
-        self.mode = None # pvp, bot, vua
+        self.mode = None  # 'pvp_vi', 'bot_vi', 'pvp_en', 'vua_vi', 'doan_quoc_gia'
         self.last_word = ""
         self.used_words = set()
         self.turn_count = 0
-        self.last_author_id = None
         self.scrambled_target = None
-        self.start_time = None
+        self.secret_country = None
 
     def reset(self):
         self.active = False
@@ -149,11 +88,9 @@ class GameSession:
         self.last_word = ""
         self.used_words.clear()
         self.turn_count = 0
-        self.last_author_id = None
         self.scrambled_target = None
-        self.start_time = None
+        self.secret_country = None
 
-# Lưu trữ phiên chơi theo ID kênh
 channel_sessions = {}
 
 def get_session(channel_id):
@@ -161,12 +98,11 @@ def get_session(channel_id):
         channel_sessions[channel_id] = GameSession()
     return channel_sessions[channel_id]
 
-# ==============================================================================
-# 5. CÁC HÀM TIỆN ÍCH (UTILITIES)
-# ==============================================================================
+# =====================================================================
+# 4. HÀM TIỆN ÍCH & EMBED
+# =====================================================================
 
 def scramble_word(word):
-    """Xáo trộn từ ngữ cho trò chơi Vua Tiếng Việt."""
     parts = word.split()
     if len(parts) > 1:
         shuffled = parts.copy()
@@ -175,14 +111,13 @@ def scramble_word(word):
     return word
 
 def create_embed(title, description, color=0xFF69B4):
-    """Tạo embed chuẩn hóa cho Bot."""
     embed = discord.Embed(title=title, description=description, color=color)
-    embed.set_footer(text="Black & Pink Pure Fun | Enterprise Edition")
+    embed.set_footer(text="Black & Pink Pure Fun • Enterprise Edition")
     return embed
 
-# ==============================================================================
-# 6. KHỞI TẠO BOT VÀ CẤU HÌNH
-# ==============================================================================
+# =====================================================================
+# 5. KHỞI TẠO DISCORD BOT & LỆNH HỆ THỐNG
+# =====================================================================
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -190,184 +125,238 @@ bot = commands.Bot(command_prefix="?", intents=intents, help_command=None)
 
 @bot.event
 async def on_ready():
-    logger.info(f"Đăng nhập thành công: {bot.user}")
-    await bot.change_presence(activity=discord.Game(name="?help | Nối từ & Vua TV"))
+    logger.info(f"Bot đã đăng nhập thành công: {bot.user}")
+    await bot.change_presence(activity=discord.Game(name="?help | Nối từ & Trò chơi"))
 
-# ==============================================================================
-# 7. CÁC LỆNH HỆ THỐNG
-# ==============================================================================
-
-@bot.command()
-async def ping(ctx):
-    """Kiểm tra độ trễ của Bot."""
+@bot.command(name="ping")
+async def cmd_ping(ctx):
     latency = round(bot.latency * 1000)
     await ctx.send(embed=create_embed("🏓 Pong!", f"Độ trễ hệ thống: **{latency}ms**", 0x00FF00))
 
-@bot.command()
-async def about(ctx):
-    """Thông tin về Bot."""
-    desc = ("Bot giải trí Black & Pink Pure Fun.\n"
-            "Chuyên cung cấp các trò chơi Nối Từ và Vua Tiếng Việt.\n"
-            "Phiên bản: 1.0.0 Enterprise (No Economy).")
-    await ctx.send(embed=create_embed("🖤💗 Về chúng tôi", desc))
+@bot.command(name="about")
+async def cmd_about(ctx):
+    desc = (
+        "🤖 **Black & Pink Pure Fun Bot**\n"
+        "Phiên bản tối ưu hóa sử dụng dữ liệu trực tiếp từ các tệp `.txt`.\n"
+        "Hoàn toàn tập trung vào giải trí, không có hệ thống tiền tệ hay cờ bạc."
+    )
+    await ctx.send(embed=create_embed("🖤💗 Về Bot", desc))
 
-@bot.command()
-async def help(ctx):
-    """Menu trợ giúp."""
+@bot.command(name="help")
+async def cmd_help(ctx):
     help_text = (
-        "**🎮 Nhóm Game:**\n"
-        "`?noitu` - Chơi Nối Từ PvP\n"
-        "`?botnoitu` - Đấu Nối Từ với Bot\n"
-        "`?vuatiengviet` - Chơi Vua Tiếng Việt\n"
-        "`?huynoitu` - Dừng phiên chơi\n\n"
-        "**⚙️ Nhóm Tiện ích:**\n"
-        "`?ping` - Kiểm tra tốc độ\n"
-        "`?about` - Giới thiệu về Bot"
+        "**🎮 Nhóm Trò Chơi Nối Từ & Từ Vựng:**\n"
+        "`?noitu` - Nối từ Tiếng Việt (PvP dùng `tu dien.txt`)\n"
+        "`?botnoitu` - Đấu Nối Từ Tiếng Việt với Bot\n"
+        "`?noituen` - Nối từ Tiếng Anh (dùng `tu dien tieng anh.txt`)\n"
+        "`?vuatiengviet` - Trò chơi Vua Tiếng Việt\n"
+        "`?doanquocgia` - Đoán tên quốc gia (dùng `quoc gia vn.txt`)\n\n"
+        "**⚙️ Lệnh Điều Khiển:**\n"
+        "`?huygame` - Dừng phiên chơi hiện tại trong kênh\n"
+        "`?ping` - Kiểm tra tốc độ bot"
     )
     await ctx.send(embed=create_embed("📖 Menu Trợ Giúp", help_text))
 
-# ==============================================================================
-# 8. LOGIC TRÒ CHƠI (GAME COMMANDS)
-# ==============================================================================
+# =====================================================================
+# 6. CÁC LỆNH KHỞI TẠO TRÒ CHƠI
+# =====================================================================
 
-@bot.command()
-async def noitu(ctx):
+@bot.command(name="noitu")
+async def cmd_noitu(ctx):
     session = get_session(ctx.channel.id)
     session.reset()
     session.active = True
-    session.mode = "pvp"
-    session.last_word = random.choice(list(FULL_DICTIONARY))
+    session.mode = "pvp_vi"
+    session.last_word = random.choice(list(VIETNAMESE_DICT))
     session.used_words.add(session.last_word)
-    
-    msg = (f"✅ Bắt đầu **Nối Từ PvP**!\n"
-           f"📌 Từ đầu: **{session.last_word}**\n"
-           f"🌸 Bắt đầu bằng âm tiết: **`{session.last_word.split()[-1]}`**")
-    await ctx.send(embed=create_embed("🎮 Nối Từ PvP", msg))
+    session.turn_count = 1
 
-@bot.command()
-async def botnoitu(ctx):
+    msg = (
+        f"✅ **Bắt đầu Nối Từ Tiếng Việt (PvP)!**\n"
+        f"📌 Từ mở màn (`tu dien.txt`): **{session.last_word}**\n"
+        f"🌸 Âm tiết tiếp theo: **`{session.last_word.split()[-1]}`**"
+    )
+    await ctx.send(embed=create_embed("🎮 Nối Từ Tiếng Việt", msg))
+
+@bot.command(name="botnoitu")
+async def cmd_botnoitu(ctx):
     session = get_session(ctx.channel.id)
     session.reset()
     session.active = True
-    session.mode = "bot"
-    session.last_word = random.choice(list(FULL_DICTIONARY))
+    session.mode = "bot_vi"
+    session.last_word = random.choice(list(VIETNAMESE_DICT))
     session.used_words.add(session.last_word)
-    
-    msg = (f"🤖 Bắt đầu **Đấu với Bot**!\n"
-           f"📌 Từ đầu: **{session.last_word}**\n"
-           f"🌸 Bạn cần bắt đầu bằng âm tiết: **`{session.last_word.split()[-1]}`**")
-    await ctx.send(embed=create_embed("🤖 Nối Từ với Bot", msg))
+    session.turn_count = 1
 
-@bot.command()
-async def vuatiengviet(ctx):
+    msg = (
+        f"🤖 **Đấu Nối Từ với Bot!**\n"
+        f"📌 Từ mở màn: **{session.last_word}**\n"
+        f"🌸 Lượt của bạn bắt đầu với âm tiết: **`{session.last_word.split()[-1]}`**"
+    )
+    await ctx.send(embed=create_embed("🤖 Đấu Với Bot", msg))
+
+@bot.command(name="noituen")
+async def cmd_noituen(ctx):
     session = get_session(ctx.channel.id)
     session.reset()
     session.active = True
-    session.mode = "vua"
-    session.scrambled_target = random.choice(list(FULL_DICTIONARY))
-    
-    scrambled = scramble_word(session.scrambled_target)
-    msg = (f"👑 **Vua Tiếng Việt** đã sẵn sàng!\n"
-           f"Sắp xếp lại các chữ cái sau:\n"
-           f"# 🔀 `{scrambled}`")
-    await ctx.send(embed=create_embed("👑 Vua Tiếng Việt", msg))
+    session.mode = "pvp_en"
+    session.last_word = random.choice(list(ENGLISH_DICT))
+    session.used_words.add(session.last_word)
+    session.turn_count = 1
 
-@bot.command()
-async def huynoitu(ctx):
+    msg = (
+        f"🇬🇧 **English Word Chain (PvP)!**\n"
+        f"📌 Start Word (`tu dien tieng anh.txt`): **{session.last_word}**\n"
+        f"🔤 Next word must start with letter: **`{session.last_word[-1]}`**"
+    )
+    await ctx.send(embed=create_embed("🇬🇧 English Word Chain", msg))
+
+@bot.command(name="vuatiengviet")
+async def cmd_vuatiengviet(ctx):
+    session = get_session(ctx.channel.id)
+    session.reset()
+    session.active = True
+    session.mode = "vua_vi"
+    session.scrambled_target = random.choice(list(VIETNAMESE_DICT))
+    
+    puzzle = scramble_word(session.scrambled_target)
+    msg = (
+        f"👑 **Vua Tiếng Việt đã bắt đầu!**\n"
+        f"Hãy sắp xếp lại các tiếng sau thành từ có nghĩa:\n\n"
+        f"# 🔀 `{puzzle}`"
+    )
+    await ctx.send(embed=create_embed("👑 Vua Tiếng Việt", msg, 0xFFD700))
+
+@bot.command(name="doanquocgia")
+async def cmd_doanquocgia(ctx):
+    session = get_session(ctx.channel.id)
+    session.reset()
+    session.active = True
+    session.mode = "doan_quoc_gia"
+    
+    countries = list(COUNTRIES_VN_DICT)
+    session.secret_country = random.choice(countries)
+    hint = session.secret_country[0].upper() + " _ " * (len(session.secret_country) - 1)
+
+    msg = (
+        f"🌍 **Trò chơi Đoán Tên Quốc Gia!** (`quoc gia vn.txt`)\n"
+        f"Gợi ý từ khóa: **`{hint}`**\n"
+        f"Hãy gõ tên quốc gia đầy đủ vào kênh để chiến thắng!"
+    )
+    await ctx.send(embed=create_embed("🌍 Đoán Quốc Gia", msg))
+
+@bot.command(name="huygame")
+async def cmd_huygame(ctx):
     get_session(ctx.channel.id).reset()
-    await ctx.send(embed=create_embed("🚫 Đã hủy", "Phiên chơi hiện tại đã được xóa bỏ."))
+    await ctx.send(embed=create_embed("🚫 Đã hủy", "Phiên chơi trong kênh này đã được kết thúc."))
 
-# ==============================================================================
-# 9. XỬ LÝ SỰ KIỆN TIN NHẮN (GAME ENGINE)
-# ==============================================================================
+# =====================================================================
+# 7. XỬ LÝ SỰ KIỆN TIN NHẮN (GAME ENGINE)
+# =====================================================================
 
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
-    
-    # Xử lý các lệnh trước
+
     await bot.process_commands(message)
-    
+
     session = get_session(message.channel.id)
     if not session.active:
         return
-    
+
     content = message.content.lower().strip()
 
-    # Engine: Vua Tiếng Việt
-    if session.mode == "vua":
+    # 1. Mode: Vua Tiếng Việt
+    if session.mode == "vua_vi":
         if content == session.scrambled_target:
-            await message.channel.send(embed=create_embed("✅ Chính xác!", f"Bạn đã tìm ra từ: **{session.scrambled_target}**"))
+            await message.channel.send(embed=create_embed("✅ Chính xác!", f"✨ Chúc mừng {message.author.mention} đã giải đúng từ: **`{session.scrambled_target}`**!", 0x00FF00))
             session.reset()
         else:
             await message.add_reaction("❌")
 
-    # Engine: Nối từ (PvP & Bot)
-    elif session.mode in ["pvp", "bot"]:
-        # Kiểm tra điều kiện 2 tiếng
+    # 2. Mode: Đoán Quốc Gia
+    elif session.mode == "doan_quoc_gia":
+        if content == session.secret_country:
+            await message.channel.send(embed=create_embed("🌍 CHIẾN THẮNG!", f"✨ {message.author.mention} đã đoán đúng quốc gia: **`{session.secret_country.upper()}`**!", 0x00FF00))
+            session.reset()
+        else:
+            await message.add_reaction("❌")
+
+    # 3. Mode: Nối từ Tiếng Việt (PvP)
+    elif session.mode == "pvp_vi":
         if len(content.split()) != 2:
             return
-
-        # Kiểm tra tính hợp lệ
         if content in session.used_words:
-            await message.channel.send("❌ Từ này đã được dùng!")
+            await message.channel.send("❌ Từ này đã được sử dụng rồi!")
             return
-            
         required = session.last_word.split()[-1]
         if content.split()[0] != required:
-            await message.channel.send(f"❌ Từ phải bắt đầu bằng: **{required}**")
+            await message.channel.send(f"❌ Từ phải bắt đầu bằng âm tiết: **`{required}`**")
             return
 
-        # Ghi nhận từ
         session.last_word = content
         session.used_words.add(content)
         session.turn_count += 1
-        
-        # Phản hồi cho PvP
-        if session.mode == "pvp":
-            await message.channel.send(f"✅ Hợp lệ! Tiếp theo: **{content.split()[-1]}**")
-        
-        # Phản hồi cho Bot
-        elif session.mode == "bot":
-            possible = [w for w in FULL_DICTIONARY if w.split()[0] == content.split()[-1] and w not in session.used_words]
-            if possible:
-                bot_word = random.choice(possible)
-                session.last_word = bot_word
-                session.used_words.add(bot_word)
-                await message.channel.send(f"🤖 Bot nối: **{bot_word}**. Tới lượt bạn: **{bot_word.split()[-1]}**")
-            else:
-                await message.channel.send("🎉 Bạn thắng rồi! Bot đã cạn từ.")
-                session.reset()
+        await message.channel.send(f"✅ Hợp lệ (Lượt {session.turn_count})! Tiếp theo: **`{content.split()[-1]}`**")
 
-# ==============================================================================
-# 10. THÊM CÁC BÌNH LUẬN VÀ CẤU TRÚC ĐỂ ĐẢM BẢO DUNG LƯỢNG CODE
-# (Dưới đây là các hàm phụ trợ để tăng cường độ ổn định và chuyên nghiệp)
-# ==============================================================================
+    # 4. Mode: Đấu với Bot Tiếng Việt
+    elif session.mode == "bot_vi":
+        if len(content.split()) != 2:
+            return
+        if content in session.used_words:
+            await message.channel.send("❌ Từ này đã được sử dụng rồi!")
+            return
+        required = session.last_word.split()[-1]
+        if content.split()[0] != required:
+            await message.channel.send(f"❌ Từ phải bắt đầu bằng âm tiết: **`{required}`**")
+            return
 
-@bot.event
-async def on_command_error(ctx, error):
-    """Xử lý lỗi toàn cục."""
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send(embed=create_embed("⚠️ Lỗi", "Lệnh này không tồn tại."))
-    else:
-        logger.error(f"Lỗi không xác định: {error}")
+        session.last_word = content
+        session.used_words.add(content)
+        session.turn_count += 1
 
-def check_system_health():
-    """Giả lập hàm kiểm tra hệ thống."""
-    return "OK"
+        user_next = content.split()[-1]
+        possible_bot_words = [w for w in VIETNAMESE_DICT if w.split()[0] == user_next and w not in session.used_words]
 
-def maintain_database_connection():
-    """Giả lập duy trì kết nối."""
-    pass
+        if possible_bot_words:
+            bot_word = random.choice(possible_bot_words)
+            session.last_word = bot_word
+            session.used_words.add(bot_word)
+            session.turn_count += 1
+            await message.channel.send(
+                f"🤖 **Bot nối:** `{bot_word}`\n"
+                f"🌸 Lượt tiếp theo của bạn bắt đầu bằng: **`{bot_word.split()[-1]}`**"
+            )
+        else:
+            await message.channel.send(f"🎉 Chúc mừng {message.author.mention}! Bot đã cạn từ vựng và chịu thua.")
+            session.reset()
 
-# ==============================================================================
-# 11. KHỞI CHẠY (ENTRY POINT)
-# ==============================================================================
+    # 5. Mode: Nối từ Tiếng Anh (English Word Chain)
+    elif session.mode == "pvp_en":
+        if not content.isalpha():
+            return
+        if content in session.used_words:
+            await message.channel.send("❌ Word already used!")
+            return
+        required_char = session.last_word[-1]
+        if content[0] != required_char:
+            await message.channel.send(f"❌ Word must start with letter: **`{required_char.upper()}`**")
+            return
+
+        session.last_word = content
+        session.used_words.add(content)
+        session.turn_count += 1
+        await message.channel.send(f"✅ Valid! Next word must start with letter: **`{content[-1].upper()}`**")
+
+# =====================================================================
+# 8. KHỞI CHẠY CHƯƠNG TRÌNH
+# =====================================================================
 
 if __name__ == "__main__":
     token = os.environ.get("DISCORD_TOKEN")
     if token:
         bot.run(token)
     else:
-        logger.critical("Không tìm thấy DISCORD_TOKEN trong biến môi trường.")
+        logger.critical("LỖI: Không tìm thấy biến môi trường DISCORD_TOKEN.")
