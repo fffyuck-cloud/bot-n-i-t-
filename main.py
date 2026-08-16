@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
-# ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
+# ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.2.0 - Mention & Tra Ma)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.3.0 - Rau Má Update)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.2.0 Sakura Gothic Tra Ma"
+    VERSION: str = "7.3.0 Sakura Gothic Rau Má"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -73,7 +73,6 @@ COUNTRY_CODES: Dict[str, str] = {
     "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru", "trung quốc": "cn"
 }
 
-# Danh sách phim nổi tiếng (LUÔN CÓ ẢNH BACKDROP KHÔNG LỘ TÊN PHIM)
 FALLBACK_MOVIES_DATA: List[Dict[str, str]] = [
     {"title": "kẻ trộm giấc mơ", "clue": "🌟 Ngủ đông trong mơ, con quay còn xoay... 🌀", "image": "https://image.tmdb.org/t/p/w500/s3TBrRGB1iav7gFOCNx3HvMo4J4.jpg"},
     {"title": "titanic", "clue": "🚢 Tảng băng trôi, bài hát My Heart Will Go On 💔", "image": "https://image.tmdb.org/t/p/w500/2bXcWyivE3atm2bUCVn0gSZweBO.jpg"},
@@ -126,7 +125,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.2)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.3)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -383,7 +382,7 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
-            f"❯ `{BotConfig.PREFIX}tiepterauma [@user]` ❯ **Trả màu bạn bè**\n"
+            f"❯ `{BotConfig.PREFIX}tiepterauma [@user]` ❯ **Tiếp tế rau má**\n"
             f"❯ `{BotConfig.PREFIX}ping` ❯ **Kiểm tra độ trễ**\n\n"
             f"{BotConfig.BORDER}"
         )
@@ -524,23 +523,20 @@ async def slash_themtu(interaction: discord.Interaction, word: str):
     else:
         await interaction.response.send_message(embed=UIUtils.build_invalid_word_embed("Từ TV phải 2 tiếng, TA phải 1 tiếng!"), ephemeral=True)
 
-# LỆNH MỚI: TIẾP TẾ TRẢ MÀU
-@bot.command(name="tiepterauma", aliases=["trauma", "tra"])
+# LỆNH MỚI: TIẾP TẾ RAU MÁ
+@bot.command(name="tiepterauma", aliases=["trauma", "rauma", "tra"])
 async def cmd_tiepterauma(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
     if not member:
-        await ctx.send(embed=UIUtils.build_warning_embed("Thiếu Người Chơi", f"Vui lòng tag người bạn muốn trả màu. VD: `{BotConfig.PREFIX}tiepterauma @user`"))
+        await ctx.send(embed=UIUtils.build_warning_embed("Thiếu Người Chơi", f"Vui lòng tag người bạn muốn tiếp tế. VD: `{BotConfig.PREFIX}tiepterauma @user`"))
         return
     
     if member.id == bot.user.id:
-        await ctx.send("🤖 Dám cả gan tag Bot à? Bot không sợ đau đâu! 🌸")
+        await ctx.send("🤖 Bot không cần uống rau má đâu! 🌸")
         return
         
-    if member.id == ctx.author.id:
-        desc = f"{BotConfig.BORDER}\n\n😵 {ctx.author.mention} tự xé xác mình à? Sao không để dành sức cho game khác? 🌸\n\n{BotConfig.BORDER}"
-    else:
-        desc = f"{BotConfig.BORDER}\n\n⛈️ {ctx.author.mention} đã ra lệnh cho Bot bắt đầu tra tấn {member.mention}! 💀\n*Người chơi kia hãy chuẩn bị tinh thần đón nhận cơn thịnh nộ của Vườn hoa Đen Hồng!* 🌸\n\n{BotConfig.BORDER}"
+    desc = f"{BotConfig.BORDER}\n\n🌿 Đã tiếp tế 36 rau má cho {member.mention}! 💚\n\n{BotConfig.BORDER}"
         
-    await ctx.send(embed=UIUtils.create_embed("🔥 [ TIẾP TẾ TRẢ MÀU ] 🔥", desc, BotConfig.COLOR_RED_DARK))
+    await ctx.send(embed=UIUtils.create_embed("Tiếp tế rau má", desc, BotConfig.COLOR_SAKURA_PINK))
 
 # ====================================================================================================
 # PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ ARCADE
@@ -885,7 +881,7 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
 async def on_message(message: discord.Message) -> None:
     if message.author.bot: return
     
-    # TÍNH NĂNG MỚI: Auto-reply "dạ e đây" khi bị tag
+    # TÍNH NĂNG: Auto-reply "dạ e đây" khi bị tag
     if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
         await message.channel.send("dạ e đây 🌸")
         return
@@ -911,7 +907,7 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng ĐQG", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
         return
 
-    # 3. Đoán Tên Phim (ĐÃ SỬA LOGIC: Bỏ dấu tiếng Việt để so sánh chính xác)
+    # 3. Đoán Tên Phim
     if session.active_mode == GameMode.GUESS_MOVIE:
         target = session.secret_target
         target_no_diacritics = GameUtils.remove_diacritics(target).lower()
