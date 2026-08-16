@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.1.0 - Image Always Shows)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.2.0 - Mention & Tra Ma)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.1.0 Sakura Gothic Image Fix"
+    VERSION: str = "7.2.0 Sakura Gothic Tra Ma"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -126,7 +126,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.1)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.2)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -383,6 +383,7 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
+            f"❯ `{BotConfig.PREFIX}tiepterauma [@user]` ❯ **Trả màu bạn bè**\n"
             f"❯ `{BotConfig.PREFIX}ping` ❯ **Kiểm tra độ trễ**\n\n"
             f"{BotConfig.BORDER}"
         )
@@ -522,6 +523,24 @@ async def slash_themtu(interaction: discord.Interaction, word: str):
         await interaction.response.send_message(embed=UIUtils.build_success_embed("Thêm từ thành công", f"Đã lưu TA **`{clean_w.upper()}`**!"))
     else:
         await interaction.response.send_message(embed=UIUtils.build_invalid_word_embed("Từ TV phải 2 tiếng, TA phải 1 tiếng!"), ephemeral=True)
+
+# LỆNH MỚI: TIẾP TẾ TRẢ MÀU
+@bot.command(name="tiepterauma", aliases=["trauma", "tra"])
+async def cmd_tiepterauma(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
+    if not member:
+        await ctx.send(embed=UIUtils.build_warning_embed("Thiếu Người Chơi", f"Vui lòng tag người bạn muốn trả màu. VD: `{BotConfig.PREFIX}tiepterauma @user`"))
+        return
+    
+    if member.id == bot.user.id:
+        await ctx.send("🤖 Dám cả gan tag Bot à? Bot không sợ đau đâu! 🌸")
+        return
+        
+    if member.id == ctx.author.id:
+        desc = f"{BotConfig.BORDER}\n\n😵 {ctx.author.mention} tự xé xác mình à? Sao không để dành sức cho game khác? 🌸\n\n{BotConfig.BORDER}"
+    else:
+        desc = f"{BotConfig.BORDER}\n\n⛈️ {ctx.author.mention} đã ra lệnh cho Bot bắt đầu tra tấn {member.mention}! 💀\n*Người chơi kia hãy chuẩn bị tinh thần đón nhận cơn thịnh nộ của Vườn hoa Đen Hồng!* 🌸\n\n{BotConfig.BORDER}"
+        
+    await ctx.send(embed=UIUtils.create_embed("🔥 [ TIẾP TẾ TRẢ MÀU ] 🔥", desc, BotConfig.COLOR_RED_DARK))
 
 # ====================================================================================================
 # PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ ARCADE
@@ -727,7 +746,6 @@ async def cmd_doantenphim(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     
-    # Chỉ sử dụng danh sách phim nổi tiếng có sẵn ảnh backdrop (không lộ tên phim)
     movie = random.choice(FALLBACK_MOVIES_DATA)
     session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
     
@@ -866,6 +884,12 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
 @bot.event
 async def on_message(message: discord.Message) -> None:
     if message.author.bot: return
+    
+    # TÍNH NĂNG MỚI: Auto-reply "dạ e đây" khi bị tag
+    if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
+        await message.channel.send("dạ e đây 🌸")
+        return
+
     await bot.process_commands(message)
     session = global_session_manager.get_session(message.channel.id)
     if not session.is_active: return
