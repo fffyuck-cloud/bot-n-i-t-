@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.3.0 - Compact UI)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.3.1 - Compact UI)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "6.3.0 Sakura Gothic Compact"
+    VERSION: str = "6.3.1 Sakura Gothic Compact"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -48,7 +48,6 @@ class BotConfig:
     COLOR_GOLD: int = 0xFFD700          
     
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
-    # Đường phân cách ngắn gọn, gọn gàng hơn
     BORDER: str = "🌸・━━━━━━━━━━━━━━━━━━━━━━━━━━━・🌸" 
 
 # ====================================================================================================
@@ -737,13 +736,14 @@ async def cmd_doantenphim(ctx: commands.Context) -> None:
     movie = random.choice(MOVIES_DATA)
     session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
     
+    # Đã đổi màu sang Đen Hồng (COLOR_DEEP_PINK) và giữ nguyên chi tiết gợi ý không lộ tên phim
     desc = (f"{BotConfig.BORDER}\n\n"
             f"🎬 **RẠP CHIẾU ĐEN HỒNG** 🍿\n\n"
             f"❓ **Gợi ý:** {movie['clue']}\n\n"
             f"💡 *Hãy gõ tên phim (không dấu) vào chat để trả lời!*\n"
             f"⏳ *Không có giới hạn thời gian, nhưng hãy nhanh lên!*\n\n"
             f"{BotConfig.BORDER}")
-    await ctx.send(embed=UIUtils.create_embed("🎟️ [ ĐOÁN TÊN PHIM ] 🎟️", desc, BotConfig.COLOR_GOLD))
+    await ctx.send(embed=UIUtils.create_embed("🎟️ [ ĐOÁN TÊN PHIM ] 🎟️", desc, BotConfig.COLOR_DEEP_PINK))
 
 @bot.command(name="doanemoji", aliases=["emoji", "phanloaiemoji"])
 async def cmd_doanemoji(ctx: commands.Context) -> None:
@@ -840,7 +840,7 @@ async def cmd_restart(ctx: commands.Context) -> None:
         desc = (f"{BotConfig.BORDER}\n\n"
                 f"🎬 Ván chơi đã được làm mới!\n"
                 f"❓ **Gợi ý:** {movie['clue']}\n\n{BotConfig.BORDER}")
-        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", desc, BotConfig.COLOR_GOLD))
+        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", desc, BotConfig.COLOR_DEEP_PINK))
         
     elif mode == GameMode.GUESS_EMOJI:
         emoji_data = random.choice(EMOJI_DATA)
@@ -897,7 +897,7 @@ async def on_message(message: discord.Message) -> None:
     if session.active_mode == GameMode.GUESS_MOVIE:
         if content == session.secret_target:
             target = session.secret_target; session.reset()
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Phim", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_GOLD))
+            await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Phim", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_DEEP_PINK))
         return
 
     # 4. Đoán Emoji
