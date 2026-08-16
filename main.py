@@ -951,3 +951,9 @@ async def on_message(message: discord.Message) -> None:
             
             session.used_words_history.add(bot_word); session.current_word = bot_word
             bot_syllables = bot_word.split(); next_bot_syl = bot_syllables[-1]
+if __name__ == "__main__":
+    token = os.getenv("DISCORD_TOKEN")
+    if not token: 
+        logger.warning("🖤 Không tìm thấy DISCORD_TOKEN.")
+    else: 
+        bot.run(token)
