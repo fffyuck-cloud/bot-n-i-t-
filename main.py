@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
-# ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
+# ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.0.0 - Aesthetic Update)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.1.0 - Max Width UI)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "6.0.0 Sakura Gothic"
+    VERSION: str = "6.1.0 Sakura Gothic MaxWidth"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -41,16 +41,17 @@ class BotConfig:
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
     
-    # Bảng màu Đen Hồng Cánh Hoa (Sakura)
-    COLOR_SAKURA_PINK: int = 0xFFB7C5   # Hồng anh đào chính
-    COLOR_DEEP_PINK: int = 0xFF1493     # Hồng đậm
-    COLOR_BLACK_CHIC: int = 0x10001A    # Đen huyền bí (tím đen)
+    COLOR_SAKURA_PINK: int = 0xFFB7C5   
+    COLOR_DEEP_PINK: int = 0xFF1493     
+    COLOR_BLACK_CHIC: int = 0x10001A    
     COLOR_RED_DARK: int = 0x8B0000      
     COLOR_GOLD: int = 0xFFD700          
     
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
-    # Kéo dài đường viền để giãn max chiều rộng khung Embed trên Discord
     BORDER: str = "🌸・┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈・🌸" 
+    
+    # Dùng ký tự vô hình (Braille Blank) để độn max chiều rộng khung Embed trên Discord PC
+    SPACER: str = "\u2800" * 60 
 
 # ====================================================================================================
 # PHẦN 2: DỮ LIỆU DỰ PHÒNG & GAME DATA
@@ -120,7 +121,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v6.0)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v6.1)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -319,21 +320,23 @@ class GameUtils:
 class UIUtils:
     DEFAULT_FOOTER_ICON = "https://cdn.discordapp.com/embed/avatars/0.png"
     DEFAULT_THUMBNAIL = "https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
-    # Ảnh Banner Hoa Anh Đào (Lấy từ Unsplash để không bao giờ hết hạn)
     BANNER_IMAGE = "https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
 
     @staticmethod
     def create_embed(title: str, description: str, color: int = BotConfig.COLOR_SAKURA_PINK) -> discord.Embed:
-        embed = discord.Embed(title=title, description=description, color=color, timestamp=datetime.now())
+        # Độn thêm SPACER vô hình trên và dưới để ép Discord giãn max width
+        full_desc = f"{BotConfig.SPACER}\n{description}\n{BotConfig.SPACER}"
+        embed = discord.Embed(title=title, description=full_desc, color=color, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
-        embed.set_image(url=UIUtils.BANNER_IMAGE) # Thêm banner dưới cùng
+        embed.set_image(url=UIUtils.BANNER_IMAGE)
         return embed
 
     @staticmethod
     def build_warning_embed(title: str, warning_msg: str) -> discord.Embed:
         desc = f"{BotConfig.BORDER}\n\n⚠️ **{title}**\n\n{warning_msg}\n\n{BotConfig.BORDER}"
-        embed = discord.Embed(title="🚫 Cảnh Báo", description=desc, color=BotConfig.COLOR_RED_DARK, timestamp=datetime.now())
+        full_desc = f"{BotConfig.SPACER}\n{desc}\n{BotConfig.SPACER}"
+        embed = discord.Embed(title="🚫 Cảnh Báo", description=full_desc, color=BotConfig.COLOR_RED_DARK, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_image(url=UIUtils.BANNER_IMAGE)
         return embed
@@ -341,7 +344,8 @@ class UIUtils:
     @staticmethod
     def build_invalid_word_embed(reason: str) -> discord.Embed:
         description = f"{BotConfig.BORDER}\n\n❌ **Từ không hợp lệ!**\n📌 **Nguyên nhân:** *{reason}*\n💡 Dùng `/themtu [từ]` để bổ sung!\n\n{BotConfig.BORDER}"
-        embed = discord.Embed(title="💔 [ TỪ KHÔNG HỢP LỆ ] 💔", description=description, color=BotConfig.COLOR_RED_DARK, timestamp=datetime.now())
+        full_desc = f"{BotConfig.SPACER}\n{description}\n{BotConfig.SPACER}"
+        embed = discord.Embed(title="💔 [ TỪ KHÔNG HỢP LỆ ] 💔", description=full_desc, color=BotConfig.COLOR_RED_DARK, timestamp=datetime.now())
         embed.set_footer(text="Hệ thống kiểm duyệt Sakura", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
         embed.set_image(url=UIUtils.BANNER_IMAGE)
@@ -350,7 +354,8 @@ class UIUtils:
     @staticmethod
     def build_success_embed(title: str, success_msg: str) -> discord.Embed:
         desc = f"{BotConfig.BORDER}\n\n✨ **{title.upper()}** ✨\n\n{success_msg}\n\n{BotConfig.BORDER}"
-        embed = discord.Embed(title="🌸 Thành Công 🌸", description=desc, color=BotConfig.COLOR_DEEP_PINK, timestamp=datetime.now())
+        full_desc = f"{BotConfig.SPACER}\n{desc}\n{BotConfig.SPACER}"
+        embed = discord.Embed(title="🌸 Thành Công 🌸", description=full_desc, color=BotConfig.COLOR_DEEP_PINK, timestamp=datetime.now())
         embed.set_image(url=UIUtils.BANNER_IMAGE)
         return embed
 
@@ -390,7 +395,8 @@ class UIUtils:
             f"`{BotConfig.PREFIX}ping` → Kiểm tra ping\n\n"
             f"{BotConfig.BORDER}"
         )
-        embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP SAKURA ✦", description=description, color=BotConfig.COLOR_SAKURA_PINK, timestamp=datetime.now())
+        full_desc = f"{BotConfig.SPACER}\n{description}\n{BotConfig.SPACER}"
+        embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP SAKURA ✦", description=full_desc, color=BotConfig.COLOR_SAKURA_PINK, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
         embed.set_image(url=UIUtils.BANNER_IMAGE)
@@ -954,7 +960,6 @@ async def on_message(message: discord.Message) -> None:
             candidates = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(next_syl, [])
             valid_candidates = [w for w in candidates if w not in session.used_words_history]
             
-            # Bot cũng phải tránh chữ cấm
             if session.is_banned_mode:
                 valid_candidates = [w for w in valid_candidates if session.banned_letter not in GameUtils.remove_diacritics(w)]
             
