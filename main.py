@@ -36,8 +36,8 @@ class BotConfig:
     WEB_SERVER_HOST: str = "0.0.0.0"
     WEB_SERVER_PORT: int = 8080
     
-    # ĐỔI TÊN FILE TẠI ĐÂY CHO KHỚP VỚI FILE WORDLIST CỦA BẠN
-    FILE_VIETNAMESE_DICT: str = "TuDien_TiengViet_Full_DaLoc.txt"
+    # ĐỔI TÊN FILE TẠI ĐÂY CHO KHỚP VỚI FILE WORDLIST MỚI CỦA BẠN
+    FILE_VIETNAMESE_DICT: str = "Full_TuDien_TiengViet_DaLoc.txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
     
@@ -57,8 +57,7 @@ class BotConfig:
 
 DEFAULT_VIETNAMESE_FALLBACK: Set[str] = {
     "an ninh", "an toàn", "ấm áp", "ẩm ướt", "ánh sáng", "áo quần", "ăn uống", "át chủ", "ba mươi", "bạc hà",
-    "bạ bạt", "bạn bè", "bao dung", "bạo chúa", "bền bỉ", "bí quyết", "bình yên", "bồi đắp", "bứt phá", "bị ốm",
-    "cẩn thận", "cản trở", "cao siêu", "cật lực", "chân thật", "chiếm đoạt", "chối bỏ", "chuộc lỗi", "chấn hưng", "công bằng"
+    "bạ bạt", "bạn bè", "bao dung", "bạo chúa", "bền bỉ", "bí quyết", "bình yên", "bồi đắp", "bứt phá", "bị ốm"
 }
 
 DEFAULT_ENGLISH_FALLBACK: Set[str] = {
