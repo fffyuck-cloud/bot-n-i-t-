@@ -37,7 +37,7 @@ class BotConfig:
     WEB_SERVER_PORT: int = 8080
     
     # ĐỔI TÊN FILE TẠI ĐÂY CHO KHỚP VỚI FILE WORDLIST MỚI CỦA BẠN
-    FILE_VIETNAMESE_DICT: str = "Full_TuDien_TiengViet_DaLoc.txt"
+    FILE_VIETNAMESE_DICT: str = "tu dien (1).txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
     
