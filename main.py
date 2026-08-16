@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.1.0 - Max Width UI)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.2.0 - Redesign UI)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "6.1.0 Sakura Gothic MaxWidth"
+    VERSION: str = "6.2.0 Sakura Gothic Redesign"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -49,8 +49,7 @@ class BotConfig:
     
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
     BORDER: str = "🌸・┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈・🌸" 
-    
-    # Dùng ký tự vô hình (Braille Blank) để độn max chiều rộng khung Embed trên Discord PC
+    DIVIDER: str = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━" # Đường phân cách đẹp mắt
     SPACER: str = "\u2800" * 60 
 
 # ====================================================================================================
@@ -121,7 +120,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v6.1)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v6.2)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -324,7 +323,6 @@ class UIUtils:
 
     @staticmethod
     def create_embed(title: str, description: str, color: int = BotConfig.COLOR_SAKURA_PINK) -> discord.Embed:
-        # Độn thêm SPACER vô hình trên và dưới để ép Discord giãn max width
         full_desc = f"{BotConfig.SPACER}\n{description}\n{BotConfig.SPACER}"
         embed = discord.Embed(title=title, description=full_desc, color=color, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
@@ -362,41 +360,41 @@ class UIUtils:
     @staticmethod
     def build_help_embed() -> discord.Embed:
         description = (
-            f"{BotConfig.BORDER}\n\n"
+            f"{BotConfig.SPACER}\n"
             f"🖤 **Chào mừng đến với Vườn hoa Đen Hồng Cánh Hoa!** 🌸\n"
-            f"`.` Hãy chọn một lệnh để bắt đầu giải trí.\n\n"
-            
-            f"🇻🇳🌸 **[ NỐI TỪ TIẾNG VIỆT ]** 🌸🇻🇳\n"
-            f"`{BotConfig.PREFIX}noitu` → PvP\n"
-            f"`{BotConfig.PREFIX}botnoitu` → Solo Bot\n"
-            f"`{BotConfig.PREFIX}noituhc [giây]` → PvP Hardcore\n"
-            f"`{BotConfig.PREFIX}botnoituhc [giây]` → Bot Hardcore\n"
-            f"`{BotConfig.PREFIX}noitucam` → PvP Cấm Chữ\n"
-            f"`{BotConfig.PREFIX}botnoitucam` → Bot Cấm Chữ\n"
-            f"`{BotConfig.PREFIX}noitucamhc [giây]` → PvP Cấm Chữ + Hardcore\n"
-            f"`{BotConfig.PREFIX}botnoitucamhc [giây]` → Bot Cấm Chữ + Hardcore\n\n"
-
-            f"🇬🇧🌸 **[ NỐI TỪ TIẾNG ANH ]** 🌸🇬🇧\n"
-            f"`{BotConfig.PREFIX}noitueng` → PvP\n"
-            f"`{BotConfig.PREFIX}botnoitueng` → Solo Bot\n\n"
-
-            f"👑🌸 **[ GIẢI ĐỐ & ARCADE ]** 🌸👑\n"
-            f"`{BotConfig.PREFIX}vuatiengviet` → Sắp xếp âm\n"
-            f"`{BotConfig.PREFIX}doanquocgia` → Đoán cờ\n"
-            f"`{BotConfig.PREFIX}doantenphim` → Đoán tên phim\n"
-            f"`{BotConfig.PREFIX}doanemoji` → Đoán Emoji\n\n"
-
-            f"⚙️🌸 **[ QUẢN LÝ & TIỆN ÍCH ]** 🌸⚙️\n"
-            f"`/themtu [từ]` → (Chỉ Admin)\n"
-            f"`{BotConfig.PREFIX}admin` → Panel (Chỉ Admin)\n"
-            f"`{BotConfig.PREFIX}restart` → Chơi lại từ đầu\n"
-            f"`{BotConfig.PREFIX}huynoitu` → Hủy ván chơi\n"
-            f"`{BotConfig.PREFIX}nghia [từ]` → Tra cứu\n"
-            f"`{BotConfig.PREFIX}ping` → Kiểm tra ping\n\n"
-            f"{BotConfig.BORDER}"
+            f"『 Hãy chọn một lệnh để bắt đầu giải trí 』\n\n"
+            f"{BotConfig.DIVIDER}\n"
+            f"🇻🇳 **[ NỐI TỪ TIẾNG VIỆT ]** 🇻🇳\n"
+            f"🌸 `{BotConfig.PREFIX}noitu` ❯ **PvP Thường**\n"
+            f"🤖 `{BotConfig.PREFIX}botnoitu` ❯ **Solo với Bot**\n"
+            f"🔥 `{BotConfig.PREFIX}noituhc [giây]` ❯ **PvP Hardcore**\n"
+            f"🔥 `{BotConfig.PREFIX}botnoituhc [giây]` ❯ **Bot Hardcore**\n"
+            f"🚫 `{BotConfig.PREFIX}noitucam` ❯ **PvP Cấm Chữ**\n"
+            f"🚫 `{BotConfig.PREFIX}botnoitucam` ❯ **Bot Cấm Chữ**\n"
+            f"💀 `{BotConfig.PREFIX}noitucamhc [giây]` ❯ **PvP Cấm Chữ + HC**\n"
+            f"💀 `{BotConfig.PREFIX}botnoitucamhc [giây]` ❯ **Bot Cấm Chữ + HC**\n"
+            f"{BotConfig.DIVIDER}\n"
+            f"🇬🇧 **[ NỐI TỪ TIẾNG ANH ]** 🇬🇧\n"
+            f"🌸 `{BotConfig.PREFIX}noitueng` ❯ **PvP Thường**\n"
+            f"🤖 `{BotConfig.PREFIX}botnoitueng` ❯ **Solo với Bot**\n"
+            f"{BotConfig.DIVIDER}\n"
+            f"👑 **[ GIẢI ĐỐ & ARCADE ]** 👑\n"
+            f"🧩 `{BotConfig.PREFIX}vuatiengviet` ❯ **Sắp xếp âm**\n"
+            f"🌍 `{BotConfig.PREFIX}doanquocgia` ❯ **Đoán cờ**\n"
+            f"🎟️ `{BotConfig.PREFIX}doantenphim` ❯ **Đoán tên phim**\n"
+            f"🎭 `{BotConfig.PREFIX}doanemoji` ❯ **Giải mã Emoji**\n"
+            f"{BotConfig.DIVIDER}\n"
+            f"⚙️ **[ QUẢN LÝ & TIỆN ÍCH ]** ⚙️\n"
+            f"📝 `/themtu [từ]` ❯ **Thêm từ (Admin)**\n"
+            f"🔒 `{BotConfig.PREFIX}admin` ❯ **Panel (Admin)**\n"
+            f"🔄 `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
+            f"❌ `{BotConfig.PREFIX}huynoitu` ❯ **Hủy ván chơi**\n"
+            f"📖 `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
+            f"📡 `{BotConfig.PREFIX}ping` ❯ **Kiểm tra độ trễ**\n"
+            f"{BotConfig.DIVIDER}\n"
+            f"{BotConfig.SPACER}"
         )
-        full_desc = f"{BotConfig.SPACER}\n{description}\n{BotConfig.SPACER}"
-        embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP SAKURA ✦", description=full_desc, color=BotConfig.COLOR_SAKURA_PINK, timestamp=datetime.now())
+        embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP SAKURA ✦", description=description, color=BotConfig.COLOR_SAKURA_PINK, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
         embed.set_image(url=UIUtils.BANNER_IMAGE)
