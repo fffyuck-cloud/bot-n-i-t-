@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.9.0 - Backdrop Image & Logic)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.0.0 - Diacritics Fix)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "6.9.0 Sakura Gothic Backdrop"
+    VERSION: str = "7.0.0 Sakura Gothic Logic Fix"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -74,7 +74,6 @@ COUNTRY_CODES: Dict[str, str] = {
     "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru", "trung quốc": "cn"
 }
 
-# Dữ liệu phim (Đã đổi sang ảnh Backdrop không có chữ và sửa tên phim cho dễ đoán)
 FALLBACK_MOVIES_DATA: List[Dict[str, str]] = [
     {"title": "kẻ trộm giấc mơ", "clue": "🌟 Ngủ đông trong mơ, con quay còn xoay... 🌀", "image": "https://image.tmdb.org/t/p/w500/s3TBrRGB1iav7gFOCNx3HvMo4J4.jpg"},
     {"title": "titanic", "clue": "🚢 Tảng băng trôi, bài hát My Heart Will Go On 💔", "image": "https://image.tmdb.org/t/p/w500/2bXcWyivE3atm2bUCVn0gSZweBO.jpg"},
@@ -120,7 +119,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v6.9)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.0)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -751,7 +750,6 @@ async def cmd_doantenphim(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     
-    # Ưu tiên chọn phim CÓ SẴN ẢNH BACKDROP (không lộ chữ) để hiện ảnh
     movie_pool = MOVIES_WITH_IMAGES if MOVIES_WITH_IMAGES else MOVIES_LIST
     movie = random.choice(movie_pool)
     
@@ -914,18 +912,24 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng ĐQG", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
         return
 
-    # 3. Đoán Tên Phim (Logic linh hoạt: Gõ đúng hoặc chứa nhau đều thắng)
+    # 3. Đoán Tên Phim (ĐÃ SỬA LOGIC: Bỏ dấu tiếng Việt để so sánh chính xác)
     if session.active_mode == GameMode.GUESS_MOVIE:
         target = session.secret_target
-        if content == target or content in target or target in content:
+        # Loại bỏ dấu tiếng Việt của đáp án để so sánh với câu trả lời không dấu của người chơi
+        target_no_diacritics = GameUtils.remove_diacritics(target).lower()
+        
+        # Nếu người dùng gõ đúng, hoặc câu trả lời chứa đáp án, hoặc đáp án chứa câu trả lời (không phân biệt dấu)
+        if content == target or content == target_no_diacritics or content in target_no_diacritics or target_no_diacritics in content:
             session.reset()
             await message.channel.send(embed=UIUtils.create_embed("🏆 Trả Lời Đúng!", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đã trả lời đúng!\n🎬 Tên phim: **`{target.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_DEEP_PINK))
         return
 
     # 4. Đoán Emoji
     if session.active_mode == GameMode.GUESS_EMOJI:
-        if content == session.secret_target:
-            target = session.secret_target; session.reset()
+        target = session.secret_target
+        target_no_diacritics = GameUtils.remove_diacritics(target).lower()
+        if content == target or content == target_no_diacritics or content in target_no_diacritics or target_no_diacritics in content:
+            session.reset()
             await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Emoji", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
         return
 
