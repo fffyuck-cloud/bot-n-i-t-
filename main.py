@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.3.1 - Compact UI)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.5.0 - Flexible Guess & Rename)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "6.3.1 Sakura Gothic Compact"
+    VERSION: str = "6.5.0 Sakura Gothic Movies"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -74,14 +74,14 @@ COUNTRY_CODES: Dict[str, str] = {
 }
 
 MOVIES_DATA: List[Dict[str, str]] = [
-    {"title": "kẻ trộm giấc mơ", "clue": "🌟 Ngủ đông trong mơ, con quay còn xoay... 🌀"},
-    {"title": "titanic", "clue": "🚢 Tảng băng trôi, bài hát My Heart Will Go On 💔"},
-    {"title": "hành tinh pandora", "clue": "👽 Người Na'vi màu xanh 🌳"},
-    {"title": "ký sinh trùng", "clue": "🪨 Giới siêu giàu và gia đình nghèo len lỏi 🏠"},
-    {"title": "gã joker", "clue": "🃏 Kẻ thù của Batman, nụ cười rùng rợn 🤡"},
-    {"title": "hack não", "clue": "💊 Viên thuốc đỏ hay xanh? 🕶️ Mã nhị phân"},
-    {"title": "nữ hoàng băng giá", "clue": "❄️ Elsa và Anna ⛄"},
-    {"title": "người nhện", "clue": "🕷️ Người hàng xóm thân thiện 🕸️"}
+    {"title": "kẻ trộm giấc mơ", "clue": "🌟 Ngủ đông trong mơ, con quay còn xoay... 🌀", "image": "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQBCVgYW0.jpg"},
+    {"title": "titanic", "clue": "🚢 Tảng băng trôi, bài hát My Heart Will Go On 💔", "image": "https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg"},
+    {"title": "hành tinh pandora", "clue": "👽 Người Na'vi màu xanh 🌳", "image": "https://image.tmdb.org/t/p/w500/jRXYjXNq0Cs2TcJjLkki24MLp7u.jpg"},
+    {"title": "ký sinh trùng", "clue": "🪨 Giới siêu giàu và gia đình nghèo len lỏi 🏠", "image": "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg"},
+    {"title": "gã joker", "clue": "🃏 Kẻ thù của Batman, nụ cười rùng rợn 🤡", "image": "https://image.tmdb.org/t/p/w500/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg"},
+    {"title": "hack não", "clue": "💊 Viên thuốc đỏ hay xanh? 🕶️ Mã nhị phân", "image": "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GzkPOexnVNbg.jpg"},
+    {"title": "nữ hoàng băng giá", "clue": "❄️ Elsa và Anna ⛄", "image": "https://image.tmdb.org/t/p/w500/kgwjIb2XDQRHzfPa3EXr8pAS2ih.jpg"},
+    {"title": "người nhện", "clue": "🕷️ Người hàng xóm thân thiện 🕸️", "image": "https://image.tmdb.org/t/p/w500/gh4cZbhZxyTbgX8mzuSiQAYn6tZ.jpg"}
 ]
 
 EMOJI_DATA: List[Dict[str, str]] = [
@@ -118,7 +118,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v6.3)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v6.5)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -382,7 +382,7 @@ class UIUtils:
             f"❯ `/themtu [từ]` ❯ **Thêm từ (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}admin` ❯ **Panel (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
-            f"❯ `{BotConfig.PREFIX}huynoitu` ❯ **Hủy ván chơi**\n"
+            f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
             f"❯ `{BotConfig.PREFIX}ping` ❯ **Kiểm tra độ trễ**\n\n"
             f"{BotConfig.BORDER}"
@@ -736,14 +736,15 @@ async def cmd_doantenphim(ctx: commands.Context) -> None:
     movie = random.choice(MOVIES_DATA)
     session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
     
-    # Đã đổi màu sang Đen Hồng (COLOR_DEEP_PINK) và giữ nguyên chi tiết gợi ý không lộ tên phim
     desc = (f"{BotConfig.BORDER}\n\n"
             f"🎬 **RẠP CHIẾU ĐEN HỒNG** 🍿\n\n"
             f"❓ **Gợi ý:** {movie['clue']}\n\n"
             f"💡 *Hãy gõ tên phim (không dấu) vào chat để trả lời!*\n"
             f"⏳ *Không có giới hạn thời gian, nhưng hãy nhanh lên!*\n\n"
             f"{BotConfig.BORDER}")
-    await ctx.send(embed=UIUtils.create_embed("🎟️ [ ĐOÁN TÊN PHIM ] 🎟️", desc, BotConfig.COLOR_DEEP_PINK))
+    embed = UIUtils.create_embed("🎟️ [ ĐOÁN TÊN PHIM ] 🎟️", desc, BotConfig.COLOR_DEEP_PINK)
+    embed.set_image(url=movie["image"])
+    await ctx.send(embed=embed)
 
 @bot.command(name="doanemoji", aliases=["emoji", "phanloaiemoji"])
 async def cmd_doanemoji(ctx: commands.Context) -> None:
@@ -840,7 +841,9 @@ async def cmd_restart(ctx: commands.Context) -> None:
         desc = (f"{BotConfig.BORDER}\n\n"
                 f"🎬 Ván chơi đã được làm mới!\n"
                 f"❓ **Gợi ý:** {movie['clue']}\n\n{BotConfig.BORDER}")
-        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", desc, BotConfig.COLOR_DEEP_PINK))
+        embed = UIUtils.create_embed("🔄 Bắt Đầu Lại", desc, BotConfig.COLOR_DEEP_PINK)
+        embed.set_image(url=movie["image"])
+        await ctx.send(embed=embed)
         
     elif mode == GameMode.GUESS_EMOJI:
         emoji_data = random.choice(EMOJI_DATA)
@@ -850,8 +853,9 @@ async def cmd_restart(ctx: commands.Context) -> None:
                 f"🔑 **Emoji:** {emoji_data['emojis']}\n\n{BotConfig.BORDER}")
         await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", desc, BotConfig.COLOR_SAKURA_PINK))
 
-@bot.command(name="huynoitu", aliases=["huygame"])
-async def cmd_huynoitu(ctx: commands.Context) -> None:
+# ĐÃ ĐỔI TÊN LỆNH HỦY VÁN CHƠI
+@bot.command(name="huyvanchoi", aliases=["huynoitu", "huygame", "huy"])
+async def cmd_huyvanchoi(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if not session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Lỗi", "Không có ván chơi.")); return
     session.reset()
@@ -893,11 +897,13 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng ĐQG", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
         return
 
-    # 3. Đoán Tên Phim
+    # 3. Đoán Tên Phim (Đã làm linh hoạt: chỉ cần chứa từ khóa là thắng)
     if session.active_mode == GameMode.GUESS_MOVIE:
-        if content == session.secret_target:
-            target = session.secret_target; session.reset()
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Phim", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_DEEP_PINK))
+        target = session.secret_target
+        # Nếu người dùng gõ đúng hoặc gõ chứa đáp án (vd "joker" chứa trong "gã joker")
+        if content == target or content in target:
+            session.reset()
+            await message.channel.send(embed=UIUtils.create_embed("🏆 Trả Lời Đúng!", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đã trả lời đúng!\n🎬 Tên phim: **`{target.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_DEEP_PINK))
         return
 
     # 4. Đoán Emoji
