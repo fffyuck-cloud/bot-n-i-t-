@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
-# ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
+# ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.3.0 - Rau Má Update)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.4.0 - AFK System)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.3.0 Sakura Gothic Rau Má"
+    VERSION: str = "7.4.0 Sakura Gothic AFK"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -125,7 +125,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.3)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.4)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -379,6 +379,7 @@ class UIUtils:
             f"⚙️🌸 **[ QUẢN LÝ & TIỆN ÍCH ]** 🌸⚙️\n"
             f"❯ `/themtu [từ]` ❯ **Thêm từ (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}admin` ❯ **Panel (Admin)**\n"
+            f"❯ `{BotConfig.PREFIX}afk [lý do]` ❯ **Bật chế độ AFK**\n"
             f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
@@ -441,6 +442,9 @@ bot_intents.members = True
 bot_intents.messages = True
 
 bot = commands.Bot(command_prefix=BotConfig.PREFIX, intents=bot_intents, help_command=None, case_insensitive=True)
+
+# Quản lý danh sách AFK
+afk_users: Dict[int, Dict[int, Dict[str, Union[datetime, str]]]] = {}
 
 @bot.event
 async def on_ready() -> None:
@@ -522,6 +526,32 @@ async def slash_themtu(interaction: discord.Interaction, word: str):
         await interaction.response.send_message(embed=UIUtils.build_success_embed("Thêm từ thành công", f"Đã lưu TA **`{clean_w.upper()}`**!"))
     else:
         await interaction.response.send_message(embed=UIUtils.build_invalid_word_embed("Từ TV phải 2 tiếng, TA phải 1 tiếng!"), ephemeral=True)
+
+# LỆNH MỚI: AFK SYSTEM
+@bot.command(name="afk", aliases=["away"])
+async def cmd_afk(ctx: commands.Context, *, reason: str = "Không có lý do"):
+    guild_id = ctx.guild.id
+    user_id = ctx.author.id
+    
+    if guild_id not in afk_users:
+        afk_users[guild_id] = {}
+        
+    afk_users[guild_id][user_id] = {
+        "timestamp": datetime.now(),
+        "reason": reason
+    }
+    
+    # Đổi tên thêm [AFK]
+    try:
+        if not ctx.author.display_name.startswith("[AFK] "):
+            await ctx.author.edit(nick=f"[AFK] {ctx.author.display_name}")
+    except discord.Forbidden:
+        pass
+    except Exception as e:
+        logger.error(f"Lỗi đổi tên AFK: {e}")
+        
+    desc = f"{BotConfig.BORDER}\n\n💤 {ctx.author.mention} đã chuyển sang chế độ AFK.\n📝 Lý do: *{reason}*\n\n{BotConfig.BORDER}"
+    await ctx.send(embed=UIUtils.create_embed("🌸 Chế Độ AFK", desc, BotConfig.COLOR_BLACK_CHIC))
 
 # LỆNH MỚI: TIẾP TẾ RAU MÁ
 @bot.command(name="tiepterauma", aliases=["trauma", "rauma", "tra"])
@@ -884,7 +914,42 @@ async def on_message(message: discord.Message) -> None:
     # TÍNH NĂNG: Auto-reply "dạ e đây" khi bị tag
     if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
         await message.channel.send("dạ e đây 🌸")
-        return
+        
+    # TÍNH NĂNG: XỬ LÝ AFK
+    if message.guild:
+        guild_id = message.guild.id
+        if guild_id not in afk_users:
+            afk_users[guild_id] = {}
+
+        # 1. Người dùng AFK vừa quay lại (gửi tin nhắn không phải lệnh afk)
+        if message.author.id in afk_users[guild_id] and not message.content.startswith(f"{BotConfig.PREFIX}afk"):
+            del afk_users[guild_id][message.author.id]
+            try:
+                if message.author.display_name.startswith("[AFK] "):
+                    new_nick = message.author.display_name[6:]
+                    await message.author.edit(nick=new_nick if new_nick else None)
+            except discord.Forbidden:
+                pass
+            except Exception as e:
+                logger.error(f"Lỗi đổi tên khi hết AFK: {e}")
+                
+            desc = f"{BotConfig.BORDER}\n\n👋 Chào mừng {message.author.mention} trở lại! Bot đã tự động tắt chế độ AFK. 🌸\n\n{BotConfig.BORDER}"
+            await message.channel.send(embed=UIUtils.create_embed("🌸 Hết AFK", desc, BotConfig.COLOR_SAKURA_PINK))
+
+        # 2. Ai đó tag một người đang AFK
+        for mentioned_user in message.mentions:
+            if mentioned_user.id in afk_users.get(guild_id, {}):
+                afk_data = afk_users[guild_id][mentioned_user.id]
+                time_diff = datetime.now() - afk_data["timestamp"]
+                secs = int(time_diff.total_seconds())
+                
+                if secs < 60: time_str = f"{secs} giây trước"
+                elif secs < 3600: time_str = f"{secs // 60} phút trước"
+                else: time_str = f"{secs // 3600} giờ trước"
+                
+                reason = afk_data.get("reason", "không có lý do")
+                await message.channel.send(f"💤 **NGƯỜI DÙNG NÀY ĐÃ AFK.** (Thời gian: {time_str})\n📝 Lý do: *{reason}*")
+                break
 
     await bot.process_commands(message)
     session = global_session_manager.get_session(message.channel.id)
