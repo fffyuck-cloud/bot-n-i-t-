@@ -1,7 +1,7 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
@@ -279,7 +279,7 @@ class UIUtils:
             f"🇻🇳💗 **[ NỐI TỪ TIẾNG VIỆT (2 tiếng) ]** 💗🇻🇳\n🌸 `{BotConfig.PREFIX}noitu` → PvP\n🖤 `{BotConfig.PREFIX}botnoitu` → Solo Bot\n\n"
             f"🇬🇧💗 **[ NỐI TỪ TIẾNG ANH ]** 🇬🇧\n🌸 `{BotConfig.PREFIX}noitueng` → PvP\n🖤 `{BotConfig.PREFIX}botnoitueng` → Solo Bot\n\n"
             f"👑💗 **[ GIẢI ĐỐ & ARCADE ]** 👑\n🌸 `{BotConfig.PREFIX}vuatiengviet` → Sắp xếp âm\n🌍 `{BotConfig.PREFIX}doanquocgia` → Đoán cờ\n❌ `{BotConfig.PREFIX}tictactoe` → Caro UI\n🎱 `{BotConfig.PREFIX}hoibacsi` → 8ball\n🔫 `{BotConfig.PREFIX}russianroulette` → Quay súng\n\n"
-            f"⚙️💗 **[ QUẢN LÝ & TIỆN ÍCH ]** ⚙️\n🌸 `/themtu [từ]` → (Chỉ Admin)\n🖤 `{BotConfig.PREFIX}admin` → Panel (Chỉ Admin)\n🌸 `{BotConfig.PREFIX}nghia [từ]` → Tra cứu\n👤 `{BotConfig.PREFIX}userinfo` → Info cá nhân\n🌐 `{BotConfig.PREFIX}serverinfo` → Info server\n🌸 `{BotConfig.PREFIX}ping` | `{BotConfig.PREFIX}huynoitu`\n\n{BotConfig.BORDER}"
+            f"⚙️💗 **[ QUẢN LÝ & TIỆN ÍCH ]** ⚙️\n🌸 `/themtu [từ]` → (Chỉ Admin)\n🖤 `{BotConfig.PREFIX}admin` → Panel (Chỉ Admin)\n🔄 `{BotConfig.PREFIX}restart` → Chơi lại từ đầu\n❌ `{BotConfig.PREFIX}huynoitu` → Hủy ván chơi\n🌸 `{BotConfig.PREFIX}nghia [từ]` → Tra cứu\n👤 `{BotConfig.PREFIX}userinfo` → Info cá nhân\n🌐 `{BotConfig.PREFIX}serverinfo` → Info server\n🌸 `{BotConfig.PREFIX}ping`\n\n{BotConfig.BORDER}"
         )
         return discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP ARCADE ✦", description=description, color=BotConfig.COLOR_PINK_DEEP, timestamp=datetime.now())
 
@@ -428,7 +428,6 @@ async def cmd_noitu(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
-    # Đã bỏ ## để không bị lỗi phóng to chữ
     await ctx.send(embed=UIUtils.create_embed("💕 Nối Từ PvP", f"{BotConfig.BORDER}\n\n👉 Từ: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
 @bot.command(name="botnoitu", aliases=["noituubot"])
@@ -437,7 +436,6 @@ async def cmd_botnoitu(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
-    # Đã bỏ ## để không bị lỗi phóng to chữ
     await ctx.send(embed=UIUtils.create_embed("🤖 Solo Bot TV", f"{BotConfig.BORDER}\n\n👉 Từ: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
 @bot.command(name="noitueng", aliases=["noituen"])
@@ -492,6 +490,38 @@ async def cmd_russianroulette(ctx: commands.Context) -> None:
     if bullet == chamber: desc = f"{BotConfig.BORDER}\n\n💥 **BÙMMM!** 💥\n{ctx.author.mention} đã hy sinh! 🪦\n\n{BotConfig.BORDER}"; color = BotConfig.COLOR_RED_DARK
     else: desc = f"{BotConfig.BORDER}\n\n💨 *Click...*\nTrống! {ctx.author.mention} sống sót! 🖤\n\n{BotConfig.BORDER}"; color = BotConfig.COLOR_PINK_DEEP
     await ctx.send(embed=UIUtils.create_embed("🔫 Russian Roulette", desc, color))
+
+# LỆNH MỚI: RESTART (Bắt đầu lại ván chơi mới cùng chế độ)
+@bot.command(name="restart", aliases=["choilai", "resetgame"])
+async def cmd_restart(ctx: commands.Context) -> None:
+    session = global_session_manager.get_session(ctx.channel.id)
+    if not session.is_active:
+        await ctx.send(embed=UIUtils.build_warning_embed("Lỗi", "Không có ván chơi nào đang hoạt động để restart."))
+        return
+    
+    mode = session.active_mode
+    
+    if mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
+        start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+        session.initialize_session(mode, start_word=start_word)
+        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n👉 Từ: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+        
+    elif mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
+        start_word = random.choice(ENGLISH_LIST)
+        session.initialize_session(mode, start_word=start_word)
+        await ctx.send(embed=UIUtils.create_embed("🔄 Restart Game", f"{BotConfig.BORDER}\n\nGame has been restarted!\n👉 Word: **`{start_word.upper()}`**\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+        
+    elif mode == GameMode.VUA_TIENG_VIET:
+        target = random.choice(VUA_TIENG_VIET_CANDIDATES); scrambled = GameUtils.scramble_vietnamese_syllables(target)
+        session.initialize_session(GameMode.VUA_TIENG_VIET, target=target)
+        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n🔀 **`{scrambled.upper()}`**\n\n{BotConfig.BORDER}"))
+        
+    elif mode == GameMode.GUESS_COUNTRY:
+        target = random.choice(COUNTRIES_VN_LIST); masked = GameUtils.generate_country_mask(target)
+        session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
+        iso_code = COUNTRY_CODES.get(target, "un"); flag_url = f"https://flagcdn.com/w320/{iso_code}.png"
+        embed = UIUtils.create_embed("🔄 Bắt Đầu Lại", f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}")
+        embed.set_image(url=flag_url); await ctx.send(embed=embed)
 
 @bot.command(name="huynoitu", aliases=["huygame"])
 async def cmd_huynoitu(ctx: commands.Context) -> None:
@@ -567,7 +597,6 @@ async def on_message(message: discord.Message) -> None:
                 return
             bot_word = random.choice(valid_candidates); session.used_words_history.add(bot_word); session.current_word = bot_word
             bot_syllables = bot_word.split(); next_bot_syl = bot_syllables[-1] if bot_syllables else bot_word
-            # Đã bỏ ## để không bị lỗi phóng to chữ
             await message.channel.send(embed=UIUtils.create_embed("✨💗 Lượt Đấu", f"{BotConfig.BORDER}\n\n👉 Bạn: **`{content.upper()}`**\n🤖 Bot: **`{bot_word.upper()}`**\n🌸 Tiếp: **`{next_bot_syl.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
         return
 
