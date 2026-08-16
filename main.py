@@ -49,7 +49,8 @@ class BotConfig:
     COLOR_GOLD: int = 0xFFD700          
     
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
-    BORDER: str = "🌸・┈┈┈┈┈┈┈┈┈┈┈┈・🌸" 
+    # Kéo dài đường viền để giãn max chiều rộng khung Embed trên Discord
+    BORDER: str = "🌸・┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈・🌸" 
 
 # ====================================================================================================
 # PHẦN 2: DỮ LIỆU DỰ PHÒNG & GAME DATA
