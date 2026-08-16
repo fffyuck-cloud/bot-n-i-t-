@@ -36,7 +36,8 @@ class BotConfig:
     WEB_SERVER_HOST: str = "0.0.0.0"
     WEB_SERVER_PORT: int = 8080
     
-    FILE_VIETNAMESE_DICT: str = "tu_dien.txt"
+    # ĐỔI TÊN FILE TẠI ĐÂY CHO KHỚP VỚI FILE WORDLIST CỦA BẠN
+    FILE_VIETNAMESE_DICT: str = "TuDien_TiengViet_Full_DaLoc.txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
     
@@ -51,91 +52,27 @@ class BotConfig:
     BORDER: str = "✦•┈┈┈┈┈┈┈┈┈┈┈┈•✦" 
 
 # ====================================================================================================
-# PHẦN 2: DỮ LIỆU DỰ PHÒNG KHỔNG LỒ (FULL TỪ ĐIỂN INCODE)
+# PHẦN 2: DỮ LIỆU DỰ PHÒNG (FALLBACK)
 # ====================================================================================================
 
 DEFAULT_VIETNAMESE_FALLBACK: Set[str] = {
     "an ninh", "an toàn", "ấm áp", "ẩm ướt", "ánh sáng", "áo quần", "ăn uống", "át chủ", "ba mươi", "bạc hà",
     "bạ bạt", "bạn bè", "bao dung", "bạo chúa", "bền bỉ", "bí quyết", "bình yên", "bồi đắp", "bứt phá", "bị ốm",
-    "cẩn thận", "cản trở", "cao siêu", "cật lực", "chân thật", "chiếm đoạt", "chối bỏ", "chuộc lỗi", "chấn hưng", "công bằng",
-    "cột sống", "cưỡng ép", "cảm xúc", "cứu giúp", "cúng kiến", "dạ dày", "dằn vặt", "dĩ vãng", "do dự", "dong dỏng",
-    "dũng cảm", "dụ dỗ", "dữ dội", "dốc lòng", "dấu vết", "đành đạch", "đắn đo", "đắt giá", "đơm dreaming", "đức hạnh",
-    "đà điệu", "đàm thoại", "đánh đập", "đắn đòn", "đắp xây", "đắt tay", "đau đớn", "đê mê", "điềm tĩnh", "điocxin",
-    "đỏ đực", "đongan dỏng", "đóng góp", "đồ đạc", "đồng lương", "đủ đầy", "đương đầu", "đắm đuối", "gạ gẫm", "gào thét",
-    "gắt gao", "gây gổ", "giao hảo", "giảo hoạt", "giòn giã", "giấu giếm", "giảng giải", "giá rẻ", "giếng sâu", "gion gõ",
-    "hằn học", "hạ thấp", "hão huyền", "hào hoa", "hấp hấp", "hây hây", "hăm dọa", "hèn mạt", "hiền lành", "hỏa speed",
-    "hợm hĩnh", "hùng dũng", "hướng dẫn", "hối hận", "hờn giận", "kéo dài", "kéo co", "khiêm tốn", "khoan dung", "khó khăn",
-    "khéo léo", "khống chế", "khuất phục", "kính trọng", "kệ cỗ", "kéo tơi", "kênh kiếng", "kim chỉ", "kịp thời", "khuôn vẽ",
-    "lấp lánh", "lặng lẽ", "lười biếng", "lường gạt", "lạc quan", "lãng phí", "lẫy lừng", "lì lợm", "lo lắng", "luật pháp",
-    "luyến tiếc", "mac cà", "mê mẩn", "mỏng manh", "mệt mỏi", "mịt mờ", "mơn trớn", "mùi mệ", "mưu mô", "mặn mà",
-    "nhan sắc", "nghiêm trang", "ngổ ngáo", "ngọt ngào", "nguy hiểm", "ngại ngùng", "nhàn rỗi", "nhân ái", "nhút nhát", "nóng nảy",
-    "oan khiên", "o bẹp", "ôm ấp", "ôm hờn", "phóng khoáng", "phấp phỏng", "phũ phàng", "phấn khởi", "phò ngự", "phép tắc",
-    "quyến rũ", "quát tháo", "quần quật", "quá đà", "quyền lực", "rành rẽ", "rạo rực", "rất rá", "rung rinh", "rộn rã",
-    "rười rượi", "sáng sủa", "sạch sẽ", "sảng khoái", "sừng sững", "si mê", "sợ hãi", "suy thoái", "sung sướng", "sượng sừng",
-    "tài giỏi", "tăm tối", "tỉ mỉ", "to lớn", "trống rỗng", "tuyệt vời", "thông minh", "tôn trọng", "thế lực", "tinh tế",
-    "ù lì", "ươn yếu", "vàng vọt", "vội vã", "vung vút", "vuông vắn", "vô vị", "vương vấn", "vênh váo", "van xin",
-    "xanh xám", "xa xăm", "xiên xẹo", "xinh đẹp", "xót xa", "xuề xòa", "xốc vó", "xứ xể", "yếu ớt", "yên tĩnh"
+    "cẩn thận", "cản trở", "cao siêu", "cật lực", "chân thật", "chiếm đoạt", "chối bỏ", "chuộc lỗi", "chấn hưng", "công bằng"
 }
 
 DEFAULT_ENGLISH_FALLBACK: Set[str] = {
     "apple", "anchor", "angel", "apex", "arrow", "azure", "acorn", "album", "amber", "amulet",
-    "antique", "arctic", "astro", "aura", "avocado", "axe", "alchemy", "alert", "alpine", "amaze",
-    "badger", "balance", "bamboo", "beacon", "beauty", "bison", "blade", "bless", "bliss", "blossom",
-    "bluebird", "bold", "bolt", "bonfire", "brave", "breeze", "bridged", "bronze", "bubble", "butterfly",
-    "cactus", "camel", "cascade", "castle", "cedar", "chalice", "charm", "chrome", "cipher", "clarity",
-    "cloud", "comet", "coral", "cosmic", "crane", "crescent", "crystal", "crown", "cupid", "cyber",
-    "dagger", "dawn", "deity", "delta", "demon", "desert", "diamond", "digital", "dolphin", "dragon",
-    "dream", "dusk", "dwarf", "dazzle", "decade", "decree", "depth", "destiny", "devour", "dew",
-    "eagle", "earth", "echo", "eclipse", "eden", "electric", "elephant", "elixir", "ember", "emerald",
-    "emperor", "enchant", "endless", "energy", "enigma", "epic", "equinox", "essence", "eternal", "euro",
-    "fable", "falcon", "fantasy", "fate", "fauna", "fawn", "feline", "fierce", "flame", "flash",
-    "flora", "forge", "fossil", "fractal", "free", "frost", "fury", "fusion", "future", "fable",
-    "galaxy", "gale", "garnet", "gaia", "genesis", "ghost", "giant", "glimmer", "globe", "glory",
-    "goblin", "gold", "grace", "granite", "gravity", "griffin", "guardian", "guava", "guide", "guru",
-    "habitat", "halcyon", "hallow", "harbor", "harmony", "haste", "haven", "hawk", "haze", "heart",
-    "helix", "hell", "herb", "hero", "hideout", "honor", "horizon", "hub", "huge", "hummingbird",
-    "ice", "ignite", "illusion", "imagine", "immortal", "impact", "incense", "index", "infinite", "ink",
-    "insight", "ion", "iris", "iron", "ivory", "isle", "isthmus", "item", "iterate", "ivory",
-    "jade", "jaguar", "jazz", "jest", "jet", "jewel", "jinx", "joker", "jolly", "jungle",
-    "karma", "kayak", "keen", "kestrel", "key", "kindle", "king", "kite", "knight", "koala",
-    "labyrinth", "lagoon", "lamp", "lance", "laser", "lava", "league", "legend", "lemon", "leviathan",
-    "liberty", "light", "lily", "limbo", "lion", "lizard", "loom", "lunar", "luxury", "lyric",
-    "magic", "magnet", "mansion", "maple", "mare", "mars", "mask", "maze", "medal", "mercury",
-    "meteor", "midnight", "mime", "mirror", "mist", "monarch", "moon", "morning", "muse", "mythic",
-    "nadir", "nebula", "neon", "nest", "nexus", "night", "noble", "nomad", "north", "nova",
-    "oak", "oasis", "obsidian", "ocean", "omega", "onion", "opal", "oracle", "orchid", "orca",
-    "palace", "palm", "panther", "paper", "paradox", "peace", "pearl", "pegasus", "phoenix", "pilot",
-    "pixel", "plasma", "platinum", "plume", "poseidon", "prism", "prometheus", "psalm", "pulse", "pyre",
-    "quartz", "queen", "quest", "quill", "quirk", "quota", "quiver", "quote", "quran", "quadratic",
-    "rabbit", "radar", "rage", "rainbow", "raven", "realm", "relic", "rhythm", "riddle", "river",
-    "sacred", "safari", "sage", "sanctuary", "saturn", "scepter", "scorpion", "scroll", "sea", "shadow",
-    "shield", "shrine", "sigil", "silk", "silver", "siren", "sky", "slate", "soul", "spark",
-    "talisman", "tango", "temple", "temporal", "tephra", "terra", "thunder", "tide", "tiger", "titan",
-    "topaz", "tornado", "torque", "tower", "tranquil", "tribal", "trophy", "tundra", "turret", "twilight",
-    "uber", "ultra", "umbra", "uncle", "under", "unison", "unity", "universe", "uranium", "urban",
-    "vampire", "vanilla", "vapor", "vault", "vector", "veil", "venom", "venue", "vesta", "vigor",
-    "waffle", "wander", "warden", "watch", "water", "whale", "wisp", "wolf", "wonder", "wyrm",
-    "xenon", "xylophone", "yacht", "yggdrasil", "yield", "youth", "zealot", "zenith", "zephyr", "zodiac"
+    "antique", "arctic", "astro", "aura", "avocado", "axe", "alchemy", "alert", "alpine", "amaze"
 }
 
 DEFAULT_COUNTRIES_FALLBACK: Set[str] = {
-    "việt nam", "nhật bản", "hàn quốc", "pháp", "mỹ", "anh", "đức", "ý", "nga", "trung quốc", 
-    "thái lan", "lào", "campuchia", "singapore", "malaysia", "indonesia", "philippines", "ấn độ", "canada", "úc",
-    "tây ban nha", "bồ đào nha", "brazil", "argentina", "hà lan", "thụy sĩ", "thụy điển", "bỉ", "hy lạp", "đan mạch",
-    "na uy", "phần lan", "ba lan", "séc", "slovakia", "hungary", "romania", "bulgaria", "croatia", "serbia",
-    "iceland", "ireland", "austria", "portugal", "mexico", "cuba", "chile", "colombia", "peru", "venezuela"
+    "việt nam", "nhật bản", "hàn quốc", "pháp", "mỹ", "anh", "đức", "ý", "nga", "trung quốc"
 }
 
 COUNTRY_CODES: Dict[str, str] = {
     "việt nam": "vn", "nhật bản": "jp", "hàn quốc": "kr", "pháp": "fr",
-    "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru",
-    "trung quốc": "cn", "thái lan": "th", "lào": "la", "campuchia": "kh",
-    "singapore": "sg", "malaysia": "my", "indonesia": "id", "philippines": "ph",
-    "ấn độ": "in", "canada": "ca", "úc": "au", "australia": "au",
-    "tây ban nha": "es", "bồ đào nha": "pt", "brazil": "br", "argentina": "ar",
-    "hà lan": "nl", "thụy sĩ": "ch", "thụy điển": "se", "bỉ": "be", "hy lạp": "gr",
-    "đan mạch": "dk", "na uy": "no", "phần lan": "fi", "ba lan": "pl", "séc": "cz",
-    "hungary": "hu", "iceland": "is", "mexico": "mx", "cuba": "cu", "chile": "cl"
+    "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru", "trung quốc": "cn"
 }
 
 # ====================================================================================================
@@ -207,9 +144,13 @@ class DataManager:
             logger.error(f"Lỗi ghi file {filepath}: {err}")
             return False
 
-COMBINED_VIETNAMESE_DICTIONARY: Set[str] = DataManager.load_text_file(BotConfig.FILE_VIETNAMESE_DICT, DEFAULT_VIETNAMESE_FALLBACK)
+# Lấy dữ liệu thô từ file
+RAW_VIETNAMESE_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_VIETNAMESE_DICT, DEFAULT_VIETNAMESE_FALLBACK)
 ENGLISH_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_ENGLISH_DICT, DEFAULT_ENGLISH_FALLBACK)
 COUNTRIES_VN_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_COUNTRIES_DICT, DEFAULT_COUNTRIES_FALLBACK)
+
+# BỔ SUNG BỘ LỌC: Chỉ giữ lại từ 2 âm tiết cho game Nối Từ Tiếng Việt để tránh lỗi luật chơi
+COMBINED_VIETNAMESE_DICTIONARY: Set[str] = {w for w in RAW_VIETNAMESE_DICT if len(w.split()) == 2}
 
 COMBINED_VIETNAMESE_LIST: List[str] = list(COMBINED_VIETNAMESE_DICTIONARY)
 ENGLISH_LIST: List[str] = list(ENGLISH_DICT)
@@ -412,7 +353,7 @@ async def on_ready() -> None:
 async def on_command_error(ctx: commands.Context, error: Exception) -> None:
     if isinstance(error, commands.CommandNotFound): pass
     elif isinstance(error, commands.MissingRequiredArgument): await ctx.send(embed=UIUtils.build_warning_embed("Thiếu Thông Tin", f"Vui lòng gõ `{BotConfig.PREFIX}help`."))
-    elif isinstance(error, commands.CheckFailure): await ctx.send(embed=UIUtils.build_warning_embed("Quyền Truy Cấp", "🖤 Lệnh này dành riêng cho **Owner**!"))
+    elif isinstance(error, commands.CheckFailure): await ctx.send(embed=UIUtils.build_warning_embed("Quyền Truy Cập", "🖤 Lệnh này dành riêng cho **Owner**!"))
     else: logger.error(f"Lỗi lệnh: {error}")
 
 @bot.command(name="ping")
