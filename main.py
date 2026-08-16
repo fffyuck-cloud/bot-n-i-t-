@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.0.0 - Diacritics Fix)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.1.0 - Image Always Shows)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.0.0 Sakura Gothic Logic Fix"
+    VERSION: str = "7.1.0 Sakura Gothic Image Fix"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -40,7 +40,6 @@ class BotConfig:
     FILE_VIETNAMESE_DICT: str = "Full_TuDien_TiengViet_MoRong_CVT.txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
-    FILE_MOVIES_DATA: str = "movies_filtered.csv" 
     
     COLOR_SAKURA_PINK: int = 0xFFB7C5   
     COLOR_DEEP_PINK: int = 0xFF1493     
@@ -74,15 +73,23 @@ COUNTRY_CODES: Dict[str, str] = {
     "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru", "trung quốc": "cn"
 }
 
+# Danh sách phim nổi tiếng (LUÔN CÓ ẢNH BACKDROP KHÔNG LỘ TÊN PHIM)
 FALLBACK_MOVIES_DATA: List[Dict[str, str]] = [
     {"title": "kẻ trộm giấc mơ", "clue": "🌟 Ngủ đông trong mơ, con quay còn xoay... 🌀", "image": "https://image.tmdb.org/t/p/w500/s3TBrRGB1iav7gFOCNx3HvMo4J4.jpg"},
     {"title": "titanic", "clue": "🚢 Tảng băng trôi, bài hát My Heart Will Go On 💔", "image": "https://image.tmdb.org/t/p/w500/2bXcWyivE3atm2bUCVn0gSZweBO.jpg"},
-    {"title": "avatar", "clue": "👽 Người Na'vi màu xanh 🌳", "image": "https://image.tmdb.org/t/p/w500/ZdQNo9Zk4XO6Bo1nLzEZbI3ayq.jpg"},
+    {"title": "avatar", "clue": "👽 Người Na'vi màu xanh 🌳", "image": "https://image.tmdb.org/t/p/w500/2B0bWqU7lTr7gRgSjIwO4W4cQ0M.jpg"},
     {"title": "ký sinh trùng", "clue": "🪨 Giới siêu giàu và gia đình nghèo len lỏi 🏠", "image": "https://image.tmdb.org/t/p/w500/TU9NIjwzjoKPwQHoHshkFcQUCG.jpg"},
     {"title": "joker", "clue": "🃏 Kẻ thù của Batman, nụ cười rùng rợn 🤡", "image": "https://image.tmdb.org/t/p/w500/ijQ4s9h7KQ3oJX47j7zev8a3Jhf.jpg"},
     {"title": "hack não", "clue": "💊 Viên thuốc đỏ hay xanh? 🕶️ Mã nhị phân", "image": "https://image.tmdb.org/t/p/w500/icmmSD4vTTDKOq2vvdulafOGw93.jpg"},
     {"title": "nữ hoàng băng giá", "clue": "❄️ Elsa và Anna ⛄", "image": "https://image.tmdb.org/t/p/w500/7H7TrYnHqNLUc5AknSdVZPbZm5B.jpg"},
-    {"title": "người nhện", "clue": "🕷️ Người hàng xóm thân thiện 🕸️", "image": "https://image.tmdb.org/t/p/w500/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg"}
+    {"title": "người nhện", "clue": "🕷️ Người hàng xóm thân thiện 🕸️", "image": "https://image.tmdb.org/t/p/w500/1R6cvRtZgsYC5pQmDh2nO3tdY4w.jpg"},
+    {"title": "hố đen vũ trụ", "clue": "🌌 Du hành vũ trụ, tìm hành tinh mới 🚀", "image": "https://image.tmdb.org/t/p/w500/xJHokMbljvjADYdit5fS5JsdtyZ.jpg"},
+    {"title": "kỵ sĩ bóng đêm", "clue": "🦇 Người dơi và Joker ⚡", "image": "https://image.tmdb.org/t/p/w500/hqkIcbrOHL86UncnHIsHVcVmzue.jpg"},
+    {"title": "biệt đội siêu anh hùng", "clue": "💥 Đánh bại Thanos, hoàn nguyên ★", "image": "https://image.tmdb.org/t/p/w500/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg"},
+    {"title": "vua sư tử", "clue": "🦁 Simba và Pride Rock 🌅", "image": "https://image.tmdb.org/t/p/w500/wTXs2WdH9N2mP3fRbExXe5Jz0pI.jpg"},
+    {"title": "chàng trai tốt bụng", "clue": "🏃 Chạy xuyên nước Mỹ, hộp sô-cô-la 🍫", "image": "https://image.tmdb.org/t/p/w500/3h1JZGDhZ8nzxdgvkxha0qBqi05.jpg"},
+    {"title": "bố già", "clue": "🐎 Mafia Ý, gia đình Corleone 🍷", "image": "https://image.tmdb.org/t/p/w500/tmU7GeKVybMWFButWEGl2M4GeiP.jpg"},
+    {"title": "harry potter", "clue": "⚡ Phù thủy, trường Hogwarts 🦉", "image": "https://image.tmdb.org/t/p/w500/3yEUqjTrfyOaIctqL2t7gWc6c9w.jpg"}
 ]
 
 EMOJI_DATA: List[Dict[str, str]] = [
@@ -119,7 +126,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.0)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.1)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -165,39 +172,9 @@ class DataManager:
             logger.error(f"Lỗi ghi file {filepath}: {err}")
             return False
 
-    @staticmethod
-    def load_movies_file(filepath: str, fallback_dataset: List[Dict[str, str]]) -> List[Dict[str, str]]:
-        movies = list(fallback_dataset)
-        if os.path.exists(filepath):
-            try:
-                with open(filepath, "r", encoding="utf-8-sig") as f:
-                    lines = f.readlines()
-                    for line in lines[1:]:
-                        parts = [p.strip() for p in line.split('|')]
-                        if len(parts) >= 7:
-                            title = parts[2]
-                            year = parts[4]
-                            genres = parts[6]
-                            image_url = parts[7] if len(parts) > 7 and parts[7] != 'N' and parts[7].startswith('http') else ""
-                            if title and year != 'N' and genres != 'N':
-                                movies.append({
-                                    "title": title.lower(),
-                                    "clue": f"📅 Năm phát hành: {year} | 🎭 Thể loại: {genres}",
-                                    "image": image_url
-                                })
-                logger.info(f"🖤🌸 Đã nạp tổng cộng {len(movies):,} bộ phim (gồm mặc định và CSV).")
-            except Exception as err:
-                logger.error(f"Lỗi đọc file phim CSV {filepath}: {err}")
-        else:
-            logger.warning(f"Không tìm thấy file [{filepath}]. Dùng dữ liệu phim mặc định.")
-        return movies
-
 RAW_VIETNAMESE_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_VIETNAMESE_DICT, DEFAULT_VIETNAMESE_FALLBACK)
 ENGLISH_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_ENGLISH_DICT, DEFAULT_ENGLISH_FALLBACK)
 COUNTRIES_VN_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_COUNTRIES_DICT, DEFAULT_COUNTRIES_FALLBACK)
-
-MOVIES_LIST: List[Dict[str, str]] = DataManager.load_movies_file(BotConfig.FILE_MOVIES_DATA, FALLBACK_MOVIES_DATA)
-MOVIES_WITH_IMAGES: List[Dict[str, str]] = [m for m in MOVIES_LIST if m.get("image")]
 
 COMBINED_VIETNAMESE_DICTIONARY: Set[str] = {w for w in RAW_VIETNAMESE_DICT if len(w.split()) == 2}
 
@@ -490,7 +467,7 @@ async def sys_ping(ctx: commands.Context) -> None:
 
 @bot.command(name="about")
 async def sys_about(ctx: commands.Context) -> None:
-    desc = f"{BotConfig.BORDER}\n\n🤖 **Sakura Arcade ({BotConfig.VERSION})**\n• 🇻🇳 TV: {len(COMBINED_VIETNAMESE_DICTIONARY):,}\n• 🇬🇧 TA: {len(ENGLISH_DICT):,}\n• 🌍 QG: {len(COUNTRIES_VN_DICT):,}\n• 🎬 Phim: {len(MOVIES_LIST):,}\n\n{BotConfig.BORDER}"
+    desc = f"{BotConfig.BORDER}\n\n🤖 **Sakura Arcade ({BotConfig.VERSION})**\n• 🇻🇳 TV: {len(COMBINED_VIETNAMESE_DICTIONARY):,}\n• 🇬🇧 TA: {len(ENGLISH_DICT):,}\n• 🌍 QG: {len(COUNTRIES_VN_DICT):,}\n• 🎬 Phim: {len(FALLBACK_MOVIES_DATA):,}\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🖤🌸 Về Hệ Thống", desc, BotConfig.COLOR_BLACK_CHIC))
 
 @bot.command(name="help", aliases=["menu"])
@@ -750,9 +727,8 @@ async def cmd_doantenphim(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     
-    movie_pool = MOVIES_WITH_IMAGES if MOVIES_WITH_IMAGES else MOVIES_LIST
-    movie = random.choice(movie_pool)
-    
+    # Chỉ sử dụng danh sách phim nổi tiếng có sẵn ảnh backdrop (không lộ tên phim)
+    movie = random.choice(FALLBACK_MOVIES_DATA)
     session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
     
     desc = (f"{BotConfig.BORDER}\n\n"
@@ -853,8 +829,7 @@ async def cmd_restart(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}", image_url=flag_url))
         
     elif mode == GameMode.GUESS_MOVIE:
-        movie_pool = MOVIES_WITH_IMAGES if MOVIES_WITH_IMAGES else MOVIES_LIST
-        movie = random.choice(movie_pool)
+        movie = random.choice(FALLBACK_MOVIES_DATA)
         session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
         desc = (f"{BotConfig.BORDER}\n\n"
                 f"🎬 Ván chơi đã được làm mới!\n"
@@ -915,11 +890,10 @@ async def on_message(message: discord.Message) -> None:
     # 3. Đoán Tên Phim (ĐÃ SỬA LOGIC: Bỏ dấu tiếng Việt để so sánh chính xác)
     if session.active_mode == GameMode.GUESS_MOVIE:
         target = session.secret_target
-        # Loại bỏ dấu tiếng Việt của đáp án để so sánh với câu trả lời không dấu của người chơi
         target_no_diacritics = GameUtils.remove_diacritics(target).lower()
+        content_no_diacritics = GameUtils.remove_diacritics(content).lower()
         
-        # Nếu người dùng gõ đúng, hoặc câu trả lời chứa đáp án, hoặc đáp án chứa câu trả lời (không phân biệt dấu)
-        if content == target or content == target_no_diacritics or content in target_no_diacritics or target_no_diacritics in content:
+        if content == target or content == target_no_diacritics or content_no_diacritics == target or content_no_diacritics == target_no_diacritics or content_no_diacritics in target_no_diacritics or target_no_diacritics in content_no_diacritics:
             session.reset()
             await message.channel.send(embed=UIUtils.create_embed("🏆 Trả Lời Đúng!", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đã trả lời đúng!\n🎬 Tên phim: **`{target.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_DEEP_PINK))
         return
@@ -928,7 +902,9 @@ async def on_message(message: discord.Message) -> None:
     if session.active_mode == GameMode.GUESS_EMOJI:
         target = session.secret_target
         target_no_diacritics = GameUtils.remove_diacritics(target).lower()
-        if content == target or content == target_no_diacritics or content in target_no_diacritics or target_no_diacritics in content:
+        content_no_diacritics = GameUtils.remove_diacritics(content).lower()
+        
+        if content == target or content == target_no_diacritics or content_no_diacritics == target or content_no_diacritics == target_no_diacritics or content_no_diacritics in target_no_diacritics or target_no_diacritics in content_no_diacritics:
             session.reset()
             await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Emoji", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
         return
