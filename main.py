@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.7.0 - Movie Posters Ready)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v6.8.0 - Image Fix)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "6.7.0 Sakura Gothic Movies Image"
+    VERSION: str = "6.8.0 Sakura Gothic Movies Fix"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -74,7 +74,7 @@ COUNTRY_CODES: Dict[str, str] = {
     "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru", "trung quốc": "cn"
 }
 
-# Dữ liệu phim mặc định (có sẵn ảnh poster)
+# Dữ liệu phim mặc định (LUÔN CÓ SẴN ẢNH POSTER)
 FALLBACK_MOVIES_DATA: List[Dict[str, str]] = [
     {"title": "kẻ trộm giấc mơ", "clue": "🌟 Ngủ đông trong mơ, con quay còn xoay... 🌀", "image": "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQBCVgYW0.jpg"},
     {"title": "titanic", "clue": "🚢 Tảng băng trôi, bài hát My Heart Will Go On 💔", "image": "https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg"},
@@ -120,7 +120,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v6.7)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v6.8)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -174,15 +174,13 @@ class DataManager:
             try:
                 with open(filepath, "r", encoding="utf-8-sig") as f:
                     lines = f.readlines()
-                    # Bỏ qua dòng tiêu đề (dòng 0)
-                    for line in lines[1:]:
+                    for line in lines[1:]: # Bỏ qua dòng tiêu đề
                         parts = [p.strip() for p in line.split('|')]
-                        # parts[0]: index, parts[1]: id, parts[2]: title, parts[3]: original_title, parts[4]: year, parts[5]: runtime, parts[6]: genres, parts[7]: image (nếu có)
                         if len(parts) >= 7:
                             title = parts[2]
                             year = parts[4]
                             genres = parts[6]
-                            image_url = parts[7] if len(parts) > 7 and parts[7] != 'N' else "" # Đọc link ảnh nếu có
+                            image_url = parts[7] if len(parts) > 7 and parts[7] != 'N' and parts[7].startswith('http') else ""
                             if title and year != 'N' and genres != 'N':
                                 movies.append({
                                     "title": title.lower(),
@@ -202,6 +200,8 @@ COUNTRIES_VN_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_COUNTRIE
 
 # Nạp danh sách phim
 MOVIES_LIST: List[Dict[str, str]] = DataManager.load_movies_file(BotConfig.FILE_MOVIES_DATA, FALLBACK_MOVIES_DATA)
+# Lọc ra những bộ phim THỰC SỰ CÓ ẢNH POSTER để ưu tiên random, tránh tình trạng không hiện ảnh
+MOVIES_WITH_IMAGES: List[Dict[str, str]] = [m for m in MOVIES_LIST if m.get("image")]
 
 COMBINED_VIETNAMESE_DICTIONARY: Set[str] = {w for w in RAW_VIETNAMESE_DICT if len(w.split()) == 2}
 
@@ -352,14 +352,14 @@ class GameUtils:
 class UIUtils:
     DEFAULT_FOOTER_ICON = "https://cdn.discordapp.com/embed/avatars/0.png"
     DEFAULT_THUMBNAIL = "https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
-    BANNER_IMAGE = "https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+    # Đổi sang link ảnh Sakura vĩnh viễn và ổn định hơn
+    BANNER_IMAGE = "https://i.pinimg.com/736x/8c/a3/1f/8ca31f3c7f89c2a7a6575b06e3c7a1f2.jpg"
 
     @staticmethod
     def create_embed(title: str, description: str, color: int = BotConfig.COLOR_SAKURA_PINK, image_url: str = None) -> discord.Embed:
         embed = discord.Embed(title=title, description=description, color=color, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
-        # Nếu có ảnh riêng (ảnh phim) thì dùng, không thì dùng ảnh nền Sakura
         embed.set_image(url=image_url if image_url else UIUtils.BANNER_IMAGE)
         return embed
 
@@ -748,15 +748,17 @@ async def cmd_doanquocgia(ctx: commands.Context) -> None:
     target = random.choice(COUNTRIES_VN_LIST); masked = GameUtils.generate_country_mask(target)
     session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
     iso_code = COUNTRY_CODES.get(target, "un"); flag_url = f"https://flagcdn.com/w320/{iso_code}.png"
-    embed = UIUtils.create_embed("🌍 Đoán Quốc Gia", f"{BotConfig.BORDER}\n\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}", image_url=flag_url)
-    await ctx.send(embed=embed)
+    await ctx.send(embed=UIUtils.create_embed("🌍 Đoán Quốc Gia", f"{BotConfig.BORDER}\n\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}", image_url=flag_url))
 
 @bot.command(name="doantenphim", aliases=["tenphim", "phim"])
 async def cmd_doantenphim(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     
-    movie = random.choice(MOVIES_LIST)
+    # Ưu tiên chọn phim CÓ SẴN ẢNH POSTER để hiện ảnh, nếu không có mới lấy phim không ảnh
+    movie_pool = MOVIES_WITH_IMAGES if MOVIES_WITH_IMAGES else MOVIES_LIST
+    movie = random.choice(movie_pool)
+    
     session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
     
     desc = (f"{BotConfig.BORDER}\n\n"
@@ -766,7 +768,7 @@ async def cmd_doantenphim(ctx: commands.Context) -> None:
             f"⏳ *Không có giới hạn thời gian, nhưng hãy nhanh lên!*\n\n"
             f"{BotConfig.BORDER}")
     
-    # Truyền link ảnh phim vào embed (nếu phim không có ảnh sẽ tự động dùng ảnh Sakura)
+    # Truyền link ảnh phim vào embed, nếu phim không có ảnh sẽ tự lấy ảnh nền Sakura
     await ctx.send(embed=UIUtils.create_embed("🎟️ [ ĐOÁN TÊN PHIM ] 🎟️", desc, BotConfig.COLOR_DEEP_PINK, movie.get("image", None)))
 
 @bot.command(name="doanemoji", aliases=["emoji", "phanloaiemoji"])
@@ -858,7 +860,8 @@ async def cmd_restart(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}", image_url=flag_url))
         
     elif mode == GameMode.GUESS_MOVIE:
-        movie = random.choice(MOVIES_LIST)
+        movie_pool = MOVIES_WITH_IMAGES if MOVIES_WITH_IMAGES else MOVIES_LIST
+        movie = random.choice(movie_pool)
         session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
         desc = (f"{BotConfig.BORDER}\n\n"
                 f"🎬 Ván chơi đã được làm mới!\n"
