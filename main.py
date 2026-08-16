@@ -1,7 +1,7 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
@@ -278,7 +278,8 @@ class UIUtils:
             f"{BotConfig.BORDER}\n\n💬 **Black & Pink Arcade Bot (v5.1.0 - 1K2 Gothic)**\n"
             f"🇻🇳💗 **[ NỐI TỪ TIẾNG VIỆT (2 tiếng) ]** 💗🇻🇳\n🌸 `{BotConfig.PREFIX}noitu` → PvP\n🖤 `{BotConfig.PREFIX}botnoitu` → Solo Bot\n\n"
             f"🇬🇧💗 **[ NỐI TỪ TIẾNG ANH ]** 🇬🇧\n🌸 `{BotConfig.PREFIX}noitueng` → PvP\n🖤 `{BotConfig.PREFIX}botnoitueng` → Solo Bot\n\n"
-            f"👑💗 **[ GIẢI ĐỐ & ARCADE ]** 👑\n🌸 `{BotConfig.PREFIX}vuatiengviet` → Sắp xếp âm\n🌍 `{BotConfig.PREFIX}doanquocgia` → Đoán cờ\n❌ `{BotConfig.PREFIX}tictactoe` → Caro UI\n🎱 `{BotConfig.PREFIX}hoibacsi` → 8ball\n🔫 `{BotConfig.PREFIX}russianroulette` → Quay súng\n\n"
+            # ĐÃ XÓA 3 MỤC TICTACTOE, HOIBACSI, RUSSIANROULETTE TẠI ĐÂY
+            f"👑💗 **[ GIẢI ĐỐ & ARCADE ]** 👑\n🌸 `{BotConfig.PREFIX}vuatiengviet` → Sắp xếp âm\n🌍 `{BotConfig.PREFIX}doanquocgia` → Đoán cờ\n\n"
             f"⚙️💗 **[ QUẢN LÝ & TIỆN ÍCH ]** ⚙️\n🌸 `/themtu [từ]` → (Chỉ Admin)\n🖤 `{BotConfig.PREFIX}admin` → Panel (Chỉ Admin)\n🔄 `{BotConfig.PREFIX}restart` → Chơi lại từ đầu\n❌ `{BotConfig.PREFIX}huynoitu` → Hủy ván chơi\n🌸 `{BotConfig.PREFIX}nghia [từ]` → Tra cứu\n👤 `{BotConfig.PREFIX}userinfo` → Info cá nhân\n🌐 `{BotConfig.PREFIX}serverinfo` → Info server\n🌸 `{BotConfig.PREFIX}ping`\n\n{BotConfig.BORDER}"
         )
         return discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP ARCADE ✦", description=description, color=BotConfig.COLOR_PINK_DEEP, timestamp=datetime.now())
