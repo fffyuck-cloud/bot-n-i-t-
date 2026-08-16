@@ -1,7 +1,7 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
@@ -36,7 +36,6 @@ class BotConfig:
     WEB_SERVER_HOST: str = "0.0.0.0"
     WEB_SERVER_PORT: int = 8080
     
-    # ĐỔI TÊN FILE TẠI ĐÂY CHO KHỚP VỚI FILE WORDLIST MỚI CỦA BẠN
     FILE_VIETNAMESE_DICT: str = "Full_TuDien_TiengViet_MoRong_CVT.txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
@@ -429,7 +428,8 @@ async def cmd_noitu(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
-    await ctx.send(embed=UIUtils.create_embed("💕 Nối Từ PvP", f"{BotConfig.BORDER}\n\n## {start_word.upper()}\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+    # Đã bỏ ## để không bị lỗi phóng to chữ
+    await ctx.send(embed=UIUtils.create_embed("💕 Nối Từ PvP", f"{BotConfig.BORDER}\n\n👉 Từ: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
 @bot.command(name="botnoitu", aliases=["noituubot"])
 async def cmd_botnoitu(ctx: commands.Context) -> None:
@@ -437,7 +437,8 @@ async def cmd_botnoitu(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
-    await ctx.send(embed=UIUtils.create_embed("🤖 Solo Bot TV", f"{BotConfig.BORDER}\n\n## {start_word.upper()}\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+    # Đã bỏ ## để không bị lỗi phóng to chữ
+    await ctx.send(embed=UIUtils.create_embed("🤖 Solo Bot TV", f"{BotConfig.BORDER}\n\n👉 Từ: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
 @bot.command(name="noitueng", aliases=["noituen"])
 async def cmd_noitueng(ctx: commands.Context) -> None:
@@ -445,7 +446,7 @@ async def cmd_noitueng(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     start_word = random.choice(ENGLISH_LIST)
     session.initialize_session(GameMode.PVP_ENGLISH, start_word=start_word)
-    await ctx.send(embed=UIUtils.create_embed("🇬🇧 English PvP", f"{BotConfig.BORDER}\n\n## {start_word.upper()}\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+    await ctx.send(embed=UIUtils.create_embed("🇬🇧 English PvP", f"{BotConfig.BORDER}\n\n👉 Word: **`{start_word.upper()}`**\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
 @bot.command(name="botnoitueng", aliases=["noituubotteng"])
 async def cmd_botnoitueng(ctx: commands.Context) -> None:
@@ -453,7 +454,7 @@ async def cmd_botnoitueng(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     start_word = random.choice(ENGLISH_LIST)
     session.initialize_session(GameMode.BOT_ENGLISH, start_word=start_word)
-    await ctx.send(embed=UIUtils.create_embed("🤖 English Bot", f"{BotConfig.BORDER}\n\n## {start_word.upper()}\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+    await ctx.send(embed=UIUtils.create_embed("🤖 English Bot", f"{BotConfig.BORDER}\n\n👉 Word: **`{start_word.upper()}`**\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
 @bot.command(name="vuatiengviet")
 async def cmd_vuatiengviet(ctx: commands.Context) -> None:
@@ -461,7 +462,7 @@ async def cmd_vuatiengviet(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     target = random.choice(VUA_TIENG_VIET_CANDIDATES); scrambled = GameUtils.scramble_vietnamese_syllables(target)
     session.initialize_session(GameMode.VUA_TIENG_VIET, target=target)
-    await ctx.send(embed=UIUtils.create_embed("👑 Vua Tiếng Việt", f"{BotConfig.BORDER}\n\n## 🔀 {scrambled}\n\n{BotConfig.BORDER}"))
+    await ctx.send(embed=UIUtils.create_embed("👑 Vua Tiếng Việt", f"{BotConfig.BORDER}\n\n🔀 **`{scrambled.upper()}`**\n\n{BotConfig.BORDER}"))
 
 @bot.command(name="doanquocgia")
 async def cmd_doanquocgia(ctx: commands.Context) -> None:
@@ -470,7 +471,7 @@ async def cmd_doanquocgia(ctx: commands.Context) -> None:
     target = random.choice(COUNTRIES_VN_LIST); masked = GameUtils.generate_country_mask(target)
     session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
     iso_code = COUNTRY_CODES.get(target, "un"); flag_url = f"https://flagcdn.com/w320/{iso_code}.png"
-    embed = UIUtils.create_embed("🌍 Đoán Quốc Gia", f"{BotConfig.BORDER}\n\n## 🗺️ {masked}\n\n{BotConfig.BORDER}")
+    embed = UIUtils.create_embed("🌍 Đoán Quốc Gia", f"{BotConfig.BORDER}\n\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}")
     embed.set_image(url=flag_url); await ctx.send(embed=embed)
 
 @bot.command(name="tictactoe", aliases=["caro"])
@@ -535,13 +536,10 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng ĐQG", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
         return
 
-    # 3. Nối Từ Tiếng Việt (SILENT IGNORE: 1 từ hoặc 3+ từ)
+    # 3. Nối Từ Tiếng Việt
     if session.active_mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
         parts = content.split()
-        
-        # YÊU CẦU: Chỉ chấp nhận ĐÚNG 2 TIẾNG. Nếu 1 tiếng hoặc 3 tiếng trở lên -> LỜ ĐI, KHÔNG NÓI GÌ
-        if len(parts) != 2:
-            return 
+        if len(parts) != 2: return 
             
         if content not in COMBINED_VIETNAMESE_DICTIONARY:
             await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển (thiếu dấu/sai chính tả)!"))
@@ -559,7 +557,7 @@ async def on_message(message: discord.Message) -> None:
         next_syl = parts[-1]
         
         if session.active_mode == GameMode.PVP_VIETNAMESE:
-            await message.channel.send(embed=UIUtils.create_embed("✨ Thành Công!", f"{BotConfig.BORDER}\n\nTừ: **`{content.upper()}`**\n🌸 Tiếp: **`{next_syl.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
+            await message.channel.send(embed=UIUtils.create_embed("✨ Thành Công!", f"{BotConfig.BORDER}\n\n👉 Bạn: **`{content.upper()}`**\n🌸 Tiếp: **`{next_syl.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
         elif session.active_mode == GameMode.BOT_VIETNAMESE:
             candidates = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(next_syl, [])
             valid_candidates = [w for w in candidates if w not in session.used_words_history]
@@ -569,14 +567,13 @@ async def on_message(message: discord.Message) -> None:
                 return
             bot_word = random.choice(valid_candidates); session.used_words_history.add(bot_word); session.current_word = bot_word
             bot_syllables = bot_word.split(); next_bot_syl = bot_syllables[-1] if bot_syllables else bot_word
-            await message.channel.send(embed=UIUtils.create_embed("✨💗 Lượt Đấu", f"{BotConfig.BORDER}\n\n✨ Bạn: **`{content.upper()}`**\n🤖 **Bot:** ## {bot_word.upper()}\n🌸 Tiếp: **`{next_bot_syl.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
+            # Đã bỏ ## để không bị lỗi phóng to chữ
+            await message.channel.send(embed=UIUtils.create_embed("✨💗 Lượt Đấu", f"{BotConfig.BORDER}\n\n👉 Bạn: **`{content.upper()}`**\n🤖 Bot: **`{bot_word.upper()}`**\n🌸 Tiếp: **`{next_bot_syl.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
         return
 
-    # 4. Nối Từ Tiếng Anh (SILENT IGNORE: 2+ từ hoặc chứa số)
+    # 4. Nối Từ Tiếng Anh
     if session.active_mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
-        # YÊU CẦU: Chỉ chấp nhận 1 từ (không có khoảng trắng). Nếu 2 từ trở lên -> LỜ ĐI, KHÔNG NÓI GÌ
-        if not content.isalpha():
-            return
+        if not content.isalpha(): return
             
         if content not in ENGLISH_DICT:
             await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển TA!"))
@@ -593,7 +590,7 @@ async def on_message(message: discord.Message) -> None:
         next_letter = content[-1]
         
         if session.active_mode == GameMode.PVP_ENGLISH:
-            await message.channel.send(embed=UIUtils.create_embed("✨ Success!", f"{BotConfig.BORDER}\n\nWord: **`{content.upper()}`**\n🌸 Letter: **`{next_letter.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
+            await message.channel.send(embed=UIUtils.create_embed("✨ Success!", f"{BotConfig.BORDER}\n\n👉 You: **`{content.upper()}`**\n🌸 Letter: **`{next_letter.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
         elif session.active_mode == GameMode.BOT_ENGLISH:
             candidates = ENGLISH_INDEX_BY_FIRST_LETTER.get(next_letter, [])
             valid_candidates = [w for w in candidates if w not in session.used_words_history]
@@ -603,7 +600,7 @@ async def on_message(message: discord.Message) -> None:
                 return
             bot_word = random.choice(valid_candidates); session.used_words_history.add(bot_word); session.current_word = bot_word
             next_bot_letter = bot_word[-1]
-            await message.channel.send(embed=UIUtils.create_embed("✨💗 Round", f"{BotConfig.BORDER}\n\nYou: **`{content.upper()}`**\n🤖 **Bot:** ## {bot_word.upper()}\n🌸 Letter: **`{next_bot_letter.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
+            await message.channel.send(embed=UIUtils.create_embed("✨💗 Round", f"{BotConfig.BORDER}\n\n👉 You: **`{content.upper()}`**\n🤖 Bot: **`{bot_word.upper()}`**\n🌸 Letter: **`{next_bot_letter.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_PINK_DEEP))
         return
 
 # ====================================================================================================
