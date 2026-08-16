@@ -317,19 +317,25 @@ class GameUtils:
 
 class UIUtils:
     DEFAULT_FOOTER_ICON = "https://cdn.discordapp.com/embed/avatars/0.png"
-    DEFAULT_THUMBNAIL = "https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80" # Hoa anh đào tối
+    DEFAULT_THUMBNAIL = "https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80"
+    # Ảnh Banner Hoa Anh Đào (Lấy từ Unsplash để không bao giờ hết hạn)
+    BANNER_IMAGE = "https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
 
     @staticmethod
     def create_embed(title: str, description: str, color: int = BotConfig.COLOR_SAKURA_PINK) -> discord.Embed:
         embed = discord.Embed(title=title, description=description, color=color, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
+        embed.set_image(url=UIUtils.BANNER_IMAGE) # Thêm banner dưới cùng
         return embed
 
     @staticmethod
     def build_warning_embed(title: str, warning_msg: str) -> discord.Embed:
         desc = f"{BotConfig.BORDER}\n\n⚠️ **{title}**\n\n{warning_msg}\n\n{BotConfig.BORDER}"
-        return discord.Embed(title="🚫 Cảnh Báo", description=desc, color=BotConfig.COLOR_RED_DARK, timestamp=datetime.now())
+        embed = discord.Embed(title="🚫 Cảnh Báo", description=desc, color=BotConfig.COLOR_RED_DARK, timestamp=datetime.now())
+        embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
+        embed.set_image(url=UIUtils.BANNER_IMAGE)
+        return embed
 
     @staticmethod
     def build_invalid_word_embed(reason: str) -> discord.Embed:
@@ -337,12 +343,15 @@ class UIUtils:
         embed = discord.Embed(title="💔 [ TỪ KHÔNG HỢP LỆ ] 💔", description=description, color=BotConfig.COLOR_RED_DARK, timestamp=datetime.now())
         embed.set_footer(text="Hệ thống kiểm duyệt Sakura", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
+        embed.set_image(url=UIUtils.BANNER_IMAGE)
         return embed
 
     @staticmethod
     def build_success_embed(title: str, success_msg: str) -> discord.Embed:
         desc = f"{BotConfig.BORDER}\n\n✨ **{title.upper()}** ✨\n\n{success_msg}\n\n{BotConfig.BORDER}"
-        return discord.Embed(title="🌸 Thành Công 🌸", description=desc, color=BotConfig.COLOR_DEEP_PINK, timestamp=datetime.now())
+        embed = discord.Embed(title="🌸 Thành Công 🌸", description=desc, color=BotConfig.COLOR_DEEP_PINK, timestamp=datetime.now())
+        embed.set_image(url=UIUtils.BANNER_IMAGE)
+        return embed
 
     @staticmethod
     def build_help_embed() -> discord.Embed:
@@ -383,6 +392,7 @@ class UIUtils:
         embed = discord.Embed(title="✦ HỆ THỐNG TRỢ GIÚP SAKURA ✦", description=description, color=BotConfig.COLOR_SAKURA_PINK, timestamp=datetime.now())
         embed.set_footer(text="🖤🌸 Sakura Black Pink Arcade 🌸🖤", icon_url=UIUtils.DEFAULT_FOOTER_ICON)
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
+        embed.set_image(url=UIUtils.BANNER_IMAGE)
         return embed
 
 class TicTacToeView(View):
