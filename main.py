@@ -1,16 +1,17 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.7.1 - Ship PNG Fix)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.8 - Hint & Daily System)
 # ====================================================================================================
 
 import os
 import sys
+import json
 import random
 import logging
 import asyncio
@@ -31,7 +32,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.7.1 Sakura Gothic Ship PNG Fix"
+    VERSION: str = "7.8 Sakura Gothic Hint & Daily"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -146,7 +147,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.6)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.8)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -157,6 +158,54 @@ def launch_web_server() -> None:
         logger.error(f"Lỗi Flask Server: {server_err}")
 
 threading.Thread(target=launch_web_server, daemon=True).start()
+
+# ====================================================================================================
+# PHẦN 3.5: QUẢN LÝ DỮ LIỆU NGƯỜI DÙNG (HINT & DAILY SYSTEM)
+# ====================================================================================================
+
+FILE_USER_DATA = "user_data_sakura.json"
+
+class UserDataManager:
+    @staticmethod
+    def load_data() -> dict:
+        if os.path.exists(FILE_USER_DATA):
+            try:
+                with open(FILE_USER_DATA, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.error(f"Lỗi đọc file user data: {e}")
+        return {}
+
+    @staticmethod
+    def save_data(data: dict) -> None:
+        try:
+            with open(FILE_USER_DATA, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            logger.error(f"Lỗi ghi file user data: {e}")
+
+    @staticmethod
+    def get_user(user_id: int) -> dict:
+        data = UserDataManager.load_data()
+        uid_str = str(user_id)
+        if uid_str not in data:
+            data[uid_str] = {"hints": 5, "last_daily": ""}
+            UserDataManager.save_data(data)
+        return data[uid_str]
+
+    @staticmethod
+    def update_user(user_id: int, hints: int = None, last_daily: str = None) -> None:
+        data = UserDataManager.load_data()
+        uid_str = str(user_id)
+        if uid_str not in data:
+            data[uid_str] = {"hints": 5, "last_daily": ""}
+        
+        if hints is not None:
+            data[uid_str]["hints"] = hints
+        if last_daily is not None:
+            data[uid_str]["last_daily"] = last_daily
+            
+        UserDataManager.save_data(data)
 
 # ====================================================================================================
 # PHẦN 4: QUẢN LÝ DỮ LIỆU & FILE TỪ ĐIỂN
@@ -294,7 +343,7 @@ class ChannelSession:
                 await asyncio.sleep(self.hardcore_time)
                 if self.is_active:
                     self.is_active = False
-                    if self.active_mode == GameMode.PVP_VIETNAMESE:
+                    if self.active_mode in [GameMode.PVP_VIETNAMESE, GameMode.PVP_ENGLISH]:
                         winner_msg = f"🏆 Người chiến thắng là <@{self.last_player_id}> vì không ai nối kịp từ sau họ!" if self.last_player_id else "Không ai nối kịp từ!"
                     else:
                         winner_msg = "🤖 Bot chiến thắng vì bạn không nối kịp từ!"
@@ -315,9 +364,8 @@ class SessionManager:
         return self._sessions[channel_id]
 
 global_session_manager = SessionManager()
-
 counting_channels: Dict[int, Dict[str, int]] = {} 
-mention_tracker: Dict[int, Dict[str, Union[int, datetime]]] = {} 
+afk_users: Dict[int, Dict[int, Dict[str, Union[datetime, str]]]] = {}
 
 class GameUtils:
     @staticmethod
@@ -411,6 +459,8 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}admin` ❯ **Panel (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}afk [lý do]` ❯ **Bật chế độ AFK**\n"
             f"❯ `{BotConfig.PREFIX}countsetup` ❯ **Bật kênh đếm số (Admin)**\n"
+            f"❯ `{BotConfig.PREFIX}daily` ❯ **Nhận 3 lượt Gợi Ý mỗi ngày**\n"
+            f"❯ `{BotConfig.PREFIX}hint` ❯ **Dùng 1 lượt Gợi Ý khi đang bí**\n"
             f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
@@ -499,7 +549,7 @@ class RpsView(View):
         await interaction.response.edit_message(content=f"📄 Bạn chọn: Bao | 🤖 Bot chọn: {bot_choice}\n**Kết quả: {result}**", view=self)
 
 # ====================================================================================================
-# PHẦN 6: KHỞI TẠO BOT & LỆNH HỆ THỐNG
+# PHẦN 6: KHỞI TẠO BOT & LỆNH HỆ THỐNG (CÓ DAILY VÀ HINT)
 # ====================================================================================================
 
 bot_intents = discord.Intents.default()
@@ -509,8 +559,6 @@ bot_intents.members = True
 bot_intents.messages = True
 
 bot = commands.Bot(command_prefix=BotConfig.PREFIX, intents=bot_intents, help_command=None, case_insensitive=True)
-
-afk_users: Dict[int, Dict[int, Dict[str, Union[datetime, str]]]] = {}
 
 @bot.event
 async def on_ready() -> None:
@@ -529,6 +577,7 @@ async def on_command_error(ctx: commands.Context, error: Exception) -> None:
     elif isinstance(error, commands.CheckFailure): await ctx.send(embed=UIUtils.build_warning_embed("Quyền Truy Cập", "🖤 Lệnh này dành riêng cho **Owner**!"))
     else: logger.error(f"Lỗi lệnh: {error}")
 
+# ---- LỆNH HỆ THỐNG ----
 @bot.command(name="ping")
 async def sys_ping(ctx: commands.Context) -> None:
     latency = round(bot.latency * 1000)
@@ -543,22 +592,6 @@ async def sys_about(ctx: commands.Context) -> None:
 @bot.command(name="help", aliases=["menu"])
 async def sys_help(ctx: commands.Context) -> None: await ctx.send(embed=UIUtils.build_help_embed())
 
-@bot.command(name="userinfo", aliases=["whois"])
-async def sys_userinfo(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
-    target = member or ctx.author
-    desc = f"{BotConfig.BORDER}\n\n👤 **Tên:** {target.display_name}\n🆔 **ID:** `{target.id}`\n📅 **Tạo:** {target.created_at.strftime('%d/%m/%Y')}\n📥 **Vào:** {target.joined_at.strftime('%d/%m/%Y') if target.joined_at else 'N/A'}\n\n{BotConfig.BORDER}"
-    embed = UIUtils.create_embed("🖤🌸 Thông Tin Người Dùng", desc, BotConfig.COLOR_DEEP_PINK)
-    embed.set_thumbnail(url=target.display_avatar.url)
-    await ctx.send(embed=embed)
-
-@bot.command(name="serverinfo", aliases=["svinfo"])
-async def sys_serverinfo(ctx: commands.Context) -> None:
-    guild = ctx.guild
-    desc = f"{BotConfig.BORDER}\n\n🌐 **Server:** {guild.name}\n👑 **Owner:** <@{guild.owner_id}>\n👥 **Members:** {guild.member_count}\n\n{BotConfig.BORDER}"
-    embed = UIUtils.create_embed("🖤🌸 Thông Tin Server", desc, BotConfig.COLOR_DEEP_PINK)
-    if guild.icon: embed.set_thumbnail(url=guild.icon.url)
-    await ctx.send(embed=embed)
-
 @bot.command(name="admin", aliases=["owner"])
 @commands.is_owner()
 async def cmd_admin(ctx: commands.Context) -> None:
@@ -566,6 +599,68 @@ async def cmd_admin(ctx: commands.Context) -> None:
     desc = f"{BotConfig.BORDER}\n\n🖤 **Chào mừng Quản trị viên tối cao!** 🌸\n• 🎮 Sessions: {len(global_session_manager._sessions)}\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🔒🌸 [ ADMIN PANEL ] 🌸🔒", desc, BotConfig.COLOR_BLACK_CHIC))
 
+# ---- LỆNH DAILY VÀ HINT MỚI ----
+@bot.command(name="daily", aliases=["nhanthuong", "diemdanh"])
+async def cmd_daily(ctx: commands.Context) -> None:
+    user_data = UserDataManager.get_user(ctx.author.id)
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    if user_data["last_daily"] == today:
+        desc = f"{BotConfig.BORDER}\n\n⏳ Bạn đã nhận thưởng ngày hôm nay rồi!\nHãy quay lại vào ngày mai nhé 🌸\n\n💡 Số gợi ý hiện có: **{user_data['hints']}**\n\n{BotConfig.BORDER}"
+        await ctx.send(embed=UIUtils.create_embed("🌸 Nhận Thưởng Hàng Ngày", desc, BotConfig.COLOR_DEEP_PINK))
+        return
+    
+    new_hints = user_data["hints"] + 3  # Mỗi ngày nhận được 3 hint
+    UserDataManager.update_user(ctx.author.id, hints=new_hints, last_daily=today)
+    
+    desc = f"{BotConfig.BORDER}\n\n💖 {ctx.author.mention} đã nhận phần thưởng hàng ngày!\n➕ **+3 Gợi Ý** 🌸\n💡 Tổng gợi ý hiện có: **{new_hints}**\n\n{BotConfig.BORDER}"
+    await ctx.send(embed=UIUtils.create_embed("✨ Nhận Thưởng Thành Công", desc, BotConfig.COLOR_SAKURA_PINK))
+
+@bot.command(name="hint", aliases=["goiy"])
+async def cmd_hint(ctx: commands.Context) -> None:
+    session = global_session_manager.get_session(ctx.channel.id)
+    
+    if not session.is_active or session.active_mode not in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE, GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
+        await ctx.send(embed=UIUtils.build_warning_embed("Không Có Ván Chơi", "Lệnh này chỉ dùng khi đang chơi Nối Từ!"))
+        return
+        
+    user_data = UserDataManager.get_user(ctx.author.id)
+    if user_data["hints"] <= 0:
+        await ctx.send(embed=UIUtils.build_warning_embed("Hết Gợi Ý", "Bạn không còn lượt gợi ý nào!\nDùng `?daily` để nhận thêm nhé."))
+        return
+        
+    new_hints = user_data["hints"] - 1
+    UserDataManager.update_user(ctx.author.id, hints=new_hints)
+    
+    current_word = session.current_word
+    hint_text = ""
+    
+    if session.active_mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
+        last_syllable = current_word.split()[-1]
+        possible_words = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(last_syllable, [])
+        valid_hints = [w for w in possible_words if w not in session.used_words_history]
+        
+        if valid_hints:
+            chosen_word = random.choice(valid_hints)
+            hint_text = f"🔍 Từ tiếp theo bắt đầu bằng: **`{last_syllable.upper()}`**\n💡 Gợi ý âm tiếp theo: **`{chosen_word.split()[-1][0].upper()}...`**"
+        else:
+            hint_text = f"🔍 Từ tiếp theo bắt đầu bằng: **`{last_syllable.upper()}`**\n⚠️ Bot không tìm thấy từ gợi ý phù hợp, bạn đang ở ngõ cụt!"
+            
+    elif session.active_mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
+        last_letter = current_word[-1]
+        possible_words = ENGLISH_INDEX_BY_FIRST_LETTER.get(last_letter, [])
+        valid_hints = [w for w in possible_words if w not in session.used_words_history]
+        
+        if valid_hints:
+            chosen_word = random.choice(valid_hints)
+            hint_text = f"🔍 Word starts with: **`{last_letter.upper()}`**\n💡 Hint: **`{chosen_word[:2].upper()}...`** (Length: {len(chosen_word)} letters)"
+        else:
+            hint_text = f"🔍 Word starts with: **`{last_letter.upper()}`**\n⚠️ No valid hints found, you are stuck!"
+    
+    desc = f"{BotConfig.BORDER}\n\n🎯 {ctx.author.mention} đã sử dụng 1 Gợi Ý!\n\n{hint_text}\n\n💡 Số gợi ý còn lại: **{new_hints}**\n\n{BotConfig.BORDER}"
+    await ctx.send(embed=UIUtils.create_embed("💡 [ GỢI Ý NỐI TỪ ] 💡", desc, BotConfig.COLOR_GOLD))
+
+# ---- CÁC LỆNH TIỆN ÍCH KHÁC ----
 @bot.tree.command(name="themtu", description="Thêm từ mới vào từ điển (Chỉ Owner)")
 async def slash_themtu(interaction: discord.Interaction, word: str):
     if interaction.user.id != BotConfig.OWNER_ID:
@@ -605,7 +700,6 @@ async def slash_dm(interaction: discord.Interaction, member: discord.Member, mes
     if member.bot:
         await interaction.response.send_message("🤖 Bot không cần nhận tin nhắn đâu! 🌸", ephemeral=True)
         return
-        
     try:
         await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh:**\n\n{message}\n\n*— Từ Vườn hoa Đen Hồng*")
         await interaction.response.send_message(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention}! 🌸", ephemeral=True)
@@ -619,23 +713,12 @@ async def slash_dm(interaction: discord.Interaction, member: discord.Member, mes
 async def cmd_afk(ctx: commands.Context, *, reason: str = "Không có lý do"):
     guild_id = ctx.guild.id
     user_id = ctx.author.id
-    
-    if guild_id not in afk_users:
-        afk_users[guild_id] = {}
-        
-    afk_users[guild_id][user_id] = {
-        "timestamp": datetime.now(),
-        "reason": reason
-    }
-    
+    if guild_id not in afk_users: afk_users[guild_id] = {}
+    afk_users[guild_id][user_id] = {"timestamp": datetime.now(), "reason": reason}
     try:
         if not ctx.author.display_name.startswith("[AFK] "):
             await ctx.author.edit(nick=f"[AFK] {ctx.author.display_name}")
-    except discord.Forbidden:
-        pass
-    except Exception as e:
-        logger.error(f"Lỗi đổi tên AFK: {e}")
-        
+    except: pass
     desc = f"{BotConfig.BORDER}\n\n💤 {ctx.author.mention} đã chuyển sang chế độ AFK.\n📝 Lý do: *{reason}*\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🌸 Chế Độ AFK", desc, BotConfig.COLOR_BLACK_CHIC))
 
@@ -644,13 +727,10 @@ async def cmd_tiepterauma(ctx: commands.Context, member: Optional[discord.Member
     if not member:
         await ctx.send(embed=UIUtils.build_warning_embed("Thiếu Người Chơi", f"Vui lòng tag người bạn muốn tiếp tế. VD: `{BotConfig.PREFIX}tiepterauma @user`"))
         return
-    
     if member.id == bot.user.id:
         await ctx.send("🤖 Bot không cần uống rau má đâu! 🌸")
         return
-        
     desc = f"{BotConfig.BORDER}\n\n🌿 Đã tiếp tế 36 rau má cho {member.mention}! 💚\n\n{BotConfig.BORDER}"
-        
     await ctx.send(embed=UIUtils.create_embed("Tiếp tế rau má", desc, BotConfig.COLOR_SAKURA_PINK))
 
 @bot.command(name="countsetup", aliases=["setupcount", "demso"])
@@ -659,19 +739,8 @@ async def cmd_countsetup(ctx: commands.Context):
     counting_channels[ctx.channel.id] = {"current": 0, "high_score": 0, "last_user": 0}
     desc = f"{BotConfig.BORDER}\n\n🔢 **Kênh Đếm Số đã được kích hoạt!**\n\nNgười tiếp theo hãy gõ số **1** để bắt đầu.\n⚠️ *Lưu ý: Không được đếm 2 lần liên tiếp, đếm sai là về 0!* 🌸\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🌸 Đếm Số Sakura", desc, BotConfig.COLOR_SAKURA_PINK))
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-@bot.command(name="countstatus", aliases=["diemdem"])
-async def cmd_countstatus(ctx: commands.Context):
-    if ctx.channel.id in counting_channels:
-        data = counting_channels[ctx.channel.id]
-        desc = f"{BotConfig.BORDER}\n\n🔢 Số hiện tại: **{data['current']}**\n🏆 Kỷ lục: **{data['high_score']}**\n\n{BotConfig.BORDER}"
-        await ctx.send(embed=UIUtils.create_embed("🌸 Trạng Thái Đếm Số", desc, BotConfig.COLOR_DEEP_PINK))
-    else:
-        await ctx.send(embed=UIUtils.build_warning_embed("Chưa bật kênh", "Kênh này chưa bật tính năng đếm số. Admin hãy dùng `?countsetup`."))
+    try: await ctx.message.delete()
+    except: pass
 
 @bot.command(name="meme", aliases=["meme random"])
 async def cmd_meme(ctx: commands.Context) -> None:
@@ -696,7 +765,6 @@ async def cmd_meme(ctx: commands.Context) -> None:
 async def cmd_avatar(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
     target = member or ctx.author
     avatar_url = target.display_avatar.with_size(1024).url
-    
     desc = f"🖼️ **Ảnh đại diện của {target.mention}**\n[🔗 Tải ảnh chất lượng cao tại đây]({avatar_url})"
     embed = UIUtils.create_embed(f"Ảnh của {target.display_name}", desc, BotConfig.COLOR_DEEP_PINK)
     embed.set_image(url=avatar_url)
@@ -708,38 +776,30 @@ async def cmd_rps(ctx: commands.Context) -> None:
     embed = UIUtils.create_embed("✊ Oẳn Tù Tì", desc, BotConfig.COLOR_DEEP_PINK)
     await ctx.send(embed=embed, view=RpsView())
 
-# LỆNH: SHIP VỚI ẢNH GHÉP VÀ RANDOM % (ĐÃ FIX LỖI URL HOÀN TOÀN)
 @bot.command(name="ship", aliases=["hop"])
 async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Optional[discord.Member] = None) -> None:
     target2 = member2 or ctx.author
     if member1 == target2:
         await ctx.send("Bạn không thể ship với chính mình được! 🌸")
         return
-        
     ship_val = random.randint(0, 100)
     bar_length = 10
     filled = int(ship_val / 100 * bar_length)
     if filled == 0 and ship_val > 0: filled = 1
     bar = "❤" * filled + "🖤" * (bar_length - filled)
-    
     if ship_val < 20: msg = "💔 *Có vẻ không hợp lắm... Tránh xa ra thôi!*"
     elif ship_val < 50: msg = "🌹 *Thấy có tình chút chút! Thử tìm hiểu thêm xem sao!*"
     elif ship_val < 80: msg = "💞 *Rất hợp nha! Cố lên!*"
     else: msg = "💍 *Mệnh trời định! Mau cưới đi chớ chời!*"
-    
     desc = f"💖 **Độ hợp mạng giữa {member1.mention} và {target2.mention}**\n\n{bar} **{ship_val}%**\n{msg}"
-    
-    # Sử dụng API Popcat để ghép 2 ảnh lại với nhau
-    # QUAN TRỌNG: Ép định dạng PNG để tránh lỗi GIF, và mã hóa URL (quote) để không bị cắt URL
     avatar1 = quote(str(member1.display_avatar.with_format("png").with_size(256).url), safe='')
     avatar2 = quote(str(target2.display_avatar.with_format("png").with_size(256).url), safe='')
     ship_image_url = f"https://api.popcat.xyz/ship?user1={avatar1}&user2={avatar2}"
-    
     embed = UIUtils.create_embed("💕 Độ Hợp Mạng", desc, BotConfig.COLOR_DEEP_PINK, image_url=ship_image_url)
     await ctx.send(embed=embed)
 
 # ====================================================================================================
-# PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ ARCADE
+# PHẦN 7: CÁC LỆNH TRÒ CHƠI NỐI TỪ
 # ====================================================================================================
 
 @bot.command(name="noitu")
@@ -765,17 +825,8 @@ async def cmd_noituhc(ctx: commands.Context, seconds: int = 15) -> None:
     if seconds < 5 or seconds > 120: seconds = 15
     start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
-    session.is_hardcore = True
-    session.hardcore_time = seconds
-    session.last_player_id = ctx.author.id
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"💀 **CẢNH BÁO: CHẾ ĐỘ HARDCORE** 💀\n"
-            f"⏱️ **Thời gian trả lời:** `{seconds} giây`\n\n"
-            f"👉 Từ bắt đầu: **`{start_word.upper()}`**\n"
-            f"🌸 Cần nối bằng: **`{syllables[-1].upper()}`**\n\n"
-            f"⚠️ *Hết giờ mà không ai nối được -> Người cuối cùng nối thành công sẽ THẮNG!*\n\n{BotConfig.BORDER}")
-    
+    session.is_hardcore = True; session.hardcore_time = seconds; session.last_player_id = ctx.author.id
+    desc = (f"{BotConfig.BORDER}\n\n💀 **CẢNH BÁO: CHẾ ĐỘ HARDCORE** 💀\n⏱️ **Thời gian trả lời:** `{seconds} giây`\n\n👉 Từ bắt đầu: **`{start_word.upper()}`**\n🌸 Cần nối bằng: **`{syllables[-1].upper()}`**\n\n⚠️ *Hết giờ mà không ai nối được -> Người cuối cùng nối thành công sẽ THẮNG!*\n\n{BotConfig.BORDER}")
     await ctx.send(embed=UIUtils.create_embed("🔥 [ NỐI TỪ HARDCORE ] 🔥", desc, BotConfig.COLOR_RED_DARK))
     await session.start_hardcore_timer(ctx.channel)
 
@@ -786,122 +837,9 @@ async def cmd_botnoituhc(ctx: commands.Context, seconds: int = 15) -> None:
     if seconds < 5 or seconds > 120: seconds = 15
     start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
-    session.is_hardcore = True
-    session.hardcore_time = seconds
-    session.last_player_id = None
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"🤖💀 **SOLO BOT HARDCORE** 💀🤖\n"
-            f"⏱️ **Thời gian trả lời:** `{seconds} giây`\n\n"
-            f"👉 Từ bắt đầu: **`{start_word.upper()}`**\n"
-            f"🌸 Cần nối bằng: **`{syllables[-1].upper()}`**\n\n"
-            f"⚠️ *Nếu bạn không nối kịp giờ, Bot sẽ thắng!*\n\n{BotConfig.BORDER}")
-    
+    session.is_hardcore = True; session.hardcore_time = seconds; session.last_player_id = None
+    desc = (f"{BotConfig.BORDER}\n\n🤖💀 **SOLO BOT HARDCORE** 💀🤖\n⏱️ **Thời gian trả lời:** `{seconds} giây`\n\n👉 Từ bắt đầu: **`{start_word.upper()}`**\n🌸 Cần nối bằng: **`{syllables[-1].upper()}`**\n\n⚠️ *Nếu bạn không nối kịp giờ, Bot sẽ thắng!*\n\n{BotConfig.BORDER}")
     await ctx.send(embed=UIUtils.create_embed("🔥 [ SOLO BOT HARDCORE ] 🔥", desc, BotConfig.COLOR_RED_DARK))
-    await session.start_hardcore_timer(ctx.channel)
-
-@bot.command(name="noitucam", aliases=["noitucombanned"])
-async def cmd_noitucam(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    
-    banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-    while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-        
-    session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
-    session.is_banned_mode = True
-    session.banned_letter = banned_letter
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"💥 **CHẾ ĐỘ NỐI TỪ CẤM** 💥\n"
-            f"🚫 **Chữ cái bị cấm:** `{banned_letter.upper()}`\n"
-            f"⚠️ *Bất kỳ từ nào có chứa chữ này - dù có dấu hay không - đều sẽ khiến bạn THUA ngay lập tức!*\n\n"
-            f"👉 **Từ bắt đầu:** `{start_word.upper()}`\n"
-            f"🌸 **Cần nối bằng:** `{syllables[-1].upper()}`\n\n{BotConfig.BORDER}")
-    
-    await ctx.send(embed=UIUtils.create_embed("🚫 [ NỐI TỪ CẤM PvP ] 🚫", desc, BotConfig.COLOR_BLACK_CHIC))
-
-@bot.command(name="botnoitucam", aliases=["botnoitucombanned"])
-async def cmd_botnoitucam(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    
-    banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-    while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-        
-    session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
-    session.is_banned_mode = True
-    session.banned_letter = banned_letter
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"🤖💥 **SOLO BOT NỐI TỪ CẤM** 💥🤖\n"
-            f"🚫 **Chữ cái bị cấm:** `{banned_letter.upper()}`\n\n"
-            f"👉 **Từ bắt đầu:** `{start_word.upper()}`\n"
-            f"🌸 **Cần nối bằng:** `{syllables[-1].upper()}`\n\n"
-            f"⚠️ *Nếu bạn dùng chữ cấm, bạn thua. Nếu Bot không tìm được từ hợp lệ, Bot thua!*\n\n{BotConfig.BORDER}")
-    
-    await ctx.send(embed=UIUtils.create_embed("🚫 [ BOT NỐI TỪ CẤM ] 🚫", desc, BotConfig.COLOR_BLACK_CHIC))
-
-@bot.command(name="noitucamhc", aliases=["noitucombannedhc"])
-async def cmd_noitucamhc(ctx: commands.Context, seconds: int = 15) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    if seconds < 5 or seconds > 120: seconds = 15
-    
-    banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-    while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-        
-    session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
-    session.is_banned_mode = True
-    session.banned_letter = banned_letter
-    session.is_hardcore = True
-    session.hardcore_time = seconds
-    session.last_player_id = ctx.author.id
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"🔥💀 **NỐI TỪ CẤM HARDCORE** 💀🔥\n"
-            f"⏱️ **Thời gian trả lời:** `{seconds} giây`\n"
-            f"🚫 **Chữ cái bị cấm:** `{banned_letter.upper()}`\n\n"
-            f"👉 **Từ bắt đầu:** `{start_word.upper()}`\n"
-            f"🌸 **Cần nối bằng:** `{syllables[-1].upper()}`\n\n"
-            f"⚠️ *Hết giờ -> Người cuối cùng thắng. Chạm chữ cấm -> Thua ngay lập tức!*\n\n{BotConfig.BORDER}")
-    
-    await ctx.send(embed=UIUtils.create_embed("💀 [ CẤM CHỮ + HARDCORE ] 💀", desc, BotConfig.COLOR_BLACK_CHIC))
-    await session.start_hardcore_timer(ctx.channel)
-
-@bot.command(name="botnoitucamhc", aliases=["botnoitucombannedhc"])
-async def cmd_botnoitucamhc(ctx: commands.Context, seconds: int = 15) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    if seconds < 5 or seconds > 120: seconds = 15
-    
-    banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-    while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-        
-    session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
-    session.is_banned_mode = True
-    session.banned_letter = banned_letter
-    session.is_hardcore = True
-    session.hardcore_time = seconds
-    session.last_player_id = None
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"🤖🔥💀 **BOT CẤM CHỮ + HARDCORE** 💀🔥🤖\n"
-            f"⏱️ **Thời gian trả lời:** `{seconds} giây`\n"
-            f"🚫 **Chữ cái bị cấm:** `{banned_letter.upper()}`\n\n"
-            f"👉 **Từ bắt đầu:** `{start_word.upper()}`\n"
-            f"🌸 **Cần nối bằng:** `{syllables[-1].upper()}`\n\n"
-            f"⚠️ *Trễ giờ -> Bot thắng. Dùng chữ cấm -> Bạn thua!*\n\n{BotConfig.BORDER}")
-    
-    await ctx.send(embed=UIUtils.create_embed("💀 [ BOT CẤM CHỮ + HC ] 💀", desc, BotConfig.COLOR_BLACK_CHIC))
     await session.start_hardcore_timer(ctx.channel)
 
 @bot.command(name="noitueng", aliases=["noituen"])
@@ -910,455 +848,185 @@ async def cmd_noitueng(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     start_word = random.choice(ENGLISH_LIST)
     session.initialize_session(GameMode.PVP_ENGLISH, start_word=start_word)
-    await ctx.send(embed=UIUtils.create_embed("🇬🇧 English PvP", f"{BotConfig.BORDER}\n\n👉 Word: **`{start_word.upper()}`**\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+    await ctx.send(embed=UIUtils.create_embed("💕 Nối Từ PvP (English)", f"{BotConfig.BORDER}\n\n👉 Word: **`{start_word.upper()}`**\n🌸 Next: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
-@bot.command(name="botnoitueng", aliases=["noituubotteng"])
-async def cmd_botnoitueng(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    start_word = random.choice(ENGLISH_LIST)
-    session.initialize_session(GameMode.BOT_ENGLISH, start_word=start_word)
-    await ctx.send(embed=UIUtils.create_embed("🤖 English Bot", f"{BotConfig.BORDER}\n\n👉 Word: **`{start_word.upper()}`**\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
-
-@bot.command(name="vuatiengviet")
-async def cmd_vuatiengviet(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    target = random.choice(VUA_TIENG_VIET_CANDIDATES); scrambled = GameUtils.scramble_vietnamese_syllables(target)
-    session.initialize_session(GameMode.VUA_TIENG_VIET, target=target)
-    await ctx.send(embed=UIUtils.create_embed("👑 Vua Tiếng Việt", f"{BotConfig.BORDER}\n\n🔀 **`{scrambled.upper()}`**\n\n{BotConfig.BORDER}"))
-
-@bot.command(name="doanquocgia")
-async def cmd_doanquocgia(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    target = random.choice(COUNTRIES_VN_LIST); masked = GameUtils.generate_country_mask(target)
-    session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
-    iso_code = COUNTRY_CODES.get(target, "un"); flag_url = f"https://flagcdn.com/w320/{iso_code}.png"
-    await ctx.send(embed=UIUtils.create_embed("🌍 Đoán Quốc Gia", f"{BotConfig.BORDER}\n\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}", image_url=flag_url))
-
-@bot.command(name="doantenphim", aliases=["tenphim", "phim"])
-async def cmd_doantenphim(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    
-    movie = random.choice(FALLBACK_MOVIES_DATA)
-    session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"🎬 **RẠP CHIẾU ĐEN HỒNG** 🍿\n\n"
-            f"❓ **Gợi ý:** {movie['clue']}\n\n"
-            f"💡 *Hãy gõ tên phim (không dấu) vào chat để trả lời!*\n"
-            f"⏳ *Không có giới hạn thời gian, nhưng hãy nhanh lên!*\n\n"
-            f"{BotConfig.BORDER}")
-    
-    await ctx.send(embed=UIUtils.create_embed("🎟️ [ ĐOÁN TÊN PHIM ] 🎟️", desc, BotConfig.COLOR_DEEP_PINK, movie.get("image", None)))
-
-@bot.command(name="doanemoji", aliases=["emoji", "phanloaiemoji"])
-async def cmd_doanemoji(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    
-    emoji_data = random.choice(EMOJI_DATA)
-    session.initialize_session(GameMode.GUESS_EMOJI, target=emoji_data["phrase"])
-    
-    desc = (f"{BotConfig.BORDER}\n\n"
-            f"🎭 **GIẢI MÃ EMOJI** 🧩\n\n"
-            f"🔑 **Chuỗi Emoji:** {emoji_data['emojis']}\n\n"
-            f"💡 *Hãy gõ từ/cụm từ tiếng Việt (không dấu) tương ứng vào chat!*\n\n"
-            f"{BotConfig.BORDER}")
-    await ctx.send(embed=UIUtils.create_embed("🎨 [ ĐOÁN EMOJI ] 🎨", desc, BotConfig.COLOR_SAKURA_PINK))
-
-@bot.command(name="tictactoe", aliases=["caro"])
-async def cmd_tictactoe(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    await ctx.send(embed=UIUtils.create_embed("❌⭕ Cờ Caro", f"{BotConfig.BORDER}\n\nChọn ô để đánh **❌** chống Bot **⭕**!\n\n{BotConfig.BORDER}"), view=TicTacToeView())
-
-@bot.command(name="hoibacsi", aliases=["8ball", "ask"])
-async def cmd_hoibacsi(ctx: commands.Context, *, question: str) -> None:
-    responses = ["Chắc chắn. 🖤", "Không nghi ngờ. 💗", "Yếu, nhưng có thể. 🥀", "Hỏi lại sau... 🌑", "Tuyệt đối không! 🚫", "Không ổn. 🥀", "Khả năng cao. 💖", "Triển vọng tốt. 🌸", "Dự báo xấu. ⛈️", "Phức tạp. 🕸️", "Đều có thể. ✨", "Tự quyết định! 🗝️"]
-    desc = f"{BotConfig.BORDER}\n\n❓ **Câu hỏi:** *{question}*\n💡 **Trả lời:** {random.choice(responses)}\n\n{BotConfig.BORDER}"
-    await ctx.send(embed=UIUtils.create_embed("🎱 Hỏi Bác Sĩ", desc, BotConfig.COLOR_DEEP_PINK))
-
-@bot.command(name="russianroulette", aliases=["rr", "roulette"])
-async def cmd_russianroulette(ctx: commands.Context) -> None:
-    bullet, chamber = random.randint(1, 6), random.randint(1, 6)
-    if bullet == chamber: desc = f"{BotConfig.BORDER}\n\n💥 **BÙMMM!** 💥\n{ctx.author.mention} đã hy sinh! 🪦\n\n{BotConfig.BORDER}"; color = BotConfig.COLOR_RED_DARK
-    else: desc = f"{BotConfig.BORDER}\n\n💨 *Click...*\nTrống! {ctx.author.mention} sống sót! 🖤\n\n{BotConfig.BORDER}"; color = BotConfig.COLOR_SAKURA_PINK
-    await ctx.send(embed=UIUtils.create_embed("🔫 Russian Roulette", desc, color))
-
-@bot.command(name="restart", aliases=["choilai", "resetgame"])
-async def cmd_restart(ctx: commands.Context) -> None:
-    session = global_session_manager.get_session(ctx.channel.id)
-    if not session.is_active:
-        await ctx.send(embed=UIUtils.build_warning_embed("Lỗi", "Không có ván chơi nào đang hoạt động để restart."))
-        return
-    
-    mode = session.active_mode
-    is_hc = session.is_hardcore
-    hc_time = session.hardcore_time
-    is_banned = session.is_banned_mode
-    
-    if mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
-        banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz") if is_banned else ""
-        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-        
-        if is_banned:
-            while banned_letter in GameUtils.remove_diacritics(start_word):
-                start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
-                
-        session.initialize_session(mode, start_word=start_word)
-        session.is_banned_mode = is_banned
-        session.banned_letter = banned_letter
-        
-        if is_hc:
-            session.is_hardcore = True
-            session.hardcore_time = hc_time
-            session.last_player_id = ctx.author.id if mode == GameMode.PVP_VIETNAMESE else None
-            
-        title = "🔄 Bắt Đầu Lại"
-        desc = f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n"
-        if is_banned: desc += f"🚫 **Chữ cấm:** `{banned_letter.upper()}`\n"
-        if is_hc: desc += f"⏱️ **Giây:** `{hc_time}`\n"
-        desc += f"👉 **Từ:** `{start_word.upper()}`\n🌸 **Tiếp:** `{syllables[-1].upper()}`\n\n{BotConfig.BORDER}"
-        
-        await ctx.send(embed=UIUtils.create_embed(title, desc, BotConfig.COLOR_RED_DARK if (is_hc or is_banned) else BotConfig.COLOR_SAKURA_PINK))
-        if is_hc: await session.start_hardcore_timer(ctx.channel)
-        
-    elif mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
-        start_word = random.choice(ENGLISH_LIST)
-        session.initialize_session(mode, start_word=start_word)
-        await ctx.send(embed=UIUtils.create_embed("🔄 Restart Game", f"{BotConfig.BORDER}\n\nGame has been restarted!\n👉 Word: **`{start_word.upper()}`**\n🌸 Letter: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
-        
-    elif mode == GameMode.VUA_TIENG_VIET:
-        target = random.choice(VUA_TIENG_VIET_CANDIDATES); scrambled = GameUtils.scramble_vietnamese_syllables(target)
-        session.initialize_session(GameMode.VUA_TIENG_VIET, target=target)
-        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n🔀 **`{scrambled.upper()}`**\n\n{BotConfig.BORDER}"))
-        
-    elif mode == GameMode.GUESS_COUNTRY:
-        target = random.choice(COUNTRIES_VN_LIST); masked = GameUtils.generate_country_mask(target)
-        session.initialize_session(GameMode.GUESS_COUNTRY, target=target)
-        iso_code = COUNTRY_CODES.get(target, "un"); flag_url = f"https://flagcdn.com/w320/{iso_code}.png"
-        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", f"{BotConfig.BORDER}\n\nVán chơi đã được làm mới!\n🗺️ **`{masked}`**\n\n{BotConfig.BORDER}", image_url=flag_url))
-        
-    elif mode == GameMode.GUESS_MOVIE:
-        movie = random.choice(FALLBACK_MOVIES_DATA)
-        session.initialize_session(GameMode.GUESS_MOVIE, target=movie["title"])
-        desc = (f"{BotConfig.BORDER}\n\n"
-                f"🎬 Ván chơi đã được làm mới!\n"
-                f"❓ **Gợi ý:** {movie['clue']}\n\n{BotConfig.BORDER}")
-        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", desc, BotConfig.COLOR_DEEP_PINK, movie.get("image", None)))
-        
-    elif mode == GameMode.GUESS_EMOJI:
-        emoji_data = random.choice(EMOJI_DATA)
-        session.initialize_session(GameMode.GUESS_EMOJI, target=emoji_data["phrase"])
-        desc = (f"{BotConfig.BORDER}\n\n"
-                f"🎭 Ván chơi đã được làm mới!\n"
-                f"🔑 **Emoji:** {emoji_data['emojis']}\n\n{BotConfig.BORDER}")
-        await ctx.send(embed=UIUtils.create_embed("🔄 Bắt Đầu Lại", desc, BotConfig.COLOR_SAKURA_PINK))
-
-@bot.command(name="huyvanchoi", aliases=["huynoitu", "huygame", "huy"])
+@bot.command(name="huyvanchoi", aliases=["end", "stop"])
 async def cmd_huyvanchoi(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
-    if not session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Lỗi", "Không có ván chơi.")); return
+    if not session.is_active:
+        await ctx.send(embed=UIUtils.build_warning_embed("Không Có Ván Chơi", "Hiện không có ván chơi nào đang diễn ra."))
+        return
     session.reset()
-    await ctx.send(embed=UIUtils.create_embed("🖤 Đã Hủy", f"{BotConfig.BORDER}\n\nPhiên chơi kết thúc.\n\n{BotConfig.BORDER}", BotConfig.COLOR_BLACK_CHIC))
-
-@bot.command(name="nghia")
-async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
-    if not word: await ctx.send(embed=UIUtils.build_warning_embed("Thiếu từ", "Nhập từ cần tra.")); return
-    clean_w = word.strip().lower()
-    found = clean_w in COMBINED_VIETNAMESE_DICTIONARY or clean_w in ENGLISH_DICT or clean_w in COUNTRIES_VN_DICT
-    if found: await ctx.send(embed=UIUtils.create_embed("📖 Tra Cứu", f"{BotConfig.BORDER}\n\nTừ **`{clean_w.upper()}`** CÓ TRONG hệ thống! 🖤🌸\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-    else: await ctx.send(embed=UIUtils.create_embed("📖 Tra Cứu", f"{BotConfig.BORDER}\n\nKhông thấy **`{clean_w.upper()}`**. Dùng `/themtu` để bổ sung!\n\n{BotConfig.BORDER}", BotConfig.COLOR_RED_DARK))
+    desc = f"{BotConfig.BORDER}\n\n🛑 Ván chơi hiện tại đã bị hủy bởi {ctx.author.mention}!\n\n{BotConfig.BORDER}"
+    await ctx.send(embed=UIUtils.create_embed("🌸 Hủy Ván Chơi", desc, BotConfig.COLOR_BLACK_CHIC))
 
 # ====================================================================================================
-# PHẦN 8: XỬ LÝ SỰ KIỆN TRÒ CHƠI QUA TIN NHẮN (SILENT IGNORE)
+# PHẦN 8: XỬ LÝ TIN NHẮN (MESSAGE LISTENER) - Nơi cốt lõi để chơi nối từ
 # ====================================================================================================
+
+async def handle_word_chain(message: discord.Message) -> None:
+    session = global_session_manager.get_session(message.channel.id)
+    if not session.is_active: return
+    
+    content = message.content.strip().lower()
+    if content.startswith(BotConfig.PREFIX): return
+    
+    is_english = session.active_mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]
+    
+    # Xử lý nối từ Tiếng Anh
+    if is_english:
+        if not content.isalpha() or len(content.split()) > 1:
+            return # Bỏ qua nếu không phải 1 từ tiếng Anh hợp lệ
+            
+        last_char = session.current_word[-1]
+        first_char = content[0]
+        
+        if first_char != last_char:
+            await message.reply(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng chữ **`{last_char.upper()}`**!"), mention_author=False)
+            return
+            
+        if content in session.used_words_history:
+            await message.reply(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED), mention_author=False)
+            return
+            
+        if content not in ENGLISH_DICT:
+            await message.reply(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển Tiếng Anh của bot!"), mention_author=False)
+            return
+            
+        session.current_word = content
+        session.used_words_history.add(content)
+        await message.add_reaction("✅")
+        
+        # Nếu là bot mode, bot phản hồi lại
+        if session.active_mode == GameMode.BOT_ENGLISH:
+            bot_last_char = content[-1]
+            possible_words = ENGLISH_INDEX_BY_FIRST_LETTER.get(bot_last_char, [])
+            valid_bot_words = [w for w in possible_words if w not in session.used_words_history]
+            
+            if valid_bot_words:
+                bot_word = random.choice(valid_bot_words)
+                session.current_word = bot_word
+                session.used_words_history.add(bot_word)
+                await message.channel.send(embed=UIUtils.create_embed("🤖 Bot Nối Tiếng Anh", f"{BotConfig.BORDER}\n\n👉 Bot nói: **`{bot_word.upper()}`**\n🌸 Next: **`{bot_word[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+            else:
+                desc = f"{BotConfig.BORDER}\n\n🏳️ Bot chịu thua! Không còn từ nào bắt đầu bằng **`{bot_last_char.upper()}`** nữa!\n🏆 {message.author.mention} đã chiến thắng Bot!\n\n{BotConfig.BORDER}"
+                await message.channel.send(embed=UIUtils.create_embed("🎉 Chiến Thắng!", desc, BotConfig.COLOR_GOLD))
+                session.reset()
+            return
+            
+    # Xử lý nối từ Tiếng Việt
+    else:
+        parts = content.split()
+        if len(parts) != 2:
+            return # Nối từ TV chỉ chấp nhận 2 tiếng
+            
+        last_syllable = session.current_word.split()[-1]
+        first_syllable = parts[0]
+        
+        # Bỏ dấu để kiểm tra
+        if GameUtils.remove_diacritics(first_syllable) != GameUtils.remove_diacritics(last_syllable):
+            await message.reply(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng tiếng **`{last_syllable.upper()}`**!"), mention_author=False)
+            return
+            
+        if content in session.used_words_history:
+            await message.reply(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED), mention_author=False)
+            return
+            
+        if content not in COMBINED_VIETNAMESE_DICTIONARY:
+            await message.reply(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển Tiếng Việt của bot!"), mention_author=False)
+            return
+            
+        # Kiểm tra chữ cấm
+        if session.is_banned_mode:
+            raw_content = GameUtils.remove_diacritics(content)
+            if session.banned_letter in raw_content:
+                await message.reply(embed=UIUtils.build_invalid_word_embed(f"💀 Bạn đã dùng chữ **`{session.banned_letter.upper()}`** bị cấm! Bạn THUA!"), mention_author=False)
+                session.reset()
+                return
+                
+        session.current_word = content
+        session.used_words_history.add(content)
+        session.last_player_id = message.author.id
+        await message.add_reaction("✅")
+        
+        # Reset timer nếu là Hardcore
+        if session.is_hardcore:
+            await session.start_hardcore_timer(message.channel)
+            
+        # Bot phản hồi
+        if session.active_mode == GameMode.BOT_VIETNAMESE:
+            bot_last_syl = content.split()[-1]
+            possible_words = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(bot_last_syl, [])
+            valid_bot_words = [w for w in possible_words if w not in session.used_words_history]
+            
+            # Lọc chữ cấm nếu có
+            if session.is_banned_mode:
+                valid_bot_words = [w for w in valid_bot_words if session.banned_letter not in GameUtils.remove_diacritics(w)]
+                
+            if valid_bot_words:
+                bot_word = random.choice(valid_bot_words)
+                session.current_word = bot_word
+                session.used_words_history.add(bot_word)
+                await message.channel.send(embed=UIUtils.create_embed("🤖 Bot Nối Từ", f"{BotConfig.BORDER}\n\n👉 Bot nói: **`{bot_word.upper()}`**\n🌸 Tiếp: **`{bot_word.split()[-1].upper()}`**\n\n{BotConfig.BORDER}"))
+            else:
+                desc = f"{BotConfig.BORDER}\n\n🏳️ Bot chịu thua! Không còn từ nào nối tiếp!\n🏆 {message.author.mention} đã chiến thắng Bot!\n\n{BotConfig.BORDER}"
+                await message.channel.send(embed=UIUtils.create_embed("🎉 Chiến Thắng!", desc, BotConfig.COLOR_GOLD))
+                session.reset()
 
 @bot.event
 async def on_message(message: discord.Message) -> None:
-    if message.author.bot: return
-    
-    # TÍNH NĂNG: Auto-reply khi bị tag, bực mình và MUTE (Time-out) 1 phút
-    if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
-        user_id = message.author.id
-        now = datetime.now()
-        
-        if user_id not in mention_tracker:
-            mention_tracker[user_id] = {"count": 1, "last_mention": now}
-        else:
-            if (now - mention_tracker[user_id]["last_mention"]).total_seconds() > 300:
-                mention_tracker[user_id]["count"] = 1
-            else:
-                mention_tracker[user_id]["count"] += 1
-            mention_tracker[user_id]["last_mention"] = now
-            
-        count = mention_tracker[user_id]["count"]
-        
-        if count == 1:
-            await message.channel.send("dạ e đây 🌸")
-        elif count == 2:
-            await message.channel.send("sao")
-        elif count == 3:
-            await message.channel.send("**sao**")
-        elif count == 4:
-            await message.channel.send("đĩ mẹ mày, sủa đi")
-        else: # Tag từ 5 lần trở lên
-            try:
-                await message.author.timeout(timedelta(minutes=1), reason="Tag bot quá nhiều lần liên tiếp!")
-                await message.channel.send(f"🔇 {message.author.mention} đã bị mute 1 phút vì tag bot liên tục! 🌸")
-                mention_tracker[user_id] = {"count": 0, "last_mention": now}
-            except discord.Forbidden:
-                await message.channel.send("⚠️ Bot không có quyền Timeout/Mute bạn. Vui lòng cấp quyền 'Quản lý thành viên' cho Bot!")
-            except Exception as e:
-                logger.error(f"Lỗi mute user: {e}")
-            
-    if message.guild:
-        guild_id = message.guild.id
-        if guild_id not in afk_users:
-            afk_users[guild_id] = {}
+    if message.author.bot or not message.guild: return
 
-        if message.author.id in afk_users[guild_id] and not message.content.startswith(f"{BotConfig.PREFIX}afk"):
-            del afk_users[guild_id][message.author.id]
+    # Xử lý AFK
+    if message.guild.id in afk_users:
+        if message.author.id in afk_users[message.guild.id]:
+            afk_users[message.guild.id].pop(message.author.id)
             try:
                 if message.author.display_name.startswith("[AFK] "):
-                    new_nick = message.author.display_name[6:]
-                    await message.author.edit(nick=new_nick if new_nick else None)
-            except discord.Forbidden:
-                pass
-            except Exception as e:
-                logger.error(f"Lỗi đổi tên khi hết AFK: {e}")
-                
-            desc = f"{BotConfig.BORDER}\n\n👋 Chào mừng {message.author.mention} trở lại! Bot đã tự động tắt chế độ AFK. 🌸\n\n{BotConfig.BORDER}"
-            await message.channel.send(embed=UIUtils.create_embed("🌸 Hết AFK", desc, BotConfig.COLOR_SAKURA_PINK))
+                    await message.author.edit(nick=message.author.display_name[6:])
+            except: pass
+            await message.reply(embed=UIUtils.create_embed("🌸 Welcome Back", f"{BotConfig.BORDER}\n\n💖 Chào mừng {message.author.mention} trở lại! Đã tắt AFK.\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK), delete_after=5)
+            
+        for mention in message.mentions:
+            if mention.id in afk_users.get(message.guild.id, {}):
+                afk_data = afk_users[message.guild.id][mention.id]
+                desc = f"{BotConfig.BORDER}\n\n💤 **{mention.display_name}** đang AFK!\n📝 Lý do: *{afk_data['reason']}*\n\n{BotConfig.BORDER}"
+                await message.reply(embed=UIUtils.create_embed("🌸 Người dùng AFK", desc, BotConfig.COLOR_BLACK_CHIC), delete_after=10)
 
-        for mentioned_user in message.mentions:
-            if mentioned_user.id in afk_users.get(guild_id, {}):
-                afk_data = afk_users[guild_id][mentioned_user.id]
-                time_diff = datetime.now() - afk_data["timestamp"]
-                secs = int(time_diff.total_seconds())
-                
-                if secs < 60: time_str = f"{secs} giây trước"
-                elif secs < 3600: time_str = f"{secs // 60} phút trước"
-                else: time_str = f"{secs // 3600} giờ trước"
-                
-                reason = afk_data.get("reason", "không có lý do")
-                await message.channel.send(f"💤 **NGƯỜI DÙNG NÀY ĐÃ AFK.** (Thời gian: {time_str})\n📝 Lý do: *{reason}*")
-                break
-
-    if message.channel.id in counting_channels and not message.content.startswith(BotConfig.PREFIX):
+    # Xử lý đếm số
+    if message.channel.id in counting_channels:
         data = counting_channels[message.channel.id]
-        content = message.content.strip()
-        
-        if not content.isdigit():
-            try:
+        try:
+            num = int(message.content.strip())
+            if data["last_user"] == message.author.id:
                 await message.delete()
-            except:
-                pass
-            return
-            
-        num = int(content)
-        
-        if message.author.id == data["last_user"]:
-            data["current"] = 0
-            data["last_user"] = 0
-            await message.add_reaction("❌")
-            await message.channel.send(f"💥 {message.author.mention} không thể đếm 2 lần liên tiếp! Đếm lại từ 1. 🌸\n*(Kỷ lục: {data['high_score']})*", delete_after=10)
-            try:
-                await message.delete()
-            except:
-                pass
-            return
-            
-        expected_num = data["current"] + 1
-        
-        if num == expected_num:
-            data["current"] = num
-            data["last_user"] = message.author.id
-            await message.add_reaction("✅")
-            
-            if num > data["high_score"]:
-                data["high_score"] = num
-                if num % 10 == 0:
-                    await message.channel.send(f"🎉 Wooo! Kỷ lục mới: **{num}**! Cố lên nào! 🌸")
-        else:
-            data["current"] = 0
-            data["last_user"] = 0
-            await message.add_reaction("💥")
-            await message.channel.send(f"💥 {message.author.mention} đếm sai rồi! Phải là số **{expected_num}** chứ không phải **{num}**.\nChơi lại từ 1! 🌸\n*(Kỷ lục server: {data['high_score']})*")
-            try:
-                await message.delete()
-            except:
-                pass
-                
-        return 
+                return
+            expected = data["current"] + 1
+            if num == expected:
+                data["current"] = num
+                data["last_user"] = message.author.id
+                if num > data["high_score"]: data["high_score"] = num
+                await message.add_reaction("✅")
+            else:
+                data["current"] = 0
+                data["last_user"] = 0
+                await message.add_reaction("❌")
+                await message.reply(embed=UIUtils.build_warning_embed("Đếm Sai!", "Bạn đã đếm sai! Kênh đếm số đã reset về 0."))
+        except ValueError:
+            pass
 
+    # Xử lý nối từ
+    await handle_word_chain(message)
+    
+    # Chạy lệnh bot
     await bot.process_commands(message)
-    session = global_session_manager.get_session(message.channel.id)
-    if not session.is_active: return
-
-    content = message.content.strip().lower()
-    if content.startswith(BotConfig.PREFIX): return
-
-    # 1. Vua Tiếng Việt
-    if session.active_mode == GameMode.VUA_TIENG_VIET:
-        if content == session.scrambled_target.lower():
-            target = session.scrambled_target; session.reset()
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng VTV", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} giải đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-        return
-
-    # 2. Đoán Quốc Gia
-    if session.active_mode == GameMode.GUESS_COUNTRY:
-        if content == session.secret_country.lower():
-            target = session.secret_country; session.reset()
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng ĐQG", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-        return
-
-    # 3. Đoán Tên Phim
-    if session.active_mode == GameMode.GUESS_MOVIE:
-        target = session.secret_target
-        target_no_diacritics = GameUtils.remove_diacritics(target).lower()
-        content_no_diacritics = GameUtils.remove_diacritics(content).lower()
-        
-        if content == target or content == target_no_diacritics or content_no_diacritics == target or content_no_diacritics == target_no_diacritics or content_no_diacritics in target_no_diacritics or target_no_diacritics in content_no_diacritics:
-            session.reset()
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Trả Lời Đúng!", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đã trả lời đúng!\n🎬 Tên phim: **`{target.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_DEEP_PINK))
-        return
-
-    # 4. Đoán Emoji
-    if session.active_mode == GameMode.GUESS_EMOJI:
-        target = session.secret_target
-        target_no_diacritics = GameUtils.remove_diacritics(target).lower()
-        content_no_diacritics = GameUtils.remove_diacritics(content).lower()
-        
-        if content == target or content == target_no_diacritics or content_no_diacritics == target or content_no_diacritics == target_no_diacritics or content_no_diacritics in target_no_diacritics or target_no_diacritics in content_no_diacritics:
-            session.reset()
-            await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Emoji", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đoán đúng: **`{target.upper()}`**!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-        return
-
-    # 5. Nối Từ Tiếng Việt (Bao gồm Hardcore và Cấm Chữ)
-    if session.active_mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
-        parts = content.split()
-        if len(parts) != 2: return 
-        
-        if session.is_banned_mode:
-            word_base = GameUtils.remove_diacritics(content)
-            if session.banned_letter in word_base:
-                desc = f"{BotConfig.BORDER}\n\n💥 **BÙM!** 💥\n{message.author.mention} đã dùng từ chứa chữ cấm **`{session.banned_letter.upper()}`**!\n💀 Bạn đã thua cuộc!\n\n{BotConfig.BORDER}"
-                await message.channel.send(embed=UIUtils.create_embed("🚫 [ CHẠM CẤM! ] 🚫", desc, BotConfig.COLOR_BLACK_CHIC))
-                session.reset()
-                return
-            
-        if content not in COMBINED_VIETNAMESE_DICTIONARY:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển (thiếu dấu/sai chính tả)!"))
-            return
-        if content in session.used_words_history:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED))
-            return
-        current_syllables = session.current_word.split()
-        required_syl = current_syllables[-1] if current_syllables else ""
-        if parts[0] != required_syl:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng âm **`{required_syl.upper()}`**!"))
-            return
-        
-        session.used_words_history.add(content); session.current_word = content; session.turn_counter += 1
-        session.last_player_id = message.author.id
-        next_syl = parts[-1]
-        
-        if session.active_mode == GameMode.PVP_VIETNAMESE:
-            if session.is_hardcore:
-                desc = (f"{BotConfig.BORDER}\n\n"
-                        f"⚡ **Nối thành công!**\n"
-                        f"👉 <@{message.author.id}>: **`{content.upper()}`**\n"
-                        f"🌸 Tiếp: **`{next_syl.upper()}`**\n"
-                        f"⏱️ Đồng hồ đếm ngược đã reset!\n\n{BotConfig.BORDER}")
-                await message.channel.send(embed=UIUtils.create_embed("⏳ Đang Đếm Ngược...", desc, BotConfig.COLOR_DEEP_PINK))
-                await session.start_hardcore_timer(message.channel)
-            else:
-                await message.channel.send(embed=UIUtils.create_embed("✨ Thành Công!", f"{BotConfig.BORDER}\n\n👉 Bạn: **`{content.upper()}`**\n🌸 Tiếp: **`{next_syl.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-        elif session.active_mode == GameMode.BOT_VIETNAMESE:
-            candidates = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(next_syl, [])
-            valid_candidates = [w for w in candidates if w not in session.used_words_history]
-            
-            if session.is_banned_mode:
-                valid_candidates = [w for w in valid_candidates if session.banned_letter not in GameUtils.remove_diacritics(w)]
-            
-            if not valid_candidates:
-                session.reset()
-                await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Bot", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} đánh bại Bot!\nBot không tìm được từ hợp lệ (hoặc do bị cấm chữ)!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-                return
-            
-            ending_syllables_map = {}
-            for w in valid_candidates:
-                last_syl = w.split()[-1]
-                ending_syllables_map.setdefault(last_syl, []).append(w)
-                
-            random_end_syl = random.choice(list(ending_syllables_map.keys()))
-            bot_word = random.choice(ending_syllables_map[random_end_syl])
-            
-            session.used_words_history.add(bot_word); session.current_word = bot_word
-            bot_syllables = bot_word.split(); next_bot_syl = bot_syllables[-1] if bot_syllables else bot_word
-            session.last_player_id = None
-            
-            if session.is_hardcore:
-                desc = (f"{BotConfig.BORDER}\n\n"
-                        f"👉 Bạn: **`{content.upper()}`**\n"
-                        f"🤖 Bot: **`{bot_word.upper()}`**\n"
-                        f"🌸 Tiếp: **`{next_bot_syl.upper()}`**\n"
-                        f"⏱️ Đồng hồ đếm ngược đã reset!\n\n{BotConfig.BORDER}")
-                await message.channel.send(embed=UIUtils.create_embed("⏳ Đang Đếm Ngược...", desc, BotConfig.COLOR_DEEP_PINK))
-                await session.start_hardcore_timer(message.channel)
-            else:
-                await message.channel.send(embed=UIUtils.create_embed("✨🌸 Lượt Đấu", f"{BotConfig.BORDER}\n\n👉 Bạn: **`{content.upper()}`**\n🤖 Bot: **`{bot_word.upper()}`**\n🌸 Tiếp: **`{next_bot_syl.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-        return
-
-    # 6. Nối Từ Tiếng Anh
-    if session.active_mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
-        if not content.isalpha(): return
-            
-        if content not in ENGLISH_DICT:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển TA!"))
-            return
-        if content in session.used_words_history:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED))
-            return
-        required_letter = session.current_word[-1]
-        if content[0] != required_letter:
-            await message.channel.send(embed=UIUtils.build_invalid_word_embed(f"Must start with **`{required_letter.upper()}`**!"))
-            return
-        
-        session.used_words_history.add(content); session.current_word = content; session.turn_counter += 1
-        next_letter = content[-1]
-        
-        if session.active_mode == GameMode.PVP_ENGLISH:
-            await message.channel.send(embed=UIUtils.create_embed("✨ Success!", f"{BotConfig.BORDER}\n\n👉 You: **`{content.upper()}`**\n🌸 Letter: **`{next_letter.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-        elif session.active_mode == GameMode.BOT_ENGLISH:
-            candidates = ENGLISH_INDEX_BY_FIRST_LETTER.get(next_letter, [])
-            valid_candidates = [w for w in candidates if w not in session.used_words_history]
-            if not valid_candidates:
-                session.reset()
-                await message.channel.send(embed=UIUtils.create_embed("🏆 Thắng Bot", f"{BotConfig.BORDER}\n\n🎉 {message.author.mention} defeated Bot!\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-                return
-            
-            ending_letters_map = {}
-            for w in valid_candidates:
-                ending_letters_map.setdefault(w[-1], []).append(w)
-            
-            random_end_letter = random.choice(list(ending_letters_map.keys()))
-            bot_word = random.choice(ending_letters_map[random_end_letter])
-            
-            session.used_words_history.add(bot_word); session.current_word = bot_word
-            next_bot_letter = bot_word[-1]
-            await message.channel.send(embed=UIUtils.create_embed("✨🌸 Round", f"{BotConfig.BORDER}\n\n👉 You: **`{content.upper()}`**\n🤖 Bot: **`{bot_word.upper()}`**\n🌸 Letter: **`{next_bot_letter.upper()}`**\n\n{BotConfig.BORDER}", BotConfig.COLOR_SAKURA_PINK))
-        return
 
 # ====================================================================================================
-# PHẦN 9: KHỞI CHẠY HỆ THỐNG
+# PHẦN 9: CHẠY BOT
 # ====================================================================================================
-
 if __name__ == "__main__":
-    token = os.getenv("DISCORD_TOKEN")
-    if not token: logger.warning("🖤 Không tìm thấy DISCORD_TOKEN.")
-    else: bot.run(token)
+    TOKEN = os.getenv("DISCORD_TOKEN")
+    if not TOKEN:
+        logger.error("❌ Không tìm thấy DISCORD_TOKEN! Vui lòng set environment variable.")
+    else:
+        bot.run(TOKEN)
