@@ -1,13 +1,12 @@
-
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╗██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.6 - Slash Say & DM)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.7 - Avatar Viewer)
 # ====================================================================================================
 
 import os
@@ -31,7 +30,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.6 Sakura Slash Say & DM"
+    VERSION: str = "7.6.7 Sakura Gothic Avatar"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -413,6 +412,7 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
             f"❯ `{BotConfig.PREFIX}tiepterauma [@user]` ❯ **Tiếp tế rau má**\n"
             f"❯ `{BotConfig.PREFIX}meme` ❯ **Lấy ảnh meme ngẫu nhiên**\n"
+            f"❯ `{BotConfig.PREFIX}avt [@user]` ❯ **Xem ảnh đại diện**\n"
             f"❯ `{BotConfig.PREFIX}ping` ❯ **Kiểm tra độ trễ**\n\n"
             f"{BotConfig.BORDER}"
         )
@@ -555,14 +555,12 @@ async def slash_themtu(interaction: discord.Interaction, word: str):
     else:
         await interaction.response.send_message(embed=UIUtils.build_invalid_word_embed("Từ TV phải 2 tiếng, TA phải 1 tiếng!"), ephemeral=True)
 
-# LỆNH MỚI: SAY (BOT NÓI THAY - CHỈ MÌNH THẤY)
 @bot.tree.command(name="say", description="Bot nói thay bạn (Chỉ bạn thấy thông báo)")
 @app_commands.describe(text="Nội dung bạn muốn bot nói")
 async def slash_say(interaction: discord.Interaction, text: str):
     await interaction.channel.send(text)
     await interaction.response.send_message("✅ Đã nói xong! 🌸", ephemeral=True)
 
-# LỆNH MỚI: DM (GỬI TIN NHẮN ẨN DANH - CHỈ MÌNH THẤY)
 @bot.tree.command(name="dm", description="Gửi tin nhắn ẩn danh cho người khác (Chỉ bạn thấy)")
 @app_commands.describe(member="Người bạn muốn gửi", message="Nội dung tin nhắn")
 async def slash_dm(interaction: discord.Interaction, member: discord.Member, message: str):
@@ -571,8 +569,8 @@ async def slash_dm(interaction: discord.Interaction, member: discord.Member, mes
         return
         
     try:
-        await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh đấy ahihi:**\n\n{message}\n\n*— Từ ai đéo biết nữa*")
-        await interaction.response.send_message(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention} béo! 🌸", ephemeral=True)
+        await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh:**\n\n{message}\n\n*— Từ Vườn hoa Đen Hồng*")
+        await interaction.response.send_message(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention}! 🌸", ephemeral=True)
     except discord.Forbidden:
         await interaction.response.send_message(f"❌ Không thể gửi tin nhắn cho {member.mention}. Họ có thể đã tắt DM (Direct Messages) hoặc chặn bot. 🌸", ephemeral=True)
     except Exception as e:
@@ -637,7 +635,6 @@ async def cmd_countstatus(ctx: commands.Context):
     else:
         await ctx.send(embed=UIUtils.build_warning_embed("Chưa bật kênh", "Kênh này chưa bật tính năng đếm số. Admin hãy dùng `?countsetup`."))
 
-# LỆNH MEME
 @bot.command(name="meme", aliases=["meme random"])
 async def cmd_meme(ctx: commands.Context) -> None:
     async with aiohttp.ClientSession() as session:
@@ -656,6 +653,18 @@ async def cmd_meme(ctx: commands.Context) -> None:
         except Exception as e:
             logger.error(f"Lỗi lấy meme: {e}")
             await ctx.send("🖤 Lỗi kết nối API meme! 🌸")
+
+# LỆNH MỚI: XEM ẢNH ĐẠI DIỆN
+@bot.command(name="avt", aliases=["avatar", "infoavt"])
+async def cmd_avatar(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
+    target = member or ctx.author
+    # Lấy avatar với độ phân giải cao nhất (1024x1024)
+    avatar_url = target.display_avatar.with_size(1024).url
+    
+    desc = f"🖼️ **Ảnh đại diện của {target.mention}**\n[🔗 Tải ảnh chất lượng cao tại đây]({avatar_url})"
+    embed = UIUtils.create_embed(f"Ảnh của {target.display_name}", desc, BotConfig.COLOR_DEEP_PINK)
+    embed.set_image(url=avatar_url)
+    await ctx.send(embed=embed)
 
 # ====================================================================================================
 # PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ ARCADE
