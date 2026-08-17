@@ -3,10 +3,10 @@
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
 # ██████╔╝██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
-# ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
+# ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.9.2 - Neon Emojis)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.9.3 - Restart Fix)
 # ====================================================================================================
 
 import os
@@ -32,7 +32,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.9.2 Sakura Gothic Neon Emojis"
+    VERSION: str = "7.9.3 Sakura Gothic Restart Fix"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -53,7 +53,6 @@ class BotConfig:
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
     BORDER: str = "🌸・━━━━━━━━━━━━━━━━━━━━━━━━━━━・🌸" 
 
-    # Mã Emoji Neon
     EMOJI_TICK: str = "<:ChatGPT_Image_Aug_17__2026__05_0:1538854979832516698>"
     EMOJI_X: str = "<:0646ba929fef4ab299a9b8f82ed20378:1538880451718938684>"
 
@@ -151,7 +150,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.9.2)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.9.3)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -465,7 +464,7 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}countsetup` ❯ **Bật kênh đếm số (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}daily` ❯ **Nhận 3 lượt Gợi Ý mỗi ngày**\n"
             f"❯ `{BotConfig.PREFIX}hint` ❯ **Dùng 1 lượt Gợi Ý khi đang bí**\n"
-            f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
+            f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại ván mới ngay lập tức**\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
             f"❯ `{BotConfig.PREFIX}tiepterauma [@user]` ❯ **Tiếp tế rau má**\n"
@@ -862,6 +861,33 @@ async def cmd_huyvanchoi(ctx: commands.Context) -> None:
     session.reset()
     desc = f"{BotConfig.BORDER}\n\n🛑 Ván chơi hiện tại đã bị hủy bởi {ctx.author.mention}!\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🌸 Hủy Ván Chơi", desc, BotConfig.COLOR_BLACK_CHIC))
+
+# LỆNH RESTART MỚI ĐƯỢC THÊM Ở ĐÂY
+@bot.command(name="restart", aliases=["choilai", "reset"])
+async def cmd_restart(ctx: commands.Context) -> None:
+    session = global_session_manager.get_session(ctx.channel.id)
+    if not session.is_active:
+        await ctx.send(embed=UIUtils.build_warning_embed("Không Có Ván Chơi", "Hiện không có ván chơi nào để restart."))
+        return
+    
+    mode = session.active_mode
+    session.reset()
+    
+    if mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
+        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
+        new_mode = GameMode.PVP_VIETNAMESE if mode == GameMode.PVP_VIETNAMESE else GameMode.BOT_VIETNAMESE
+        session.initialize_session(new_mode, start_word=start_word)
+        desc = f"{BotConfig.BORDER}\n\n🔄 **Ván chơi đã được khởi động lại!**\n\n👉 Từ mới: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"
+        await ctx.send(embed=UIUtils.create_embed("🌸 Restart Thành Công", desc, BotConfig.COLOR_SAKURA_PINK))
+        
+    elif mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]:
+        start_word = random.choice(ENGLISH_LIST)
+        new_mode = GameMode.PVP_ENGLISH if mode == GameMode.PVP_ENGLISH else GameMode.BOT_ENGLISH
+        session.initialize_session(new_mode, start_word=start_word)
+        desc = f"{BotConfig.BORDER}\n\n🔄 **Game restarted!**\n\n👉 Word: **`{start_word.upper()}`**\n🌸 Next: **`{start_word[-1].upper()}`**\n\n{BotConfig.BORDER}"
+        await ctx.send(embed=UIUtils.create_embed("🌸 Restart Success", desc, BotConfig.COLOR_SAKURA_PINK))
+    else:
+        await ctx.send(embed=UIUtils.build_warning_embed("Không Hỗ Trợ", "Không thể restart trò chơi này. Dùng lệnh bắt đầu lại."))
 
 # ====================================================================================================
 # PHẦN 8: XỬ LÝ TIN NHẮN (MESSAGE LISTENER) - Nơi cốt lõi để chơi nối từ
