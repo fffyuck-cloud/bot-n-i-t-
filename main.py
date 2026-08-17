@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
-# ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
+# ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.7.0 - Ship URL Fix)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.7.1 - Ship PNG Fix)
 # ====================================================================================================
 
 import os
@@ -31,7 +31,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.7.0 Sakura Gothic Ship Fix"
+    VERSION: str = "7.7.1 Sakura Gothic Ship PNG Fix"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -708,7 +708,7 @@ async def cmd_rps(ctx: commands.Context) -> None:
     embed = UIUtils.create_embed("✊ Oẳn Tù Tì", desc, BotConfig.COLOR_DEEP_PINK)
     await ctx.send(embed=embed, view=RpsView())
 
-# LỆNH MỚI: SHIP VỚI ẢNH GHÉP VÀ RANDOM % (ĐÃ FIX LỖI URL)
+# LỆNH: SHIP VỚI ẢNH GHÉP VÀ RANDOM % (ĐÃ FIX LỖI URL HOÀN TOÀN)
 @bot.command(name="ship", aliases=["hop"])
 async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Optional[discord.Member] = None) -> None:
     target2 = member2 or ctx.author
@@ -720,7 +720,7 @@ async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Opti
     bar_length = 10
     filled = int(ship_val / 100 * bar_length)
     if filled == 0 and ship_val > 0: filled = 1
-    bar = "❤️" * filled + "🖤" * (bar_length - filled)
+    bar = "❤" * filled + "🖤" * (bar_length - filled)
     
     if ship_val < 20: msg = "💔 *Có vẻ không hợp lắm... Tránh xa ra thôi!*"
     elif ship_val < 50: msg = "🌹 *Thấy có tình chút chút! Thử tìm hiểu thêm xem sao!*"
@@ -730,9 +730,9 @@ async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Opti
     desc = f"💖 **Độ hợp mạng giữa {member1.mention} và {target2.mention}**\n\n{bar} **{ship_val}%**\n{msg}"
     
     # Sử dụng API Popcat để ghép 2 ảnh lại với nhau
-    # QUAN TRỌNG: Phải mã hóa URL (quote) để tránh lỗi ký tự '?' trong link ảnh Discord làm hỏng API
-    avatar1 = quote(str(member1.display_avatar.url), safe='')
-    avatar2 = quote(str(target2.display_avatar.url), safe='')
+    # QUAN TRỌNG: Ép định dạng PNG để tránh lỗi GIF, và mã hóa URL (quote) để không bị cắt URL
+    avatar1 = quote(str(member1.display_avatar.with_format("png").with_size(256).url), safe='')
+    avatar2 = quote(str(target2.display_avatar.with_format("png").with_size(256).url), safe='')
     ship_image_url = f"https://api.popcat.xyz/ship?user1={avatar1}&user2={avatar2}"
     
     embed = UIUtils.create_embed("💕 Độ Hợp Mạng", desc, BotConfig.COLOR_DEEP_PINK, image_url=ship_image_url)
@@ -1107,10 +1107,8 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send("đĩ mẹ mày, sủa đi")
         else: # Tag từ 5 lần trở lên
             try:
-                # Mute người dùng 1 phút
                 await message.author.timeout(timedelta(minutes=1), reason="Tag bot quá nhiều lần liên tiếp!")
                 await message.channel.send(f"🔇 {message.author.mention} đã bị mute 1 phút vì tag bot liên tục! 🌸")
-                # Reset lượt tag để tránh bị mute liên tục
                 mention_tracker[user_id] = {"count": 0, "last_mention": now}
             except discord.Forbidden:
                 await message.channel.send("⚠️ Bot không có quyền Timeout/Mute bạn. Vui lòng cấp quyền 'Quản lý thành viên' cho Bot!")
