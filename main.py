@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.4.0 - AFK System)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.5.0 - Easy Start Words)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.4.0 Sakura Gothic AFK"
+    VERSION: str = "7.5.0 Sakura Gothic Easy Start"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -71,6 +71,26 @@ DEFAULT_COUNTRIES_FALLBACK: Set[str] = {
 COUNTRY_CODES: Dict[str, str] = {
     "việt nam": "vn", "nhật bản": "jp", "hàn quốc": "kr", "pháp": "fr",
     "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru", "trung quốc": "cn"
+}
+
+# Danh sách từ dễ để bot random làm từ khởi đầu
+EASY_START_WORDS: Set[str] = {
+    "an ninh", "an toàn", "bình yên", "hạnh phúc", "cảm ơn", "xinh đẹp", "đẹp trai",
+    "học sinh", "sinh viên", "gia đình", "bạn bè", "thầy giáo", "cô giáo", "máy tính",
+    "điện thoại", "nước mắm", "cơm tấm", "xôi gấc", "trà sữa", "cà phê", "mưa rào",
+    "nắng nóng", "mặt trời", "ánh sáng", "đêm tối", "ban ngày", "ban đêm", "thời gian",
+    "không gian", "hoa hồng", "cây cối", "động vật", "con mèo", "con chó", "sông sâu",
+    "biển cả", "núi cao", "đồng cỏ", "bầu trời", "mây trắng", "gió mát", "nước trong",
+    "lửa nóng", "đất lành", "vàng bạc", "đồng xu", "tiền bạc", "giấy bút", "sách vở",
+    "bàn ghế", "nhà cửa", "xe cộ", "thuyền bè", "máy bay", "tàu hỏa", "ông bà",
+    "cha mẹ", "anh chị", "em út", "cô chú", "bác sĩ", "y tá", "công an", "bộ đội",
+    "giáo viên", "ca sĩ", "nhạc cụ", "màu sắc", "bức tranh", "bài thơ", "câu chuyện",
+    "sự kiện", "tin tức", "báo chí", "truyền hình", "thư viện", "bảo tàng", "rạp chiếu",
+    "quán ăn", "cửa hàng", "chợ búa", "siêu thị", "trung tâm", "thành phố", "thủ đô",
+    "quê hương", "đất nước", "thế giới", "vũ trụ", "hành tinh", "mặt đất", "bầu bạn",
+    "tình yêu", "tình bạn", "trung thành", "chân thật", "thành thật", "vui vẻ", "buồn bã",
+    "giận dữ", "hơi nước", "nhiệt độ", "khí hậu", "bão táp", "mưa bão", "nắng hạn",
+    "thủy lợi", "thủy tinh", "kim loại", "thủy ngân", "đường sá", "ngõ hẻm"
 }
 
 FALLBACK_MOVIES_DATA: List[Dict[str, str]] = [
@@ -125,7 +145,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.4)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.5)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -178,6 +198,7 @@ COUNTRIES_VN_DICT: Set[str] = DataManager.load_text_file(BotConfig.FILE_COUNTRIE
 COMBINED_VIETNAMESE_DICTIONARY: Set[str] = {w for w in RAW_VIETNAMESE_DICT if len(w.split()) == 2}
 
 COMBINED_VIETNAMESE_LIST: List[str] = list(COMBINED_VIETNAMESE_DICTIONARY)
+EASY_START_LIST: List[str] = list(EASY_START_WORDS)
 ENGLISH_LIST: List[str] = list(ENGLISH_DICT)
 COUNTRIES_VN_LIST: List[str] = list(COUNTRIES_VN_DICT)
 VUA_TIENG_VIET_CANDIDATES: List[str] = [w for w in COMBINED_VIETNAMESE_DICTIONARY if len(w.split()) >= 2]
@@ -443,7 +464,6 @@ bot_intents.messages = True
 
 bot = commands.Bot(command_prefix=BotConfig.PREFIX, intents=bot_intents, help_command=None, case_insensitive=True)
 
-# Quản lý danh sách AFK
 afk_users: Dict[int, Dict[int, Dict[str, Union[datetime, str]]]] = {}
 
 @bot.event
@@ -527,7 +547,6 @@ async def slash_themtu(interaction: discord.Interaction, word: str):
     else:
         await interaction.response.send_message(embed=UIUtils.build_invalid_word_embed("Từ TV phải 2 tiếng, TA phải 1 tiếng!"), ephemeral=True)
 
-# LỆNH MỚI: AFK SYSTEM
 @bot.command(name="afk", aliases=["away"])
 async def cmd_afk(ctx: commands.Context, *, reason: str = "Không có lý do"):
     guild_id = ctx.guild.id
@@ -541,7 +560,6 @@ async def cmd_afk(ctx: commands.Context, *, reason: str = "Không có lý do"):
         "reason": reason
     }
     
-    # Đổi tên thêm [AFK]
     try:
         if not ctx.author.display_name.startswith("[AFK] "):
             await ctx.author.edit(nick=f"[AFK] {ctx.author.display_name}")
@@ -553,7 +571,6 @@ async def cmd_afk(ctx: commands.Context, *, reason: str = "Không có lý do"):
     desc = f"{BotConfig.BORDER}\n\n💤 {ctx.author.mention} đã chuyển sang chế độ AFK.\n📝 Lý do: *{reason}*\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🌸 Chế Độ AFK", desc, BotConfig.COLOR_BLACK_CHIC))
 
-# LỆNH MỚI: TIẾP TẾ RAU MÁ
 @bot.command(name="tiepterauma", aliases=["trauma", "rauma", "tra"])
 async def cmd_tiepterauma(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
     if not member:
@@ -576,7 +593,7 @@ async def cmd_tiepterauma(ctx: commands.Context, member: Optional[discord.Member
 async def cmd_noitu(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
     await ctx.send(embed=UIUtils.create_embed("💕 Nối Từ PvP", f"{BotConfig.BORDER}\n\n👉 Từ: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
@@ -584,7 +601,7 @@ async def cmd_noitu(ctx: commands.Context) -> None:
 async def cmd_botnoitu(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
     await ctx.send(embed=UIUtils.create_embed("🤖 Solo Bot TV", f"{BotConfig.BORDER}\n\n👉 Từ: **`{start_word.upper()}`**\n🌸 Tiếp: **`{syllables[-1].upper()}`**\n\n{BotConfig.BORDER}"))
 
@@ -593,7 +610,7 @@ async def cmd_noituhc(ctx: commands.Context, seconds: int = 15) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     if seconds < 5 or seconds > 120: seconds = 15
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
     session.is_hardcore = True
     session.hardcore_time = seconds
@@ -614,7 +631,7 @@ async def cmd_botnoituhc(ctx: commands.Context, seconds: int = 15) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     if seconds < 5 or seconds > 120: seconds = 15
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
     session.is_hardcore = True
     session.hardcore_time = seconds
@@ -636,9 +653,9 @@ async def cmd_noitucam(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     
     banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
         
     session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
     session.is_banned_mode = True
@@ -659,9 +676,9 @@ async def cmd_botnoitucam(ctx: commands.Context) -> None:
     if session.is_active: await ctx.send(embed=UIUtils.build_warning_embed("Bận", "Đang có ván.")); return
     
     banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
         
     session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
     session.is_banned_mode = True
@@ -683,9 +700,9 @@ async def cmd_noitucamhc(ctx: commands.Context, seconds: int = 15) -> None:
     if seconds < 5 or seconds > 120: seconds = 15
     
     banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
         
     session.initialize_session(GameMode.PVP_VIETNAMESE, start_word=start_word)
     session.is_banned_mode = True
@@ -712,9 +729,9 @@ async def cmd_botnoitucamhc(ctx: commands.Context, seconds: int = 15) -> None:
     if seconds < 5 or seconds > 120: seconds = 15
     
     banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz")
-    start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+    start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
     while banned_letter in GameUtils.remove_diacritics(start_word):
-        start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
         
     session.initialize_session(GameMode.BOT_VIETNAMESE, start_word=start_word)
     session.is_banned_mode = True
@@ -832,11 +849,11 @@ async def cmd_restart(ctx: commands.Context) -> None:
     
     if mode in [GameMode.PVP_VIETNAMESE, GameMode.BOT_VIETNAMESE]:
         banned_letter = random.choice("abcdefghijklmnopqrstuvwxyz") if is_banned else ""
-        start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+        start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
         
         if is_banned:
             while banned_letter in GameUtils.remove_diacritics(start_word):
-                start_word = random.choice(COMBINED_VIETNAMESE_LIST); syllables = start_word.split()
+                start_word = random.choice(EASY_START_LIST); syllables = start_word.split()
                 
         session.initialize_session(mode, start_word=start_word)
         session.is_banned_mode = is_banned
@@ -911,17 +928,14 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
 async def on_message(message: discord.Message) -> None:
     if message.author.bot: return
     
-    # TÍNH NĂNG: Auto-reply "dạ e đây" khi bị tag
     if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
         await message.channel.send("dạ e đây 🌸")
         
-    # TÍNH NĂNG: XỬ LÝ AFK
     if message.guild:
         guild_id = message.guild.id
         if guild_id not in afk_users:
             afk_users[guild_id] = {}
 
-        # 1. Người dùng AFK vừa quay lại (gửi tin nhắn không phải lệnh afk)
         if message.author.id in afk_users[guild_id] and not message.content.startswith(f"{BotConfig.PREFIX}afk"):
             del afk_users[guild_id][message.author.id]
             try:
@@ -936,7 +950,6 @@ async def on_message(message: discord.Message) -> None:
             desc = f"{BotConfig.BORDER}\n\n👋 Chào mừng {message.author.mention} trở lại! Bot đã tự động tắt chế độ AFK. 🌸\n\n{BotConfig.BORDER}"
             await message.channel.send(embed=UIUtils.create_embed("🌸 Hết AFK", desc, BotConfig.COLOR_SAKURA_PINK))
 
-        # 2. Ai đó tag một người đang AFK
         for mentioned_user in message.mentions:
             if mentioned_user.id in afk_users.get(guild_id, {}):
                 afk_data = afk_users[guild_id][mentioned_user.id]
