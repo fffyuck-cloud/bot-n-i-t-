@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.9 - Ship Image & Random)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.7.0 - Ship URL Fix)
 # ====================================================================================================
 
 import os
@@ -17,6 +17,7 @@ import asyncio
 import threading
 import unicodedata
 import aiohttp
+from urllib.parse import quote
 from datetime import datetime, timedelta
 from typing import Set, List, Dict, Optional, Union
 from flask import Flask
@@ -30,7 +31,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.9 Sakura Gothic Ship Image"
+    VERSION: str = "7.7.0 Sakura Gothic Ship Fix"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -707,7 +708,7 @@ async def cmd_rps(ctx: commands.Context) -> None:
     embed = UIUtils.create_embed("✊ Oẳn Tù Tì", desc, BotConfig.COLOR_DEEP_PINK)
     await ctx.send(embed=embed, view=RpsView())
 
-# LỆNH MỚI: SHIP VỚI ẢNH GHÉP VÀ RANDOM %
+# LỆNH MỚI: SHIP VỚI ẢNH GHÉP VÀ RANDOM % (ĐÃ FIX LỖI URL)
 @bot.command(name="ship", aliases=["hop"])
 async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Optional[discord.Member] = None) -> None:
     target2 = member2 or ctx.author
@@ -715,7 +716,6 @@ async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Opti
         await ctx.send("Bạn không thể ship với chính mình được! 🌸")
         return
         
-    # Random 0 đến 100
     ship_val = random.randint(0, 100)
     bar_length = 10
     filled = int(ship_val / 100 * bar_length)
@@ -730,8 +730,9 @@ async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Opti
     desc = f"💖 **Độ hợp mạng giữa {member1.mention} và {target2.mention}**\n\n{bar} **{ship_val}%**\n{msg}"
     
     # Sử dụng API Popcat để ghép 2 ảnh lại với nhau
-    avatar1 = member1.display_avatar.with_size(256).url
-    avatar2 = target2.display_avatar.with_size(256).url
+    # QUAN TRỌNG: Phải mã hóa URL (quote) để tránh lỗi ký tự '?' trong link ảnh Discord làm hỏng API
+    avatar1 = quote(str(member1.display_avatar.url), safe='')
+    avatar2 = quote(str(target2.display_avatar.url), safe='')
     ship_image_url = f"https://api.popcat.xyz/ship?user1={avatar1}&user2={avatar2}"
     
     embed = UIUtils.create_embed("💕 Độ Hợp Mạng", desc, BotConfig.COLOR_DEEP_PINK, image_url=ship_image_url)
