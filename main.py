@@ -6,7 +6,7 @@
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.9.1 - Neon Emojis)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.9.2 - Neon Emojis)
 # ====================================================================================================
 
 import os
@@ -32,7 +32,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.9.1 Sakura Gothic Neon Emojis"
+    VERSION: str = "7.9.2 Sakura Gothic Neon Emojis"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -53,9 +53,9 @@ class BotConfig:
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
     BORDER: str = "🌸・━━━━━━━━━━━━━━━━━━━━━━━━━━━・🌸" 
 
-    # Mã Emoji Neon bạn vừa cung cấp
+    # Mã Emoji Neon
     EMOJI_TICK: str = "<:ChatGPT_Image_Aug_17__2026__05_0:1538854979832516698>"
-    EMOJI_X: str = "<:ChatGPT_Image_Aug_17__2026__05_1:1538855073864622171>"
+    EMOJI_X: str = "<:0646ba929fef4ab299a9b8f82ed20378:1538880451718938684>"
 
 # ====================================================================================================
 # PHẦN 2: DỮ LIỆU DỰ PHÒNG & GAME DATA
@@ -151,7 +151,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.9.1)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.9.2)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
