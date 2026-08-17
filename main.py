@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.1 - Dict 2Ban)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.2 - Tag Limit)
 # ====================================================================================================
 
 import os
@@ -16,7 +16,7 @@ import logging
 import asyncio
 import threading
 import unicodedata
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Set, List, Dict, Optional, Union
 from flask import Flask
 import discord
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.1 Sakura Gothic Dict 2Ban"
+    VERSION: str = "7.6.2 Sakura Gothic Tag Limit"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -37,7 +37,6 @@ class BotConfig:
     WEB_SERVER_HOST: str = "0.0.0.0"
     WEB_SERVER_PORT: int = int(os.getenv("PORT", 8080))
     
-    # ĐỔI TÊN FILE TỪ ĐIỂN THÀNH FILE MỚI CỦA BẠN
     FILE_VIETNAMESE_DICT: str = "TuDien_TiengViet_Ghep_2Ban.txt"
     FILE_ENGLISH_DICT: str = "tu dien tieng anh.txt"
     FILE_COUNTRIES_DICT: str = "quoc gia vn.txt"
@@ -316,6 +315,7 @@ class SessionManager:
 global_session_manager = SessionManager()
 
 counting_channels: Dict[int, Dict[str, int]] = {} 
+mention_tracker: Dict[int, Dict[str, Union[int, datetime]]] = {} 
 
 class GameUtils:
     @staticmethod
@@ -952,9 +952,31 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
 async def on_message(message: discord.Message) -> None:
     if message.author.bot: return
     
+    # TÍNH NĂNG: Auto-reply khi bị tag và bực mình khi tag liên tục
     if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
-        await message.channel.send("dạ e đây 🌸")
+        user_id = message.author.id
+        now = datetime.now()
         
+        if user_id not in mention_tracker:
+            mention_tracker[user_id] = {"count": 1, "last_mention": now}
+        else:
+            if (now - mention_tracker[user_id]["last_mention"]).total_seconds() > 300:
+                mention_tracker[user_id]["count"] = 1
+            else:
+                mention_tracker[user_id]["count"] += 1
+            mention_tracker[user_id]["last_mention"] = now
+            
+        count = mention_tracker[user_id]["count"]
+        
+        if count == 1:
+            await message.channel.send("dạ e đây 🌸")
+        elif count == 2:
+            await message.channel.send("sao")
+        elif count == 3:
+            await message.channel.send("**sao**")
+        else: 
+            await message.channel.send("đĩ mẹ mày, sủa đi")
+            
     if message.guild:
         guild_id = message.guild.id
         if guild_id not in afk_users:
