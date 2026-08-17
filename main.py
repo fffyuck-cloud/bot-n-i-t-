@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╗██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.2 - Tag Limit)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.4 - Mute Fix)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.2 Sakura Gothic Tag Limit"
+    VERSION: str = "7.6.4 Sakura Gothic Mute Fix"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -952,7 +952,7 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
 async def on_message(message: discord.Message) -> None:
     if message.author.bot: return
     
-    # TÍNH NĂNG: Auto-reply khi bị tag và bực mình khi tag liên tục
+    # TÍNH NĂNG: Auto-reply khi bị tag, bực mình và MUTE (Time-out) 1 phút
     if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
         user_id = message.author.id
         now = datetime.now()
@@ -974,8 +974,19 @@ async def on_message(message: discord.Message) -> None:
             await message.channel.send("sao")
         elif count == 3:
             await message.channel.send("**sao**")
-        else: 
+        elif count == 4:
             await message.channel.send("đĩ mẹ mày, sủa đi")
+        else: # Tag từ 5 lần trở lên
+            try:
+                # Mute người dùng 1 phút
+                await message.author.timeout(timedelta(minutes=1), reason="Tag bot quá nhiều lần liên tiếp!")
+                await message.channel.send(f"🔇 {message.author.mention} đã bị mute 1 phút vì tag bot liên tục! 🌸")
+                # Reset lượt tag để tránh bị mute liên tục
+                mention_tracker[user_id] = {"count": 0, "last_mention": now}
+            except discord.Forbidden:
+                await message.channel.send("⚠️ Bot không có quyền Timeout/Mute bạn. Vui lòng cấp quyền 'Quản lý thành viên' cho Bot!")
+            except Exception as e:
+                logger.error(f"Lỗi mute user: {e}")
             
     if message.guild:
         guild_id = message.guild.id
