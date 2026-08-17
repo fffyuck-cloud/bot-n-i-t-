@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.8 - RPS & Ship)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.9 - Ship Image & Random)
 # ====================================================================================================
 
 import os
@@ -30,7 +30,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.8 Sakura Gothic RPS & Ship"
+    VERSION: str = "7.6.9 Sakura Gothic Ship Image"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -401,7 +401,7 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}doanemoji` ❯ **Đoán Emoji**\n"
             f"❯ `{BotConfig.PREFIX}tictactoe` ❯ **Cờ Caro**\n"
             f"❯ `{BotConfig.PREFIX}rps` ❯ **Oẳn tù tì**\n"
-            f"❯ `{BotConfig.PREFIX}ship [@user1] [@user2]` ❯ **Tính độ hợp mạng**\n\n"
+            f"❯ `{BotConfig.PREFIX}ship [@user1] [@user2]` ❯ **Tính độ hợp mạng (Có ảnh)**\n\n"
 
             f"⚙️🌸 **[ QUẢN LÝ & TIỆN ÍCH ]** 🌸⚙️\n"
             f"❯ `/themtu [từ]` ❯ **Thêm từ (Admin)**\n"
@@ -463,7 +463,6 @@ class TicTacToeView(View):
             await interaction.response.edit_message(content=content, view=self)
         return callback
 
-# LỆNH MỚI: OẴN TÙ TÌ (RPS VIEW)
 class RpsView(View):
     def __init__(self):
         super().__init__(timeout=60.0)
@@ -702,14 +701,13 @@ async def cmd_avatar(ctx: commands.Context, member: Optional[discord.Member] = N
     embed.set_image(url=avatar_url)
     await ctx.send(embed=embed)
 
-# LỆNH MỚI: OẴN TÙ TÌ (RPS)
 @bot.command(name="rps", aliases=["oantuti", "keobuabao"])
 async def cmd_rps(ctx: commands.Context) -> None:
     desc = f"{BotConfig.BORDER}\n\n✊ **Oẳn tù tì cùng Bot!**\nHãy chọn 1 trong 3 nút bên dưới để bắt đầu.\n\n{BotConfig.BORDER}"
     embed = UIUtils.create_embed("✊ Oẳn Tù Tì", desc, BotConfig.COLOR_DEEP_PINK)
     await ctx.send(embed=embed, view=RpsView())
 
-# LỆNH MỚI: TÍNH ĐỘ HỢP MẠNG (SHIP)
+# LỆNH MỚI: SHIP VỚI ẢNH GHÉP VÀ RANDOM %
 @bot.command(name="ship", aliases=["hop"])
 async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Optional[discord.Member] = None) -> None:
     target2 = member2 or ctx.author
@@ -717,20 +715,26 @@ async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Opti
         await ctx.send("Bạn không thể ship với chính mình được! 🌸")
         return
         
-    # Hashing IDs for consistent result
-    ship_val = (min(member1.id, target2.id) ^ max(member1.id, target2.id)) % 101
+    # Random 0 đến 100
+    ship_val = random.randint(0, 100)
     bar_length = 10
     filled = int(ship_val / 100 * bar_length)
     if filled == 0 and ship_val > 0: filled = 1
     bar = "❤️" * filled + "🖤" * (bar_length - filled)
     
-    desc = f"💖 **Độ hợp mạng giữa {member1.mention} và {target2.mention}**\n\n{bar} **{ship_val}%**\n"
-    if ship_val < 20: desc += "💔 *Có vẻ không hợp lắm... Tránh xa ra thôi!*"
-    elif ship_val < 50: desc += "🌹 *Thấy có tình chút chút! Thử tìm hiểu thêm xem sao!*"
-    elif ship_val < 80: desc += "💞 *Rất hợp nha! Cố lên!*"
-    else: desc += "💍 *Mệnh trời định! Mau cưới đi chớ chời!*"
+    if ship_val < 20: msg = "💔 *Có vẻ không hợp lắm... Tránh xa ra thôi!*"
+    elif ship_val < 50: msg = "🌹 *Thấy có tình chút chút! Thử tìm hiểu thêm xem sao!*"
+    elif ship_val < 80: msg = "💞 *Rất hợp nha! Cố lên!*"
+    else: msg = "💍 *Mệnh trời định! Mau cưới đi chớ chời!*"
     
-    embed = UIUtils.create_embed("💕 Độ Hợp Mạng", desc, BotConfig.COLOR_DEEP_PINK)
+    desc = f"💖 **Độ hợp mạng giữa {member1.mention} và {target2.mention}**\n\n{bar} **{ship_val}%**\n{msg}"
+    
+    # Sử dụng API Popcat để ghép 2 ảnh lại với nhau
+    avatar1 = member1.display_avatar.with_size(256).url
+    avatar2 = target2.display_avatar.with_size(256).url
+    ship_image_url = f"https://api.popcat.xyz/ship?user1={avatar1}&user2={avatar2}"
+    
+    embed = UIUtils.create_embed("💕 Độ Hợp Mạng", desc, BotConfig.COLOR_DEEP_PINK, image_url=ship_image_url)
     await ctx.send(embed=embed)
 
 # ====================================================================================================
