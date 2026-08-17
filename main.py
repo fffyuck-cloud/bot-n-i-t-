@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.5.0 - Easy Start Words)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.0 - Counting Game)
 # ====================================================================================================
 
 import os
@@ -29,7 +29,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.5.0 Sakura Gothic Easy Start"
+    VERSION: str = "7.6.0 Sakura Gothic Counting"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -73,7 +73,6 @@ COUNTRY_CODES: Dict[str, str] = {
     "mỹ": "us", "anh": "gb", "đức": "de", "ý": "it", "nga": "ru", "trung quốc": "cn"
 }
 
-# Danh sách từ dễ để bot random làm từ khởi đầu
 EASY_START_WORDS: Set[str] = {
     "an ninh", "an toàn", "bình yên", "hạnh phúc", "cảm ơn", "xinh đẹp", "đẹp trai",
     "học sinh", "sinh viên", "gia đình", "bạn bè", "thầy giáo", "cô giáo", "máy tính",
@@ -145,7 +144,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.5)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.6)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -315,6 +314,9 @@ class SessionManager:
 
 global_session_manager = SessionManager()
 
+# Quản lý Kênh Đếm Số
+counting_channels: Dict[int, Dict[str, int]] = {} # channel_id -> {"current": 0, "high_score": 0, "last_user": 0}
+
 class GameUtils:
     @staticmethod
     def remove_diacritics(text: str) -> str:
@@ -401,6 +403,8 @@ class UIUtils:
             f"❯ `/themtu [từ]` ❯ **Thêm từ (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}admin` ❯ **Panel (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}afk [lý do]` ❯ **Bật chế độ AFK**\n"
+            f"❯ `{BotConfig.PREFIX}countsetup` ❯ **Bật kênh đếm số (Admin)**\n"
+            f"❯ `{BotConfig.PREFIX}countstatus` ❯ **Xem kỷ lục đếm số**\n"
             f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
@@ -584,6 +588,27 @@ async def cmd_tiepterauma(ctx: commands.Context, member: Optional[discord.Member
     desc = f"{BotConfig.BORDER}\n\n🌿 Đã tiếp tế 36 rau má cho {member.mention}! 💚\n\n{BotConfig.BORDER}"
         
     await ctx.send(embed=UIUtils.create_embed("Tiếp tế rau má", desc, BotConfig.COLOR_SAKURA_PINK))
+
+# LỆNH MỚI: QUẢN LÝ KÊNH ĐẾM SỐ
+@bot.command(name="countsetup", aliases=["setupcount", "demso"])
+@commands.has_permissions(administrator=True)
+async def cmd_countsetup(ctx: commands.Context):
+    counting_channels[ctx.channel.id] = {"current": 0, "high_score": 0, "last_user": 0}
+    desc = f"{BotConfig.BORDER}\n\n🔢 **Kênh Đếm Số đã được kích hoạt!**\n\nNgười tiếp theo hãy gõ số **1** để bắt đầu.\n⚠️ *Lưu ý: Không được đếm 2 lần liên tiếp, đếm sai là về 0!* 🌸\n\n{BotConfig.BORDER}"
+    await ctx.send(embed=UIUtils.create_embed("🌸 Đếm Số Sakura", desc, BotConfig.COLOR_SAKURA_PINK))
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+@bot.command(name="countstatus", aliases=["diemdem"])
+async def cmd_countstatus(ctx: commands.Context):
+    if ctx.channel.id in counting_channels:
+        data = counting_channels[ctx.channel.id]
+        desc = f"{BotConfig.BORDER}\n\n🔢 Số hiện tại: **{data['current']}**\n🏆 Kỷ lục: **{data['high_score']}**\n\n{BotConfig.BORDER}"
+        await ctx.send(embed=UIUtils.create_embed("🌸 Trạng Thái Đếm Số", desc, BotConfig.COLOR_DEEP_PINK))
+    else:
+        await ctx.send(embed=UIUtils.build_warning_embed("Chưa bật kênh", "Kênh này chưa bật tính năng đếm số. Admin hãy dùng `?countsetup`."))
 
 # ====================================================================================================
 # PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ ARCADE
@@ -928,14 +953,17 @@ async def cmd_nghia(ctx: commands.Context, *, word: str = "") -> None:
 async def on_message(message: discord.Message) -> None:
     if message.author.bot: return
     
+    # TÍNH NĂNG: Auto-reply "dạ e đây" khi bị tag
     if bot.user.mentioned_in(message) and not message.content.startswith(BotConfig.PREFIX):
         await message.channel.send("dạ e đây 🌸")
         
+    # TÍNH NĂNG: XỬ LÝ AFK
     if message.guild:
         guild_id = message.guild.id
         if guild_id not in afk_users:
             afk_users[guild_id] = {}
 
+        # 1. Người dùng AFK vừa quay lại (gửi tin nhắn không phải lệnh afk)
         if message.author.id in afk_users[guild_id] and not message.content.startswith(f"{BotConfig.PREFIX}afk"):
             del afk_users[guild_id][message.author.id]
             try:
@@ -950,6 +978,7 @@ async def on_message(message: discord.Message) -> None:
             desc = f"{BotConfig.BORDER}\n\n👋 Chào mừng {message.author.mention} trở lại! Bot đã tự động tắt chế độ AFK. 🌸\n\n{BotConfig.BORDER}"
             await message.channel.send(embed=UIUtils.create_embed("🌸 Hết AFK", desc, BotConfig.COLOR_SAKURA_PINK))
 
+        # 2. Ai đó tag một người đang AFK
         for mentioned_user in message.mentions:
             if mentioned_user.id in afk_users.get(guild_id, {}):
                 afk_data = afk_users[guild_id][mentioned_user.id]
@@ -963,6 +992,59 @@ async def on_message(message: discord.Message) -> None:
                 reason = afk_data.get("reason", "không có lý do")
                 await message.channel.send(f"💤 **NGƯỜI DÙNG NÀY ĐÃ AFK.** (Thời gian: {time_str})\n📝 Lý do: *{reason}*")
                 break
+
+    # TÍNH NĂNG: XỬ LÝ KÊNH ĐẾM SỐ
+    if message.channel.id in counting_channels and not message.content.startswith(BotConfig.PREFIX):
+        data = counting_channels[message.channel.id]
+        content = message.content.strip()
+        
+        # Kiểm tra xem có phải là số không
+        if not content.isdigit():
+            try:
+                await message.delete()
+            except:
+                pass
+            return
+            
+        num = int(content)
+        
+        # Luật 1: Không được đếm 2 lần liên tiếp
+        if message.author.id == data["last_user"]:
+            data["current"] = 0
+            data["last_user"] = 0
+            await message.add_reaction("❌")
+            await message.channel.send(f"💥 {message.author.mention} không thể đếm 2 lần liên tiếp! Đếm lại từ 1. 🌸\n*(Kỷ lục: {data['high_score']})*", delete_after=10)
+            try:
+                await message.delete()
+            except:
+                pass
+            return
+            
+        expected_num = data["current"] + 1
+        
+        # Luật 2: Đếm đúng số tiếp theo
+        if num == expected_num:
+            data["current"] = num
+            data["last_user"] = message.author.id
+            await message.add_reaction("✅")
+            
+            # Cập nhật kỷ lục
+            if num > data["high_score"]:
+                data["high_score"] = num
+                if num % 10 == 0: # Ăn mừng mỗi 10 số
+                    await message.channel.send(f"🎉 Wooo! Kỷ lục mới: **{num}**! Cố lên nào! 🌸")
+        else:
+            # Luật 3: Đếm sai, reset về 0
+            data["current"] = 0
+            data["last_user"] = 0
+            await message.add_reaction("💥")
+            await message.channel.send(f"💥 {message.author.mention} đếm sai rồi! Phải là số **{expected_num}** chứ không phải **{num}**.\nChơi lại từ 1! 🌸\n*(Kỷ lục server: {data['high_score']})*")
+            try:
+                await message.delete()
+            except:
+                pass
+                
+        return # Tránh việc bot xử lý số như lệnh hoặc lách luật game khác
 
     await bot.process_commands(message)
     session = global_session_manager.get_session(message.channel.id)
