@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.6 - Say & DM Delete)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.5 - Meme/Say/DM)
 # ====================================================================================================
 
 import os
@@ -30,7 +30,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.6 Sakura Gothic Say & DM Delete"
+    VERSION: str = "7.6.5 Sakura Gothic Meme & Say & DM"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -632,7 +632,7 @@ async def cmd_meme(ctx: commands.Context) -> None:
             logger.error(f"Lỗi lấy meme: {e}")
             await ctx.send("🖤 Lỗi kết nối API meme! 🌸")
 
-# LỆNH MỚI: SAY (BOT NÓI THAY VÀ XÓA TIN NHẮN LỆNH)
+# LỆNH MỚI: SAY (BOT NÓI THAY)
 @bot.command(name="say", aliases=["echo"])
 async def cmd_say(ctx: commands.Context, *, text: str) -> None:
     try:
@@ -641,26 +641,21 @@ async def cmd_say(ctx: commands.Context, *, text: str) -> None:
         pass
     await ctx.send(text)
 
-# LỆNH MỚI: DM (GỬI TIN NHẮN ẨN DANH VÀ XÓA TIN NHẮN LỆNH)
+# LỆNH MỚI: DM (GỬI TIN NHẮN ẨN DANH)
 @bot.command(name="dm", aliases=["guian", "gui_dm"])
 async def cmd_dm(ctx: commands.Context, member: discord.Member, *, message: str) -> None:
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
     if member.bot:
-        await ctx.send("🤖 Bot không cần nhận tin nhắn đâu! 🌸", delete_after=5)
+        await ctx.send("🤖 Bot không cần nhận tin nhắn đâu! 🌸")
         return
         
     try:
         await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh:**\n\n{message}\n\n*— Từ Vườn hoa Đen Hồng*")
-        await ctx.send(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention}! 🌸", delete_after=5)
+        await ctx.send(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention}! 🌸")
     except discord.Forbidden:
-        await ctx.send(f"❌ Không thể gửi tin nhắn cho {member.mention}. Họ có thể đã tắt DM (Direct Messages) hoặc không cho phép bot nhắn tin. 🌸", delete_after=5)
+        await ctx.send(f"❌ Không thể gửi tin nhắn cho {member.mention}. Họ có thể đã tắt DM (Direct Messages) hoặc không cho phép bot nhắn tin. 🌸")
     except Exception as e:
         logger.error(f"Lỗi gửi DM: {e}")
-        await ctx.send(f"❌ Lỗi không xác định khi gửi DM. 🌸", delete_after=5)
+        await ctx.send(f"❌ Lỗi không xác định khi gửi DM. 🌸")
 
 # ====================================================================================================
 # PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ ARCADE
