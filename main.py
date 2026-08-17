@@ -6,7 +6,7 @@
 # ██████╔╝███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.8 - Hint & Daily System)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.9.1 - Neon Emojis)
 # ====================================================================================================
 
 import os
@@ -32,7 +32,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.8 Sakura Gothic Hint & Daily"
+    VERSION: str = "7.9.1 Sakura Gothic Neon Emojis"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -52,6 +52,10 @@ class BotConfig:
     
     MSG_ERR_ALREADY_USED: str = "❌ Từ này đã được sử dụng trước đó trong ván này!"
     BORDER: str = "🌸・━━━━━━━━━━━━━━━━━━━━━━━━━━━・🌸" 
+
+    # Mã Emoji Neon bạn vừa cung cấp
+    EMOJI_TICK: str = "<:ChatGPT_Image_Aug_17__2026__05_0:1538854979832516698>"
+    EMOJI_X: str = "<:ChatGPT_Image_Aug_17__2026__05_1:1538855073864622171>"
 
 # ====================================================================================================
 # PHẦN 2: DỮ LIỆU DỰ PHÒNG & GAME DATA
@@ -147,7 +151,7 @@ keep_alive_app = Flask("SakuraKeepAlive")
 
 @keep_alive_app.route('/')
 def route_home() -> str:
-    return "<h1>Sakura Black Pink Arcade (v7.8)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
+    return "<h1>Sakura Black Pink Arcade (v7.9.1)</h1><p style='color:#FFB7C5'>Status: <strong>ONLINE & AESTHETIC</strong></p>"
 
 def launch_web_server() -> None:
     try:
@@ -549,7 +553,7 @@ class RpsView(View):
         await interaction.response.edit_message(content=f"📄 Bạn chọn: Bao | 🤖 Bot chọn: {bot_choice}\n**Kết quả: {result}**", view=self)
 
 # ====================================================================================================
-# PHẦN 6: KHỞI TẠO BOT & LỆNH HỆ THỐNG (CÓ DAILY VÀ HINT)
+# PHẦN 6: KHỞI TẠO BOT & LỆNH HỆ THỐNG
 # ====================================================================================================
 
 bot_intents = discord.Intents.default()
@@ -566,7 +570,9 @@ async def on_ready() -> None:
     try:
         synced = await bot.tree.sync()
         logger.info(f"✅ Đã đồng bộ {len(synced)} lệnh Slash.")
-    except Exception as e: logger.error(f"Lỗi đồng bộ Slash: {e}")
+    except Exception as e: 
+        logger.error(f"Lỗi đồng bộ Slash: {e}")
+        
     activity = discord.Activity(type=discord.ActivityType.playing, name=f"{BotConfig.PREFIX}help | 🖤🌸 Sakura Gothic")
     await bot.change_presence(status=discord.Status.online, activity=activity)
 
@@ -577,7 +583,6 @@ async def on_command_error(ctx: commands.Context, error: Exception) -> None:
     elif isinstance(error, commands.CheckFailure): await ctx.send(embed=UIUtils.build_warning_embed("Quyền Truy Cập", "🖤 Lệnh này dành riêng cho **Owner**!"))
     else: logger.error(f"Lỗi lệnh: {error}")
 
-# ---- LỆNH HỆ THỐNG ----
 @bot.command(name="ping")
 async def sys_ping(ctx: commands.Context) -> None:
     latency = round(bot.latency * 1000)
@@ -599,7 +604,6 @@ async def cmd_admin(ctx: commands.Context) -> None:
     desc = f"{BotConfig.BORDER}\n\n🖤 **Chào mừng Quản trị viên tối cao!** 🌸\n• 🎮 Sessions: {len(global_session_manager._sessions)}\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🔒🌸 [ ADMIN PANEL ] 🌸🔒", desc, BotConfig.COLOR_BLACK_CHIC))
 
-# ---- LỆNH DAILY VÀ HINT MỚI ----
 @bot.command(name="daily", aliases=["nhanthuong", "diemdanh"])
 async def cmd_daily(ctx: commands.Context) -> None:
     user_data = UserDataManager.get_user(ctx.author.id)
@@ -610,7 +614,7 @@ async def cmd_daily(ctx: commands.Context) -> None:
         await ctx.send(embed=UIUtils.create_embed("🌸 Nhận Thưởng Hàng Ngày", desc, BotConfig.COLOR_DEEP_PINK))
         return
     
-    new_hints = user_data["hints"] + 3  # Mỗi ngày nhận được 3 hint
+    new_hints = user_data["hints"] + 3
     UserDataManager.update_user(ctx.author.id, hints=new_hints, last_daily=today)
     
     desc = f"{BotConfig.BORDER}\n\n💖 {ctx.author.mention} đã nhận phần thưởng hàng ngày!\n➕ **+3 Gợi Ý** 🌸\n💡 Tổng gợi ý hiện có: **{new_hints}**\n\n{BotConfig.BORDER}"
@@ -660,7 +664,6 @@ async def cmd_hint(ctx: commands.Context) -> None:
     desc = f"{BotConfig.BORDER}\n\n🎯 {ctx.author.mention} đã sử dụng 1 Gợi Ý!\n\n{hint_text}\n\n💡 Số gợi ý còn lại: **{new_hints}**\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("💡 [ GỢI Ý NỐI TỪ ] 💡", desc, BotConfig.COLOR_GOLD))
 
-# ---- CÁC LỆNH TIỆN ÍCH KHÁC ----
 @bot.tree.command(name="themtu", description="Thêm từ mới vào từ điển (Chỉ Owner)")
 async def slash_themtu(interaction: discord.Interaction, word: str):
     if interaction.user.id != BotConfig.OWNER_ID:
@@ -876,28 +879,30 @@ async def handle_word_chain(message: discord.Message) -> None:
     # Xử lý nối từ Tiếng Anh
     if is_english:
         if not content.isalpha() or len(content.split()) > 1:
-            return # Bỏ qua nếu không phải 1 từ tiếng Anh hợp lệ
+            return 
             
         last_char = session.current_word[-1]
         first_char = content[0]
         
         if first_char != last_char:
             await message.reply(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng chữ **`{last_char.upper()}`**!"), mention_author=False)
+            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
             return
             
         if content in session.used_words_history:
             await message.reply(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED), mention_author=False)
+            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
             return
             
         if content not in ENGLISH_DICT:
             await message.reply(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển Tiếng Anh của bot!"), mention_author=False)
+            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
             return
             
         session.current_word = content
         session.used_words_history.add(content)
-        await message.add_reaction("✅")
+        await message.add_reaction(BotConfig.EMOJI_TICK) # Thả ảnh Tick
         
-        # Nếu là bot mode, bot phản hồi lại
         if session.active_mode == GameMode.BOT_ENGLISH:
             bot_last_char = content[-1]
             possible_words = ENGLISH_INDEX_BY_FIRST_LETTER.get(bot_last_char, [])
@@ -918,48 +923,47 @@ async def handle_word_chain(message: discord.Message) -> None:
     else:
         parts = content.split()
         if len(parts) != 2:
-            return # Nối từ TV chỉ chấp nhận 2 tiếng
+            return 
             
         last_syllable = session.current_word.split()[-1]
         first_syllable = parts[0]
         
-        # Bỏ dấu để kiểm tra
         if GameUtils.remove_diacritics(first_syllable) != GameUtils.remove_diacritics(last_syllable):
             await message.reply(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng tiếng **`{last_syllable.upper()}`**!"), mention_author=False)
+            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
             return
             
         if content in session.used_words_history:
             await message.reply(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED), mention_author=False)
+            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
             return
             
         if content not in COMBINED_VIETNAMESE_DICTIONARY:
             await message.reply(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển Tiếng Việt của bot!"), mention_author=False)
+            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
             return
             
-        # Kiểm tra chữ cấm
         if session.is_banned_mode:
             raw_content = GameUtils.remove_diacritics(content)
             if session.banned_letter in raw_content:
                 await message.reply(embed=UIUtils.build_invalid_word_embed(f"💀 Bạn đã dùng chữ **`{session.banned_letter.upper()}`** bị cấm! Bạn THUA!"), mention_author=False)
+                await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
                 session.reset()
                 return
                 
         session.current_word = content
         session.used_words_history.add(content)
         session.last_player_id = message.author.id
-        await message.add_reaction("✅")
+        await message.add_reaction(BotConfig.EMOJI_TICK) # Thả ảnh Tick
         
-        # Reset timer nếu là Hardcore
         if session.is_hardcore:
             await session.start_hardcore_timer(message.channel)
             
-        # Bot phản hồi
         if session.active_mode == GameMode.BOT_VIETNAMESE:
             bot_last_syl = content.split()[-1]
             possible_words = VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(bot_last_syl, [])
             valid_bot_words = [w for w in possible_words if w not in session.used_words_history]
             
-            # Lọc chữ cấm nếu có
             if session.is_banned_mode:
                 valid_bot_words = [w for w in valid_bot_words if session.banned_letter not in GameUtils.remove_diacritics(w)]
                 
@@ -977,7 +981,6 @@ async def handle_word_chain(message: discord.Message) -> None:
 async def on_message(message: discord.Message) -> None:
     if message.author.bot or not message.guild: return
 
-    # Xử lý AFK
     if message.guild.id in afk_users:
         if message.author.id in afk_users[message.guild.id]:
             afk_users[message.guild.id].pop(message.author.id)
@@ -993,7 +996,6 @@ async def on_message(message: discord.Message) -> None:
                 desc = f"{BotConfig.BORDER}\n\n💤 **{mention.display_name}** đang AFK!\n📝 Lý do: *{afk_data['reason']}*\n\n{BotConfig.BORDER}"
                 await message.reply(embed=UIUtils.create_embed("🌸 Người dùng AFK", desc, BotConfig.COLOR_BLACK_CHIC), delete_after=10)
 
-    # Xử lý đếm số
     if message.channel.id in counting_channels:
         data = counting_channels[message.channel.id]
         try:
@@ -1006,19 +1008,16 @@ async def on_message(message: discord.Message) -> None:
                 data["current"] = num
                 data["last_user"] = message.author.id
                 if num > data["high_score"]: data["high_score"] = num
-                await message.add_reaction("✅")
+                await message.add_reaction(BotConfig.EMOJI_TICK) # Thả ảnh Tick
             else:
                 data["current"] = 0
                 data["last_user"] = 0
-                await message.add_reaction("❌")
+                await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
                 await message.reply(embed=UIUtils.build_warning_embed("Đếm Sai!", "Bạn đã đếm sai! Kênh đếm số đã reset về 0."))
         except ValueError:
             pass
 
-    # Xử lý nối từ
     await handle_word_chain(message)
-    
-    # Chạy lệnh bot
     await bot.process_commands(message)
 
 # ====================================================================================================
