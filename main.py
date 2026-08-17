@@ -1,12 +1,12 @@
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
-# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╗██║██╔██╗  ██║█████╔╝     ██████╔╗██║   ██║   ██║   
+# ██████╔╗██║    ███████║██║     █████╔╝     ██████╔╝██║██╔██╗  ██║█████╔╝     ██████╔╝██║   ██║   ██║   
 # ██╔══██╗██║    ██╔══██║██║     ██╔═██╗     ██╔═══╝ ██║██║╚██╗ ██║██╔═██╗     ██╔══██╗██║   ██║   ██║   
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.4 - Mute Fix)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.5 - Meme/Say/DM)
 # ====================================================================================================
 
 import os
@@ -16,6 +16,7 @@ import logging
 import asyncio
 import threading
 import unicodedata
+import aiohttp
 from datetime import datetime, timedelta
 from typing import Set, List, Dict, Optional, Union
 from flask import Flask
@@ -29,7 +30,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.4 Sakura Gothic Mute Fix"
+    VERSION: str = "7.6.5 Sakura Gothic Meme & Say & DM"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -404,11 +405,13 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}admin` ❯ **Panel (Admin)**\n"
             f"❯ `{BotConfig.PREFIX}afk [lý do]` ❯ **Bật chế độ AFK**\n"
             f"❯ `{BotConfig.PREFIX}countsetup` ❯ **Bật kênh đếm số (Admin)**\n"
-            f"❯ `{BotConfig.PREFIX}countstatus` ❯ **Xem kỷ lục đếm số**\n"
             f"❯ `{BotConfig.PREFIX}restart` ❯ **Chơi lại từ đầu**\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ **Hủy ván chơi**\n"
             f"❯ `{BotConfig.PREFIX}nghia [từ]` ❯ **Tra cứu từ điển**\n"
             f"❯ `{BotConfig.PREFIX}tiepterauma [@user]` ❯ **Tiếp tế rau má**\n"
+            f"❯ `{BotConfig.PREFIX}meme` ❯ **Lấy ảnh meme ngẫu nhiên**\n"
+            f"❯ `{BotConfig.PREFIX}say [nội dung]` ❯ **Bot nói thay bạn**\n"
+            f"❯ `{BotConfig.PREFIX}dm [@user] [nội dung]` ❯ **Gửi DM ẩn danh**\n"
             f"❯ `{BotConfig.PREFIX}ping` ❯ **Kiểm tra độ trễ**\n\n"
             f"{BotConfig.BORDER}"
         )
@@ -608,6 +611,51 @@ async def cmd_countstatus(ctx: commands.Context):
         await ctx.send(embed=UIUtils.create_embed("🌸 Trạng Thái Đếm Số", desc, BotConfig.COLOR_DEEP_PINK))
     else:
         await ctx.send(embed=UIUtils.build_warning_embed("Chưa bật kênh", "Kênh này chưa bật tính năng đếm số. Admin hãy dùng `?countsetup`."))
+
+# LỆNH MỚI: MEME NGẪU NHIÊN
+@bot.command(name="meme", aliases=["meme random"])
+async def cmd_meme(ctx: commands.Context) -> None:
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get("https://meme-api.com/gimme") as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    title = data.get("title", "Meme Ngẫu Nhiên")
+                    url = data.get("url")
+                    post_link = data.get("postLink", "")
+                    desc = f"[🔗 Nguồn: Reddit]({post_link})" if post_link else "Meme từ Reddit"
+                    embed = UIUtils.create_embed(f"🖼️ {title}", desc, BotConfig.COLOR_SAKURA_PINK, image_url=url)
+                    await ctx.send(embed=embed)
+                else:
+                    await ctx.send("🖤 Không lấy được meme lúc này, thử lại sau nhé! 🌸")
+        except Exception as e:
+            logger.error(f"Lỗi lấy meme: {e}")
+            await ctx.send("🖤 Lỗi kết nối API meme! 🌸")
+
+# LỆNH MỚI: SAY (BOT NÓI THAY)
+@bot.command(name="say", aliases=["echo"])
+async def cmd_say(ctx: commands.Context, *, text: str) -> None:
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+    await ctx.send(text)
+
+# LỆNH MỚI: DM (GỬI TIN NHẮN ẨN DANH)
+@bot.command(name="dm", aliases=["guian", "gui_dm"])
+async def cmd_dm(ctx: commands.Context, member: discord.Member, *, message: str) -> None:
+    if member.bot:
+        await ctx.send("🤖 Bot không cần nhận tin nhắn đâu! 🌸")
+        return
+        
+    try:
+        await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh:**\n\n{message}\n\n*— Từ Vườn hoa Đen Hồng*")
+        await ctx.send(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention}! 🌸")
+    except discord.Forbidden:
+        await ctx.send(f"❌ Không thể gửi tin nhắn cho {member.mention}. Họ có thể đã tắt DM (Direct Messages) hoặc không cho phép bot nhắn tin. 🌸")
+    except Exception as e:
+        logger.error(f"Lỗi gửi DM: {e}")
+        await ctx.send(f"❌ Lỗi không xác định khi gửi DM. 🌸")
 
 # ====================================================================================================
 # PHẦN 7: CÁC LỆNH TRÒ CHƠI & GIẢI TRÍ ARCADE
