@@ -571,8 +571,8 @@ async def slash_dm(interaction: discord.Interaction, member: discord.Member, mes
         return
         
     try:
-        await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh:**\n\n{message}\n\n*— Từ Vườn hoa Đen Hồng*")
-        await interaction.response.send_message(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention}! 🌸", ephemeral=True)
+        await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh đấy ahihi:**\n\n{message}\n\n*— Từ ai đéo biết nữa*")
+        await interaction.response.send_message(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention} béo! 🌸", ephemeral=True)
     except discord.Forbidden:
         await interaction.response.send_message(f"❌ Không thể gửi tin nhắn cho {member.mention}. Họ có thể đã tắt DM (Direct Messages) hoặc chặn bot. 🌸", ephemeral=True)
     except Exception as e:
