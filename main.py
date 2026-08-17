@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.7 - Avatar Viewer)
+# PURE FUN ENTERPRISE - BLACK & SAKURA PINK GOTHIC ARCADE ULTIMATE (v7.6.8 - RPS & Ship)
 # ====================================================================================================
 
 import os
@@ -30,7 +30,7 @@ from discord.ui import View, Button
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "7.6.7 Sakura Gothic Avatar"
+    VERSION: str = "7.6.8 Sakura Gothic RPS & Ship"
     DEVELOPER: str = "Black & Pink Studio"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -108,7 +108,7 @@ FALLBACK_MOVIES_DATA: List[Dict[str, str]] = [
     {"title": "vua sư tử", "clue": "🦁 Simba và Pride Rock 🌅", "image": "https://image.tmdb.org/t/p/w500/wTXs2WdH9N2mP3fRbExXe5Jz0pI.jpg"},
     {"title": "chàng trai tốt bụng", "clue": "🏃 Chạy xuyên nước Mỹ, hộp sô-cô-la 🍫", "image": "https://image.tmdb.org/t/p/w500/3h1JZGDhZ8nzxdgvkxha0qBqi05.jpg"},
     {"title": "bố già", "clue": "🐎 Mafia Ý, gia đình Corleone 🍷", "image": "https://image.tmdb.org/t/p/w500/tmU7GeKVybMWFButWEGl2M4GeiP.jpg"},
-    {"title": "harry potter", "clue": "⚡ Phù thủy, trường Hogwarts 🦉", "image": "https://image.tmdb.org/t/p/w500/3yEUqjTrfyOaIctqL2t7gWc6c9w.jpg"}
+    {"title": "harry potter", "clue": "⚡ Phù thủy, trường Hogwarts 🦉", "image": "https://image.tmdb.org/t/p/w500/3yEUqjTrfyOaIctqLqA7Wc6c9w.jpg"}
 ]
 
 EMOJI_DATA: List[Dict[str, str]] = [
@@ -398,7 +398,10 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}vuatiengviet` ❯ **Sắp xếp âm**\n"
             f"❯ `{BotConfig.PREFIX}doanquocgia` ❯ **Đoán cờ**\n"
             f"❯ `{BotConfig.PREFIX}doantenphim` ❯ **Đoán tên phim**\n"
-            f"❯ `{BotConfig.PREFIX}doanemoji` ❯ **Đoán Emoji**\n\n"
+            f"❯ `{BotConfig.PREFIX}doanemoji` ❯ **Đoán Emoji**\n"
+            f"❯ `{BotConfig.PREFIX}tictactoe` ❯ **Cờ Caro**\n"
+            f"❯ `{BotConfig.PREFIX}rps` ❯ **Oẳn tù tì**\n"
+            f"❯ `{BotConfig.PREFIX}ship [@user1] [@user2]` ❯ **Tính độ hợp mạng**\n\n"
 
             f"⚙️🌸 **[ QUẢN LÝ & TIỆN ÍCH ]** 🌸⚙️\n"
             f"❯ `/themtu [từ]` ❯ **Thêm từ (Admin)**\n"
@@ -459,6 +462,41 @@ class TicTacToeView(View):
             else: content = f"🖤🌸 Lượt đi của **{interaction.user.display_name}** (X)"
             await interaction.response.edit_message(content=content, view=self)
         return callback
+
+# LỆNH MỚI: OẴN TÙ TÌ (RPS VIEW)
+class RpsView(View):
+    def __init__(self):
+        super().__init__(timeout=60.0)
+        self.choices = ["✂️", "🪨", "📄"]
+
+    def check_result(self, user_choice: str, bot_choice: str) -> str:
+        if user_choice == bot_choice: return "Hòa! 🤝"
+        if (user_choice == "✂️" and bot_choice == "📄") or \
+           (user_choice == "🪨" and bot_choice == "✂️") or \
+           (user_choice == "📄" and bot_choice == "🪨"):
+            return "Bạn thắng! 🎉"
+        return "Bot thắng! 🤖"
+
+    @discord.ui.button(label="Kéo", emoji="✂️", style=discord.ButtonStyle.success)
+    async def button_kéo(self, interaction: discord.Interaction, button: Button):
+        bot_choice = random.choice(self.choices)
+        result = self.check_result("✂️", bot_choice)
+        self.clear_items()
+        await interaction.response.edit_message(content=f"✂️ Bạn chọn: Kéo | 🤖 Bot chọn: {bot_choice}\n**Kết quả: {result}**", view=self)
+
+    @discord.ui.button(label="Búa", emoji="🪨", style=discord.ButtonStyle.primary)
+    async def button_búa(self, interaction: discord.Interaction, button: Button):
+        bot_choice = random.choice(self.choices)
+        result = self.check_result("🪨", bot_choice)
+        self.clear_items()
+        await interaction.response.edit_message(content=f"🪨 Bạn chọn: Búa | 🤖 Bot chọn: {bot_choice}\n**Kết quả: {result}**", view=self)
+
+    @discord.ui.button(label="Bao", emoji="📄", style=discord.ButtonStyle.danger)
+    async def button_bao(self, interaction: discord.Interaction, button: Button):
+        bot_choice = random.choice(self.choices)
+        result = self.check_result("📄", bot_choice)
+        self.clear_items()
+        await interaction.response.edit_message(content=f"📄 Bạn chọn: Bao | 🤖 Bot chọn: {bot_choice}\n**Kết quả: {result}**", view=self)
 
 # ====================================================================================================
 # PHẦN 6: KHỞI TẠO BOT & LỆNH HỆ THỐNG
@@ -654,16 +692,45 @@ async def cmd_meme(ctx: commands.Context) -> None:
             logger.error(f"Lỗi lấy meme: {e}")
             await ctx.send("🖤 Lỗi kết nối API meme! 🌸")
 
-# LỆNH MỚI: XEM ẢNH ĐẠI DIỆN
 @bot.command(name="avt", aliases=["avatar", "infoavt"])
 async def cmd_avatar(ctx: commands.Context, member: Optional[discord.Member] = None) -> None:
     target = member or ctx.author
-    # Lấy avatar với độ phân giải cao nhất (1024x1024)
     avatar_url = target.display_avatar.with_size(1024).url
     
     desc = f"🖼️ **Ảnh đại diện của {target.mention}**\n[🔗 Tải ảnh chất lượng cao tại đây]({avatar_url})"
     embed = UIUtils.create_embed(f"Ảnh của {target.display_name}", desc, BotConfig.COLOR_DEEP_PINK)
     embed.set_image(url=avatar_url)
+    await ctx.send(embed=embed)
+
+# LỆNH MỚI: OẴN TÙ TÌ (RPS)
+@bot.command(name="rps", aliases=["oantuti", "keobuabao"])
+async def cmd_rps(ctx: commands.Context) -> None:
+    desc = f"{BotConfig.BORDER}\n\n✊ **Oẳn tù tì cùng Bot!**\nHãy chọn 1 trong 3 nút bên dưới để bắt đầu.\n\n{BotConfig.BORDER}"
+    embed = UIUtils.create_embed("✊ Oẳn Tù Tì", desc, BotConfig.COLOR_DEEP_PINK)
+    await ctx.send(embed=embed, view=RpsView())
+
+# LỆNH MỚI: TÍNH ĐỘ HỢP MẠNG (SHIP)
+@bot.command(name="ship", aliases=["hop"])
+async def cmd_ship(ctx: commands.Context, member1: discord.Member, member2: Optional[discord.Member] = None) -> None:
+    target2 = member2 or ctx.author
+    if member1 == target2:
+        await ctx.send("Bạn không thể ship với chính mình được! 🌸")
+        return
+        
+    # Hashing IDs for consistent result
+    ship_val = (min(member1.id, target2.id) ^ max(member1.id, target2.id)) % 101
+    bar_length = 10
+    filled = int(ship_val / 100 * bar_length)
+    if filled == 0 and ship_val > 0: filled = 1
+    bar = "❤️" * filled + "🖤" * (bar_length - filled)
+    
+    desc = f"💖 **Độ hợp mạng giữa {member1.mention} và {target2.mention}**\n\n{bar} **{ship_val}%**\n"
+    if ship_val < 20: desc += "💔 *Có vẻ không hợp lắm... Tránh xa ra thôi!*"
+    elif ship_val < 50: desc += "🌹 *Thấy có tình chút chút! Thử tìm hiểu thêm xem sao!*"
+    elif ship_val < 80: desc += "💞 *Rất hợp nha! Cố lên!*"
+    else: desc += "💍 *Mệnh trời định! Mau cưới đi chớ chời!*"
+    
+    embed = UIUtils.create_embed("💕 Độ Hợp Mạng", desc, BotConfig.COLOR_DEEP_PINK)
     await ctx.send(embed=embed)
 
 # ====================================================================================================
