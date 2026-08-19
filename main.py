@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# SAKURA GOTHIC ARCADE ENTERPRISE v9.6.5 - ULTRA MASSIVE EXTENSION & MEGA VOCABULARY MODULES
+# SAKURA GOTHIC ARCADE ENTERPRISE v9.6.6 - FIXED SYNTAX & ULTRA MASSIVE EXTENSION MODULES
 # ====================================================================================================
 
 import os
@@ -27,11 +27,11 @@ from discord import app_commands
 from discord.ui import View, Button, Select
 
 # ====================================================================================================
-# PHẦN 1: CẤU HÌNH HỆ THỐNG & GIAO DIỆN EMBED GOTHIC NÂNG CAO MỞ RỘNG (1000+ DÒNG ARCHITECTURE)
+# PHẦN 1: CẤU HÌNH HỆ THỐNG & GIAO DIỆN EMBED GOTHIC NÂNG CAO MỞ RỘNG
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "9.6.5 Sakura Gothic Ultimate Massive Vocabulary & Extended Arcade Edition"
+    VERSION: str = "9.6.6 Sakura Gothic Ultimate Massive Vocabulary & Extended Arcade Edition"
     DEVELOPER: str = "Black & Pink Studio Enterprise Architecture"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -122,9 +122,7 @@ DEFAULT_VOCABULARY_FALLBACK: Dict[str, str] = {
     "aurora": "Hiện tượng quang phổ rực rỡ ở cực (cực quang).",
     "zenith": "Đỉnh cao nhất, điểm thiên đỉnh trên bầu trời.",
     "ubiquitous": "Có mặt ở khắp mọi nơi, phổ biến rộng rãi.",
-    "ineffable": "Không thể diễn tả bằng lời, quá tuyệt vời.",
-    "mellifluous": "Ngọt ngào, êm dịu.",
-    "halcyon": "Yên bình, thanh thản."
+    "ineffable": "Không thể diễn tả bằng lời, quá tuyệt vời."
 }
 
 EASY_START_WORDS: Set[str] = {
@@ -145,7 +143,7 @@ TRIVIA_QUESTIONS = [
     {"q": "Kim loại nào dẫn điện tốt nhất?", "ans": "bac", "hint": "Ký hiệu hóa học là Ag."},
     {"q": "Cơ quan nào trong cơ thể người bơm máu?", "ans": "tim", "hint": "Nằm ở lồng ngực trái."},
     {"q": "Ngôn ngữ nào được sử dụng nhiều nhất thế giới?", "ans": "tieng anh", "hint": "English."},
-}
+]
 
 # ====================================================================================================
 # PHẦN 3: HỆ THỐNG LOGGING VÀ KEEP ALIVE SERVER TÍCH HỢP ĐA LUỒNG
@@ -172,9 +170,9 @@ keep_alive_app = Flask("SakuraUltimateKeepAliveExtended")
 def route_home() -> str:
     return """
     <html>
-        <head><title>Sakura Gothic Massive Arcade v9.6.5 Extended</title></head>
+        <head><title>Sakura Gothic Massive Arcade v9.6.6 Extended</title></head>
         <body style='background:#10001A; color:#FFB7C5; font-family:sans-serif; text-align:center; padding-top:50px;'>
-            <h1>🌸 Sakura Black Pink Arcade Ultimate (v9.6.5 Extended 1000+ Lines) 🌸</h1>
+            <h1>🌸 Sakura Black Pink Arcade Ultimate (v9.6.6 Extended) 🌸</h1>
             <p>System Status: <strong style='color:#00FF00'>ONLINE & FULLY OPERATIONAL</strong></p>
             <p>Active Modules: Math 15+, Full Vocabulary Dictionary, Mini-games, Advanced Custom Embed UI, Shop, Inventory, Economy.</p>
         </body>
@@ -199,7 +197,7 @@ threading.Thread(target=launch_web_server, daemon=True).start()
 # PHẦN 4: HỆ THỐNG QUẢN LÝ DƯ LIỆU NGƯỜI DÙNG, KINH TẾ & KHO ĐỒ NÂNG CAO
 # ====================================================================================================
 
-FILE_USER_DATA = "user_data_sakura_ultimate_v965.json"
+FILE_USER_DATA = "user_data_sakura_ultimate_v966.json"
 
 class UserDataManager:
     @staticmethod
@@ -491,7 +489,7 @@ VIETNAMESE_INDEX_BY_FIRST_SYLLABLE: Dict[str, List[str]] = build_syllable_index(
 ENGLISH_INDEX_BY_FIRST_LETTER: Dict[str, List[str]] = build_letter_index(ENGLISH_DICT)
 
 # ====================================================================================================
-# PHẦN 7: HỆ THỐNG GIAO DIỆN EMBED GOTHIC ĐỈNH CAO & HOÀN HẢO (UI UTILS EXTENDED)
+# PHẦN 7: HỆ THỐNG GIAO DIỆN EMBED GOTHIC ĐỈNH CAO & HOÀN HẢO
 # ====================================================================================================
 
 class GameMode:
@@ -547,7 +545,7 @@ class UIUtils:
             timestamp=datetime.now()
         )
         embed.set_footer(
-            text="🖤 Sakura Gothic Arcade Ultimate v9.6.5 Extended • Pure Fun Enterprise 🌸",
+            text="🖤 Sakura Gothic Arcade Ultimate v9.6.6 • Pure Fun Enterprise 🌸",
             icon_url=UIUtils.DEFAULT_FOOTER_ICON
         )
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
@@ -563,7 +561,7 @@ class UIUtils:
     def build_help_embed() -> discord.Embed:
         description = (
             f"{BotConfig.THICK_BORDER}\n\n"
-            f"🖤 **TRUNG TÂM ĐIỀU KHIỂN SAKURA GOTHIC ULTIMATE v9.6.5 (1000+ DÒNG)** 🌸\n\n"
+            f"🖤 **TRUNG TÂM ĐIỀU KHIỂN SAKURA GOTHIC ULTIMATE v9.6.6** 🌸\n\n"
             f"📖 **[ HỆ THỐNG TỪ VỰNG & TRA CỨU ]**\n"
             f"❯ `{BotConfig.PREFIX}tuvung <từ>` ❯ Tra cứu nghĩa, giải thích chi tiết từ điển Anh/Việt.\n"
             f"❯ `{BotConfig.PREFIX}thuvientuvung` ❯ Khám phá kho từ vựng nâng cao ngẫu nhiên.\n\n"
@@ -586,7 +584,7 @@ class UIUtils:
         return UIUtils.create_embed("BẢNG TRỢ GIÚP TOÀN DIỆN MỞ RỘNG", description, BotConfig.COLOR_SAKURA_PINK)
 
 # ====================================================================================================
-# PHẦN 8: KHỞI TẠO DISCORD BOT & CÁC LỆNH HỆ THỐNG CƠ BẢN (EXTENDED EVENT HOOKS)
+# PHẦN 8: KHỞI TẠO DISCORD BOT & CÁC LỆNH HỆ THỐNG CƠ BẢN
 # ====================================================================================================
 
 bot_intents = discord.Intents.default()
@@ -599,14 +597,14 @@ bot = commands.Bot(command_prefix=BotConfig.PREFIX, intents=bot_intents, help_co
 
 @bot.event
 async def on_ready() -> None:
-    logger.info(f"✅ Bot Đen Hồng Cánh Hoa Ultimate v9.6.5 Extended đã đăng nhập thành công: {bot.user}")
-    activity = discord.Activity(type=discord.ActivityType.playing, name=f"{BotConfig.PREFIX}help | 🖤🌸 1000+ Lines Massive Edition")
+    logger.info(f"✅ Bot Đen Hồng Cánh Hoa Ultimate v9.6.6 đã đăng nhập thành công: {bot.user}")
+    activity = discord.Activity(type=discord.ActivityType.playing, name=f"{BotConfig.PREFIX}help | 🖤🌸 v9.6.6 Fixed")
     await bot.change_presence(status=discord.Status.online, activity=activity)
 
 @bot.command(name="ping")
 async def sys_ping(ctx: commands.Context) -> None:
     latency = round(bot.latency * 1000)
-    desc = f"{BotConfig.BORDER}\n\n💓 **Độ trễ hệ thống:** `{latency}ms`\n🌐 **Trạng thái:** `Hoạt động hoàn hảo vô cùng mượt mà (1000+ dòng kiến trúc độc quyền)`\n\n{BotConfig.BORDER}"
+    desc = f"{BotConfig.BORDER}\n\n💓 **Độ trễ hệ thống:** `{latency}ms`\n🌐 **Trạng thái:** `Hoạt động hoàn hảo vô cùng mượt mà`\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("Kiểm Tra Ping", desc, BotConfig.COLOR_EMERALD))
 
 @bot.command(name="help", aliases=["menu"])
@@ -630,7 +628,7 @@ async def sys_profile(ctx: commands.Context) -> None:
         f"🎒 **Kho đồ:** `{inv_str}`\n\n"
         f"{BotConfig.THICK_BORDER}"
     )
-    await ctx.send(embed=UIUtils.create_embed("Hồ Sơ Người Dùng Sakura Ultimate Extended", desc, BotConfig.COLOR_SAKURA_PINK))
+    await ctx.send(embed=UIUtils.create_embed("Hồ Sơ Người Dùng Sakura Ultimate", desc, BotConfig.COLOR_SAKURA_PINK))
 
 @bot.command(name="daily")
 async def sys_daily(ctx: commands.Context) -> None:
@@ -663,13 +661,13 @@ async def sys_daily(ctx: commands.Context) -> None:
 async def sys_shop(ctx: commands.Context) -> None:
     desc = (
         f"{BotConfig.THICK_BORDER}\n\n"
-        f"🖤 **CỬA HÀNG VẬT PHẨM SAKURA GOTHIC ULTIMATE EXTENDED** 🌸\n\n"
+        f"🖤 **CỬA HÀNG VẬT PHẨM SAKURA GOTHIC ULTIMATE** 🌸\n\n"
         f"1️⃣ **Thẻ Gợi Ý Cao Cấp (+30 lượt)** - Giá: `600 xu`\n> *Lệnh mua:* `{BotConfig.PREFIX}mua goi_y`\n\n"
         f"2️⃣ **Danh Hiệu 'Sakura Gothic Master Ultimate'** - Giá: `3000 xu`\n> *Lệnh mua:* `{BotConfig.PREFIX}mua danh_hieu`\n\n"
         f"3️⃣ **Hộp Quà Thần Bí Sakura** - Giá: `400 xu`\n> *Lệnh mua:* `{BotConfig.PREFIX}mua hop_qua`\n\n"
         f"{BotConfig.THICK_BORDER}"
     )
-    await ctx.send(embed=UIUtils.create_embed("Cửa Hàng Vật Phẩm Mở Rộng", desc, BotConfig.COLOR_PURPLE))
+    await ctx.send(embed=UIUtils.create_embed("Cửa Hàng Vật Phẩm", desc, BotConfig.COLOR_PURPLE))
 
 @bot.command(name="mua")
 async def sys_buy(ctx: commands.Context, item_name: str = "") -> None:
@@ -712,7 +710,7 @@ async def sys_buy(ctx: commands.Context, item_name: str = "") -> None:
         await ctx.send(embed=UIUtils.build_warning_embed("Sai Cú Pháp", f"Vật phẩm không tồn tại. Vui lòng kiểm tra danh sách trong `{BotConfig.PREFIX}shop`."))
 
 # ====================================================================================================
-# PHẦN 9: CÁC LỆNH TỪ VỰNG, TOÁN HỌC, ĐỐ VUI & NỐI TỪ NÂNG CAO MỞ RỘNG
+# PHẦN 9: CÁC LỆNH TỪ VỰNG, TOÁN HỌC, ĐỐ VUI & NỐI TỪ NÂNG CAO
 # ====================================================================================================
 
 active_trivia_sessions: Dict[int, dict] = {}
@@ -730,7 +728,7 @@ async def cmd_tuvung(ctx: commands.Context, *, word: str = "") -> None:
         if clean_word in ENGLISH_DICT or clean_word in COMBINED_VIETNAMESE_DICTIONARY:
             meaning = "Từ này có trong hệ thống dữ liệu từ điển nhưng chưa cập nhật định nghĩa chi tiết. Bạn được cộng 10 xu khám phá!"
         else:
-            await ctx.send(embed=UIUtils.build_warning_embed("Không Tìm Thấy", f"Không tìm thấy từ `{word}` trong cơ sở dữ liệu từ điển Sakura v9.6.5."))
+            await ctx.send(embed=UIUtils.build_warning_embed("Không Tìm Thấy", f"Không tìm thấy từ `{word}` trong cơ sở dữ liệu từ điển Sakura."))
             return
 
     user_id = ctx.author.id
@@ -762,7 +760,7 @@ async def cmd_thuvientuvung(ctx: commands.Context) -> None:
         f"💡 Gõ `{BotConfig.PREFIX}tuvung <từ>` để tra cứu thêm nhiều từ vựng khác!\n\n"
         f"{BotConfig.THICK_BORDER}"
     )
-    await ctx.send(embed=UIUtils.create_embed("Thư Viện Từ Vựng Sakura Mở Rộng", desc, BotConfig.COLOR_PURPLE))
+    await ctx.send(embed=UIUtils.create_embed("Thư Viện Từ Vựng Sakura", desc, BotConfig.COLOR_PURPLE))
 
 @bot.command(name="toanhoc", aliases=["math", "giaotoan", "mathgame"])
 async def cmd_toanhoc(ctx: commands.Context) -> None:
@@ -776,7 +774,7 @@ async def cmd_toanhoc(ctx: commands.Context) -> None:
     session.category = category
 
     desc = f"{BotConfig.THICK_BORDER}\n\n{question}\n\n⏱️ **Thể loại:** `{category}`\n💡 Gõ trực tiếp đáp án số học của bạn vào khung chat bên dưới để nhận phần thưởng khủng!\n\n{BotConfig.THICK_BORDER}"
-    await ctx.send(embed=UIUtils.create_embed("Thử Thách Toán Học Ultimate Extended", desc, BotConfig.COLOR_SAKURA_PINK))
+    await ctx.send(embed=UIUtils.create_embed("Thử Thách Toán Học Ultimate", desc, BotConfig.COLOR_SAKURA_PINK))
 
 @bot.command(name="dovui", aliases=["trivia", "quiz"])
 async def cmd_dovui(ctx: commands.Context) -> None:
@@ -784,7 +782,7 @@ async def cmd_dovui(ctx: commands.Context) -> None:
     active_trivia_sessions[ctx.channel.id] = trivia
     
     desc = f"{BotConfig.THICK_BORDER}\n\n🧠 **Câu hỏi:** {trivia['q']}\n💡 **Gợi ý:** `{trivia['hint']}`\n\n✍️ Gõ đáp án của bạn vào khung chat ngay bên dưới!\n\n{BotConfig.THICK_BORDER}"
-    await ctx.send(embed=UIUtils.create_embed("Minigame Đố Vui Kiến Thức Mở Rộng", desc, BotConfig.COLOR_CYAN))
+    await ctx.send(embed=UIUtils.create_embed("Minigame Đố Vui Kiến Thức", desc, BotConfig.COLOR_CYAN))
 
 @bot.command(name="noitu")
 async def cmd_noitu(ctx: commands.Context) -> None:
@@ -863,7 +861,7 @@ async def cmd_meme(ctx: commands.Context) -> None:
                     data = await resp.json()
                     title = data.get("title", "Meme Ngẫu Nhiên")
                     url = data.get("url")
-                    embed = UIUtils.create_embed(f"🖼️ {title}", "Meme giải trí độc quyền từ Sakura Ultimate Extended", BotConfig.COLOR_SAKURA_PINK, image_url=url)
+                    embed = UIUtils.create_embed(f"🖼️ {title}", "Meme giải trí độc quyền từ Sakura Ultimate", BotConfig.COLOR_SAKURA_PINK, image_url=url)
                     await ctx.send(embed=embed)
                 else:
                     await ctx.send(embed=UIUtils.build_warning_embed("Meme API", "Không thể tải meme lúc này!"))
@@ -871,7 +869,7 @@ async def cmd_meme(ctx: commands.Context) -> None:
             await ctx.send(embed=UIUtils.build_warning_embed("Meme API", "Lỗi kết nối API meme!"))
 
 # ====================================================================================================
-# PHẦN 10: XỬ LÝ SỰ KIỆN TIN NHẮN (MESSAGE LISTENER MỞ RỘNG CHO TOÁN HỌC, ĐỐ VUI & NỐI TỪ)
+# PHẦN 10: XỬ LÝ SỰ KIỆN TIN NHẮN
 # ====================================================================================================
 
 @bot.event
@@ -903,7 +901,7 @@ async def on_message(message: discord.Message) -> None:
             await message.add_reaction(BotConfig.EMOJI_TICK)
             return
 
-    # 2. Kiểm tra trả lời Toán học mở rộng
+    # 2. Kiểm tra trả lời Toán học
     math_session = math_manager.get_session(message.channel.id)
     if math_session.active:
         try:
@@ -930,7 +928,7 @@ async def on_message(message: discord.Message) -> None:
         except ValueError:
             pass
 
-    # 3. Xử lý Nối từ tiếng Việt & Tiếng Anh toàn diện
+    # 3. Xử lý Nối từ tiếng Việt & Tiếng Anh
     session = global_session_manager.get_session(message.channel.id)
     if session.is_active:
         content_lower = content.lower()
@@ -970,7 +968,7 @@ async def on_message(message: discord.Message) -> None:
     await bot.process_commands(message)
 
 # ====================================================================================================
-# PHẦN 11: KHỞI CHẠY HỆ THỐNG ULTIMATE BOT EXTENDED ARCHITECTURE
+# PHẦN 11: KHỞI CHẠY HỆ THỐNG
 # ====================================================================================================
 if __name__ == "__main__":
     TOKEN = os.getenv("DISCORD_TOKEN")
