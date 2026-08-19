@@ -702,20 +702,17 @@ async def slash_xoatu(interaction: discord.Interaction, word: str):
     clean_w = word.strip().lower()
     syl_parts = clean_w.split()
     
-    # Xử lý tiếng Việt (2 âm tiết)
     if len(syl_parts) == 2:
         if clean_w not in COMBINED_VIETNAMESE_DICTIONARY:
             await interaction.response.send_message(embed=UIUtils.build_warning_embed("Không tồn tại", f"Từ **`{clean_w.upper()}`** không có trong từ điển tiếng Việt!"), ephemeral=True)
             return
             
-        # Xóa khỏi các biến trong bộ nhớ
         COMBINED_VIETNAMESE_DICTIONARY.remove(clean_w)
         if clean_w in COMBINED_VIETNAMESE_LIST:
             COMBINED_VIETNAMESE_LIST.remove(clean_w)
         if clean_w in VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(syl_parts[0], []):
             VIETNAMESE_INDEX_BY_FIRST_SYLLABLE[syl_parts[0]].remove(clean_w)
             
-        # Ghi đè lại file
         try:
             with open(BotConfig.FILE_VIETNAMESE_DICT, "w", encoding="utf-8") as f:
                 f.write("\n".join(COMBINED_VIETNAMESE_DICTIONARY))
@@ -724,20 +721,17 @@ async def slash_xoatu(interaction: discord.Interaction, word: str):
             
         await interaction.response.send_message(embed=UIUtils.build_success_embed("Xóa từ thành công", f"Đã xóa TV **`{clean_w.upper()}`** khỏi hệ thống!"))
         
-    # Xử lý tiếng Anh (1 âm tiết)
     elif len(syl_parts) == 1 and clean_w.isalpha():
         if clean_w not in ENGLISH_DICT:
             await interaction.response.send_message(embed=UIUtils.build_warning_embed("Không tồn tại", f"Word **`{clean_w.upper()}`** không có trong từ điển tiếng Anh!"), ephemeral=True)
             return
             
-        # Xóa khỏi các biến trong bộ nhớ
         ENGLISH_DICT.remove(clean_w)
         if clean_w in ENGLISH_LIST:
             ENGLISH_LIST.remove(clean_w)
         if clean_w in ENGLISH_INDEX_BY_FIRST_LETTER.get(clean_w[0], []):
             ENGLISH_INDEX_BY_FIRST_LETTER[clean_w[0]].remove(clean_w)
             
-        # Ghi đè lại file
         try:
             with open(BotConfig.FILE_ENGLISH_DICT, "w", encoding="utf-8") as f:
                 f.write("\n".join(ENGLISH_DICT))
@@ -765,7 +759,7 @@ async def slash_dm(interaction: discord.Interaction, member: discord.Member, mes
         await member.send(f"💌 **Bạn có 1 tin nhắn ẩn danh:**\n\n{message}\n\n*— Từ Vườn hoa Đen Hồng*")
         await interaction.response.send_message(f"✅ Đã gửi tin nhắn ẩn danh cho {member.mention}! 🌸", ephemeral=True)
     except discord.Forbidden:
-        await interaction.response.send_message(f"❌ Không thể gửi tin nhắn cho {member.mention}. Họ có thể đã tắt DM (Direct Messages) hoặc chặn bot. 🌸", ephemeral=True)
+        await interaction.response.send_message(f"❌ Không thể gửi tin nhắn cho {member.mention}. Họ có thể đã tắt DM hoặc chặn bot. 🌸", ephemeral=True)
     except Exception as e:
         logger.error(f"Lỗi gửi DM: {e}")
         await interaction.response.send_message(f"❌ Lỗi không xác định khi gửi DM. 🌸", ephemeral=True)
@@ -960,7 +954,6 @@ async def handle_word_chain(message: discord.Message) -> None:
     
     is_english = session.active_mode in [GameMode.PVP_ENGLISH, GameMode.BOT_ENGLISH]
     
-    # Xử lý nối từ Tiếng Anh
     if is_english:
         if not content.isalpha() or len(content.split()) > 1:
             return 
@@ -970,22 +963,22 @@ async def handle_word_chain(message: discord.Message) -> None:
         
         if first_char != last_char:
             await message.reply(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng chữ **`{last_char.upper()}`**!"), mention_author=False)
-            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+            await message.add_reaction(BotConfig.EMOJI_X)
             return
             
         if content in session.used_words_history:
             await message.reply(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED), mention_author=False)
-            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+            await message.add_reaction(BotConfig.EMOJI_X)
             return
             
         if content not in ENGLISH_DICT:
             await message.reply(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển Tiếng Anh của bot!"), mention_author=False)
-            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+            await message.add_reaction(BotConfig.EMOJI_X)
             return
             
         session.current_word = content
         session.used_words_history.add(content)
-        await message.add_reaction(BotConfig.EMOJI_TICK) # Thả ảnh Tick
+        await message.add_reaction(BotConfig.EMOJI_TICK)
         
         if session.active_mode == GameMode.BOT_ENGLISH:
             bot_last_char = content[-1]
@@ -1003,7 +996,6 @@ async def handle_word_chain(message: discord.Message) -> None:
                 session.reset()
             return
             
-    # Xử lý nối từ Tiếng Việt
     else:
         parts = content.split()
         if len(parts) != 2:
@@ -1014,31 +1006,31 @@ async def handle_word_chain(message: discord.Message) -> None:
         
         if GameUtils.remove_diacritics(first_syllable) != GameUtils.remove_diacritics(last_syllable):
             await message.reply(embed=UIUtils.build_invalid_word_embed(f"Từ phải bắt đầu bằng tiếng **`{last_syllable.upper()}`**!"), mention_author=False)
-            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+            await message.add_reaction(BotConfig.EMOJI_X)
             return
             
         if content in session.used_words_history:
             await message.reply(embed=UIUtils.build_invalid_word_embed(BotConfig.MSG_ERR_ALREADY_USED), mention_author=False)
-            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+            await message.add_reaction(BotConfig.EMOJI_X)
             return
             
         if content not in COMBINED_VIETNAMESE_DICTIONARY:
             await message.reply(embed=UIUtils.build_invalid_word_embed("Từ không có trong từ điển Tiếng Việt của bot!"), mention_author=False)
-            await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+            await message.add_reaction(BotConfig.EMOJI_X)
             return
             
         if session.is_banned_mode:
             raw_content = GameUtils.remove_diacritics(content)
             if session.banned_letter in raw_content:
                 await message.reply(embed=UIUtils.build_invalid_word_embed(f"💀 Bạn đã dùng chữ **`{session.banned_letter.upper()}`** bị cấm! Bạn THUA!"), mention_author=False)
-                await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+                await message.add_reaction(BotConfig.EMOJI_X)
                 session.reset()
                 return
                 
         session.current_word = content
         session.used_words_history.add(content)
         session.last_player_id = message.author.id
-        await message.add_reaction(BotConfig.EMOJI_TICK) # Thả ảnh Tick
+        await message.add_reaction(BotConfig.EMOJI_TICK)
         
         if session.is_hardcore:
             await session.start_hardcore_timer(message.channel)
@@ -1092,11 +1084,11 @@ async def on_message(message: discord.Message) -> None:
                 data["current"] = num
                 data["last_user"] = message.author.id
                 if num > data["high_score"]: data["high_score"] = num
-                await message.add_reaction(BotConfig.EMOJI_TICK) # Thả ảnh Tick
+                await message.add_reaction(BotConfig.EMOJI_TICK)
             else:
                 data["current"] = 0
                 data["last_user"] = 0
-                await message.add_reaction(BotConfig.EMOJI_X) # Thả ảnh X
+                await message.add_reaction(BotConfig.EMOJI_X)
                 await message.reply(embed=UIUtils.build_warning_embed("Đếm Sai!", "Bạn đã đếm sai! Kênh đếm số đã reset về 0."))
         except ValueError:
             pass
@@ -1113,3 +1105,4 @@ if __name__ == "__main__":
         logger.error("❌ Không tìm thấy DISCORD_TOKEN! Vui lòng set environment variable.")
     else:
         bot.run(TOKEN)
+```[cite: 2]
