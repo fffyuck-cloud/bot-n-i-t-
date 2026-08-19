@@ -1,10 +1,3 @@
-À, lỗi này là do trong menu `?help` có hiện lệnh `?restart` nhưng trong code thực tế mình lại quên chưa viết hàm cho nó! 
-
-Mình đã viết bổ sung lệnh `?restart` (để bắt đầu lại ván chơi mới ngay lập tức mà không cần dùng lệnh `?huyvanchoi` rồi `?noitu` lại). 
-
-Bạn copy toàn bộ code dưới đây đè lên code cũ là lệnh `?restart` sẽ hoạt động nhé!
-
-```python
 # ====================================================================================================
 # ██████╗ ██╗    █████╗  ██████╗██╗  ██╗    ██████╗ ██╗███╗    ██╗██╗  ██╗    ██████╗  ██████╗ ████████╗
 # ██╔══██╗██║    ██╔══██╗██╔════╝██║ ██╔╝    ██╔══██╗██║████╗   ██║██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝
@@ -1062,4 +1055,3 @@ if __name__ == "__main__":
         logger.error("❌ Không tìm thấy DISCORD_TOKEN! Vui lòng set environment variable.")
     else:
         bot.run(TOKEN)
-```
