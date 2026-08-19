@@ -6,7 +6,7 @@
 # ██████╔╗███████╗██║  ██║╚██████╗██║  ██╗    ██║     ██║██║ ╚████║██║  ██╗    ██████╔╝╚██████╔╝   ██║   
 # ╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝    ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═════╝  ╚═╝    ╚═╝   
 #                                                                                                   
-# SAKURA GOTHIC ARCADE ENTERPRISE v9.6.6 - FIXED SYNTAX & ULTRA MASSIVE EXTENSION MODULES
+# SAKURA GOTHIC ARCADE ENTERPRISE v9.6.7 - FIXED SYNTAX & ULTRA MASSIVE EXTENSION MODULES
 # ====================================================================================================
 
 import os
@@ -31,7 +31,7 @@ from discord.ui import View, Button, Select
 # ====================================================================================================
 
 class BotConfig:
-    VERSION: str = "9.6.6 Sakura Gothic Ultimate Massive Vocabulary & Extended Arcade Edition"
+    VERSION: str = "9.6.7 Sakura Gothic Ultimate Massive Vocabulary & Extended Arcade Edition"
     DEVELOPER: str = "Black & Pink Studio Enterprise Architecture"
     PREFIX: str = "?"
     OWNER_ID: int = 1312333137241575449 
@@ -170,11 +170,11 @@ keep_alive_app = Flask("SakuraUltimateKeepAliveExtended")
 def route_home() -> str:
     return """
     <html>
-        <head><title>Sakura Gothic Massive Arcade v9.6.6 Extended</title></head>
+        <head><title>Sakura Gothic Massive Arcade v9.6.7 Extended</title></head>
         <body style='background:#10001A; color:#FFB7C5; font-family:sans-serif; text-align:center; padding-top:50px;'>
-            <h1>🌸 Sakura Black Pink Arcade Ultimate (v9.6.6 Extended) 🌸</h1>
+            <h1>🌸 Sakura Black Pink Arcade Ultimate (v9.6.7 Extended) 🌸</h1>
             <p>System Status: <strong style='color:#00FF00'>ONLINE & FULLY OPERATIONAL</strong></p>
-            <p>Active Modules: Math 15+, Full Vocabulary Dictionary, Mini-games, Advanced Custom Embed UI, Shop, Inventory, Economy.</p>
+            <p>Active Modules: Math 15+, Full Vocabulary Dictionary, Mini-games, Advanced Custom Embed UI, Shop, Inventory, Economy, Calculator.</p>
         </body>
     </html>
     """
@@ -292,16 +292,16 @@ class MathGameManager:
         if game_type == "geometry_cube":
             side = random.randint(2, 15)
             ans = float(side ** 3)
-            question = f"📦 **[Hình Học Không Gian]** Tính thể tích $V$ của hình lập phương có cạnh $a = {side}$?"
-            explanation = f"Công thức thể tích hình lập phương: $V = a^3 = {side}^3 = {ans:.2f}$."
+            question = f"📦 **[Hình Học Không Gian]** Tính thể tích của hình lập phương có cạnh a = {side}?"
+            explanation = f"Công thức thể tích hình lập phương: V = a^3 = {side}^3 = {ans:.2f}."
             return question, ans, explanation, "Hình Học"
             
         elif game_type == "fraction_advanced":
             a, b = random.randint(1, 9), random.randint(2, 9)
             c, d = random.randint(1, 9), random.randint(2, 9)
             ans = round((a/b) + (c/d), 2)
-            question = f"🧮 **[Số Hữu Tỉ & Phân Số]** Tính giá trị biểu thức (làm tròn 2 chữ số thập phân):\n$$\\frac{{{a}}}{{{b}}} + \\frac{{{c}}}{{{d}}}$$"
-            explanation = f"Quy đồng và tính toán: $({a}/{b}) + ({c}/{d}) \\approx {ans}$."
+            question = f"🧮 **[Số Hữu Tỉ & Phân Số]** Tính giá trị biểu thức (làm tròn 2 chữ số thập phân):\n({a}/{b}) + ({c}/{d})"
+            explanation = f"Quy đồng và tính toán: ({a}/{b}) + ({c}/{d}) ≈ {ans}."
             return question, ans, explanation, "Phân Số"
             
         elif game_type == "algebra_linear":
@@ -309,8 +309,8 @@ class MathGameManager:
             const_add = random.randint(5, 40)
             target_val = random.randint(60, 180)
             ans = round((target_val - const_add) / coeff, 2)
-            question = f"🔢 **[Đại Số Cơ Bản]** Tìm nghiệm $x$ của phương trình:\n$${coeff}x + {const_add} = {target_val}$$"
-            explanation = f"Giải phương trình tuyến tính: $x = ({target_val} - {const_add}) / {coeff} = {ans}$."
+            question = f"🔢 **[Đại Số Cơ Bản]** Tìm nghiệm x của phương trình:\n{coeff}x + {const_add} = {target_val}"
+            explanation = f"Giải phương trình tuyến tính: x = ({target_val} - {const_add}) / {coeff} = {ans}."
             return question, ans, explanation, "Đại Số"
             
         elif game_type == "percentage_logic":
@@ -318,14 +318,14 @@ class MathGameManager:
             discount_pct = random.choice([10, 15, 20, 25, 30, 35, 40, 50])
             ans = float(original_price * (1 - discount_pct / 100))
             question = f"🏷️ **[Toán Thực Tế]** Giá gốc `{original_price:,}đ`, giảm giá `{discount_pct}%`. Tính số tiền thực tế cần thanh toán?"
-            explanation = f"Số tiền thực tế = ${original_price:,} \\times (1 - {discount_pct}/100) = {ans:,.0f}đ$."
+            explanation = f"Số tiền thực tế = {original_price:,} * (1 - {discount_pct}/100) = {ans:,.0f}đ."
             return question, ans, explanation, "Thực Tế"
 
         elif game_type == "geometry_sphere":
             r = random.randint(3, 12)
             ans = round((4/3) * 3.14159 * (r**3), 2)
-            question = f"🌐 **[Hình Học Tròn]** Tính thể tích khối cầu bán kính $r = {r}$ (lấy $\\pi \\approx 3.14159$ và làm tròn 2 chữ số)?"
-            explanation = f"Công thức thể tích hình cầu: $V = \\frac{{4}}{{{3}}}\\pi r^3 = \\frac{{4}}{{{3}}} \\times 3.14159 \\times {r}^3 \\approx {ans}$."
+            question = f"🌐 **[Hình Học Tròn]** Tính thể tích khối cầu bán kính r = {r} (làm tròn 2 chữ số)?"
+            explanation = f"Công thức thể tích hình cầu: V = (4/3) * π * r^3 ≈ {ans}."
             return question, ans, explanation, "Hình Học"
 
         elif game_type == "quadratic_equation":
@@ -334,8 +334,8 @@ class MathGameManager:
             b = -(x1 + x2)
             c = x1 * x2
             ans = float(max(x1, x2))
-            question = f"📈 **[Phương Trình Bậc Hai]** Tìm nghiệm lớn hơn của phương trình:\n$$x^2 {'+' if b >= 0 else ''}{b}x {'+' if c >= 0 else ''}{c} = 0$$"
-            explanation = f"Phân tích đa thức thành nhân tử: $(x - {x1})(x - {x2}) = 0$. Các nghiệm là ${x1}$ và ${x2}$. Nghiệm lớn hơn là {ans}."
+            question = f"📈 **[Phương Trình Bậc Hai]** Tìm nghiệm lớn hơn của phương trình:\nx^2 {'+' if b >= 0 else ''}{b}x {'+' if c >= 0 else ''}{c} = 0"
+            explanation = f"Phân tích thành nhân tử: (x - {x1})(x - {x2}) = 0. Nghiệm lớn hơn là {ans}."
             return question, ans, explanation, "Đại Số"
 
         elif game_type == "ratio_proportion":
@@ -343,54 +343,54 @@ class MathGameManager:
             v2 = random.randint(3, 15)
             total = random.randint(60, 250)
             ans = round(total * (v1 / (v1 + v2)), 2)
-            question = f"⚖️ **[Tỉ Lệ Thức]** Chia tổng số `{total}` theo tỉ lệ ${v1} : {v2}$. Hãy tìm giá trị của phần thứ nhất (làm tròn 2 chữ số)?"
-            explanation = f"Tổng số phần bằng nhau = ${v1} + {v2} = {v1+v2}$. Phần thứ nhất = ${total} \\times \\frac{{{v1}}}{{{v1+v2}}} \\approx {ans}$."
+            question = f"⚖️ **[Tỉ Lệ Thức]** Chia tổng số `{total}` theo tỉ lệ {v1}:{v2}. Tìm phần thứ nhất?"
+            explanation = f"Tổng số phần = {v1+v2}. Phần 1 = {total} * ({v1}/{v1+v2}) ≈ {ans}."
             return question, ans, explanation, "Tỉ Lệ"
 
         elif game_type == "statistics_mean":
             nums = [random.randint(10, 99) for _ in range(5)]
             ans = round(sum(nums) / len(nums), 2)
-            question = f"📊 **[Thống Kê]** Tính số trung bình cộng của dãy số sau: `{nums}`?"
-            explanation = f"Trung bình cộng = Tổng các số / Số lượng = ${sum(nums)} / {len(nums)} = {ans}$."
+            question = f"📊 **[Thống Kê]** Tính số trung bình cộng của dãy số: `{nums}`?"
+            explanation = f"Trung bình cộng = Tổng các số / Số lượng = {sum(nums)} / {len(nums)} = {ans}."
             return question, ans, explanation, "Thống Kê"
 
         elif game_type == "speed_distance":
             speed = random.randint(35, 100)
             time_h = random.randint(2, 7)
             ans = float(speed * time_h)
-            question = f"🚗 **[Chuyển Động]** Một ô tô di chuyển với vận tốc trung bình `{speed} km/h` trong thời gian `{time_h} giờ`. Tính quãng đường đi được?"
-            explanation = f"Quãng đường = Vận tốc $\\times$ Thời gian = ${speed} \\times {time_h} = {ans} \\text{{ km}}$."
+            question = f"🚗 **[Chuyển Động]** Ô tô chạy vận tốc `{speed} km/h` trong `{time_h} giờ`. Tính quãng đường?"
+            explanation = f"Quãng đường = Vận tốc * Thời gian = {speed} * {time_h} = {ans} km."
             return question, ans, explanation, "Vật Lý"
 
         elif game_type == "exponent_power":
             base = random.randint(2, 6)
             exponent = random.randint(3, 6)
             ans = float(base ** exponent)
-            question = f"⚡ **[Lũy Thừa]** Tính giá trị biểu thức lũy thừa sau:\n$${base}^{{ {exponent} }}$$"
-            explanation = f"Tính lũy thừa: ${base}^{{{exponent}}} = {ans:,.0f}$."
+            question = f"⚡ **[Lũy Thừa]** Tính giá trị: {base}^{exponent}?"
+            explanation = f"Tính lũy thừa: {base}^{exponent} = {ans:,.0f}."
             return question, ans, explanation, "Đại Số"
 
         elif game_type == "geometry_cylinder":
             r = random.randint(2, 8)
             h = random.randint(5, 20)
             ans = round(3.14159 * (r**2) * h, 2)
-            question = f"🧪 **[Hình Trụ]** Tính thể tích hình trụ có bán kính đáy $r = {r}$ và chiều cao $h = {h}$ (lấy $\\pi \\approx 3.14159$ và làm tròn 2 chữ số)?"
-            explanation = f"Thể tích hình trụ: $V = \\pi r^2 h = 3.14159 \\times {r}^2 \\times {h} \\approx {ans}$."
+            question = f"🧪 **[Hình Trụ]** Thể tích hình trụ có bán kính đáy r = {r}, chiều cao h = {h}?"
+            explanation = f"V = π * r^2 * h ≈ {ans}."
             return question, ans, explanation, "Hình Học"
 
         elif game_type == "logarithm_basic":
             base_val = random.choice([2, 4, 8, 16])
             ans = float(round(float(base_val.bit_length() - 1), 2))
-            question = f"📐 **[Logarithm]** Tính giá trị cơ bản: $\\log_2({base_val})$?"
-            explanation = f"Giải logarithm cơ bản: $\\log_2({base_val}) = {ans}$ vì $2^{{{ans}}} = {base_val}$."
+            question = f"📐 **[Logarithm]** Tính giá trị: log_2({base_val})?"
+            explanation = f"log_2({base_val}) = {ans} vì 2^{ans} = {base_val}."
             return question, ans, explanation, "Giải Tích"
 
         elif game_type == "matrix_determinant":
             a, b = random.randint(1, 5), random.randint(1, 5)
             c, d = random.randint(1, 5), random.randint(1, 5)
             ans = float((a * d) - (b * c))
-            question = f"🔢 **[Đại Số Tuyến Tính]** Tính định thức (Determinant) của ma trận vuông cấp 2:\n$$\\begin{vmatrix} {a} & {b} \\\\ {c} & {d} \\end{vmatrix}$$"
-            explanation = f"Công thức định thức cấp 2: $ad - bc = ({a} \\times {d}) - ({b} \\times {c}) = {ans}$."
+            question = f"🔢 **[Đại Số Tuyến Tính]** Tính định thức ma trận cấp 2: [{a}, {b}; {c}, {d}]?"
+            explanation = f"Định thức = ad - bc = ({a}*{d}) - ({b}*{c}) = {ans}."
             return question, ans, explanation, "Đại Số"
 
         elif game_type == "trigonometry_sin":
@@ -398,8 +398,8 @@ class MathGameManager:
             if angle == 0: ans = 0.0
             elif angle == 30: ans = 0.5
             else: ans = 1.0
-            question = f"📐 **[Lượng Giác]** Tính giá trị của biểu thức lượng giác: $\\sin({angle}^\\circ)$ (làm tròn 2 chữ số)?"
-            explanation = f"Giá trị chuẩn của hàm lượng giác cơ bản tại góc ${angle}^\\circ$ là ${ans}$."
+            question = f"📐 **[Lượng Giác]** Tính giá trị: sin({angle}°)? phim"
+            explanation = f"Giá trị chuẩn của sin({angle}°) là {ans}."
             return question, ans, explanation, "Lượng Giác"
 
         else:
@@ -407,8 +407,8 @@ class MathGameManager:
             k = random.randint(2, 3)
             import math
             ans = float(math.comb(n, k))
-            question = f"🎲 **[Tổ Hợp Xác Suất]** Tính số cách chọn chập $k = {k}$ phần tử từ tập hợp có $n = {n}$ phần tử ($C_n^k$):"
-            explanation = f"Công thức tổ hợp chập $k$ của $n$: $C_n^k = \\frac{{n!}}{{k!(n-k)!}} = {ans}$."
+            question = f"🎲 **[Xác Suất]** Tính tổ hợp C_{n}^{k}?"
+            explanation = f"Công thức tổ hợp: C_{n}^{k} = {ans}."
             return question, ans, explanation, "Xác Suất"
 
 math_manager = MathGameManager()
@@ -545,7 +545,7 @@ class UIUtils:
             timestamp=datetime.now()
         )
         embed.set_footer(
-            text="🖤 Sakura Gothic Arcade Ultimate v9.6.6 • Pure Fun Enterprise 🌸",
+            text="🖤 Sakura Gothic Arcade Ultimate v9.6.7 • Pure Fun Enterprise 🌸",
             icon_url=UIUtils.DEFAULT_FOOTER_ICON
         )
         embed.set_thumbnail(url=UIUtils.DEFAULT_THUMBNAIL)
@@ -561,7 +561,7 @@ class UIUtils:
     def build_help_embed() -> discord.Embed:
         description = (
             f"{BotConfig.THICK_BORDER}\n\n"
-            f"🖤 **TRUNG TÂM ĐIỀU KHIỂN SAKURA GOTHIC ULTIMATE v9.6.6** 🌸\n\n"
+            f"🖤 **TRUNG TÂM ĐIỀU KHIỂN SAKURA GOTHIC ULTIMATE v9.6.7** 🌸\n\n"
             f"📖 **[ HỆ THỐNG TỪ VỰNG & TRA CỨU ]**\n"
             f"❯ `{BotConfig.PREFIX}tuvung <từ>` ❯ Tra cứu nghĩa, giải thích chi tiết từ điển Anh/Việt.\n"
             f"❯ `{BotConfig.PREFIX}thuvientuvung` ❯ Khám phá kho từ vựng nâng cao ngẫu nhiên.\n\n"
@@ -570,7 +570,8 @@ class UIUtils:
             f"❯ `{BotConfig.PREFIX}botnoitu` ❯ Thách đấu Nối Từ Tiếng Việt trực tiếp với AI Bot.\n"
             f"❯ `{BotConfig.PREFIX}noitueng` ❯ Nối từ Tiếng Anh kết hợp kho từ điển khổng lồ.\n"
             f"❯ `{BotConfig.PREFIX}huyvanchoi` ❯ Hủy ván đấu đang diễn ra trong kênh hiện tại.\n\n"
-            f"📐🧠 **[ TOÁN HỌC MỞ RỘNG & ĐỐ VUI KHO HỌC ]**\n"
+            f"📐🧠 **[ TOÁN HỌC, MÁY TÍNH & ĐỐ VUI ]**\n"
+            f"❯ `{BotConfig.PREFIX}giaitoan <phép tính>` ❯ Máy tính siêu tốc (Ví dụ: `?giaitoan 1+1=` hoặc `?giaitoan 5*8`).\n"
             f"❯ `{BotConfig.PREFIX}toanhoc` ❯ Thử thách 15+ dạng toán học đỉnh cao (Nhận xu & điểm).\n"
             f"❯ `{BotConfig.PREFIX}dovui` ❯ Minigame trắc nghiệm kiến thức tổng hợp.\n\n"
             f"🪙🛍️ **[ KINH TẾ, KHO ĐỒ & TIỆN ÍCH ]**\n"
@@ -597,8 +598,8 @@ bot = commands.Bot(command_prefix=BotConfig.PREFIX, intents=bot_intents, help_co
 
 @bot.event
 async def on_ready() -> None:
-    logger.info(f"✅ Bot Đen Hồng Cánh Hoa Ultimate v9.6.6 đã đăng nhập thành công: {bot.user}")
-    activity = discord.Activity(type=discord.ActivityType.playing, name=f"{BotConfig.PREFIX}help | 🖤🌸 v9.6.6 Fixed")
+    logger.info(f"✅ Bot Đen Hồng Cánh Hoa Ultimate v9.6.7 đã đăng nhập thành công: {bot.user}")
+    activity = discord.Activity(type=discord.ActivityType.playing, name=f"{BotConfig.PREFIX}help | 🖤🌸 v9.6.7 Fixed")
     await bot.change_presence(status=discord.Status.online, activity=activity)
 
 @bot.command(name="ping")
@@ -715,6 +716,31 @@ async def sys_buy(ctx: commands.Context, item_name: str = "") -> None:
 
 active_trivia_sessions: Dict[int, dict] = {}
 
+@bot.command(name="giaitoan", aliases=["calc"])
+async def cmd_giaitoan(ctx: commands.Context, *, expression: str = "") -> None:
+    if not expression:
+        await ctx.send(embed=UIUtils.build_warning_embed("Thiếu Biểu Thức", f"Vui lòng nhập phép tính cần giải. Ví dụ: `{BotConfig.PREFIX}giaitoan 1+1` hoặc `{BotConfig.PREFIX}giaitoan 1+1=`"))
+        return
+    
+    # Loại bỏ dấu '=' ở cuối nếu người dùng có thói quen gõ vào
+    expression = expression.strip().rstrip('=')
+    
+    # Làm sạch biểu thức để đảm bảo an toàn tuyệt đối
+    clean_expr = "".join(c for c in expression if c in "0123456789+-*/().,^% ")
+    clean_expr = clean_expr.replace('^', '**')
+    
+    try:
+        result = eval(clean_expr, {"__builtins__": None}, {})
+        desc = (
+            f"{BotConfig.THICK_BORDER}\n\n"
+            f"🧮 **Biểu thức:** `{expression}`\n"
+            f"🎯 **Kết quả chính xác:** **`{result}`** 🌸\n\n"
+            f"{BotConfig.THICK_BORDER}"
+        )
+        await ctx.send(embed=UIUtils.create_embed("Máy Tính Sakura Gothic", desc, BotConfig.COLOR_EMERALD))
+    except Exception:
+        await ctx.send(embed=UIUtils.build_warning_embed("Lỗi Cú Pháp Toán Học", "Biểu thức bạn nhập không hợp lệ. Vui lòng kiểm tra lại các con số và dấu phép tính!"))
+
 @bot.command(name="tuvung", aliases=["vocab", "tudien"])
 async def cmd_tuvung(ctx: commands.Context, *, word: str = "") -> None:
     if not word:
@@ -762,7 +788,7 @@ async def cmd_thuvientuvung(ctx: commands.Context) -> None:
     )
     await ctx.send(embed=UIUtils.create_embed("Thư Viện Từ Vựng Sakura", desc, BotConfig.COLOR_PURPLE))
 
-@bot.command(name="toanhoc", aliases=["math", "giaotoan", "mathgame"])
+@bot.command(name="toanhoc", aliases=["math", "mathgame"])
 async def cmd_toanhoc(ctx: commands.Context) -> None:
     session = math_manager.get_session(ctx.channel.id)
     question, answer, explanation, category = math_manager.generate_random_problem()
