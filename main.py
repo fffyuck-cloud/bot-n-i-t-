@@ -457,6 +457,7 @@ class UIUtils:
 
             f"⚙️🌸 **[ QUẢN LÝ & TIỆN ÍCH ]** 🌸⚙️\n"
             f"❯ `/themtu [từ]` ❯ **Thêm từ (Admin)**\n"
+            f"❯ `/xoatu [từ]` ❯ **Xóa từ (Admin)**\n"
             f"❯ `/say [nội dung]` ❯ **Bot nói thay bạn (Chỉ bạn thấy)**\n"
             f"❯ `/dm [@user] [nội dung]` ❯ **Gửi DM ẩn danh (Chỉ bạn thấy)**\n"
             f"❯ `{BotConfig.PREFIX}admin` ❯ **Panel (Admin)**\n"
@@ -690,6 +691,64 @@ async def slash_themtu(interaction: discord.Interaction, word: str):
     else:
         await interaction.response.send_message(embed=UIUtils.build_invalid_word_embed("Từ TV phải 2 tiếng, TA phải 1 tiếng!"), ephemeral=True)
 
+@bot.tree.command(name="xoatu", description="Xóa từ khỏi từ điển (Chỉ Owner)")
+@app_commands.describe(word="Từ cần xóa")
+async def slash_xoatu(interaction: discord.Interaction, word: str):
+    if interaction.user.id != BotConfig.OWNER_ID:
+        err_msg = f"{BotConfig.BORDER}\n\n🖤 Bạn không có quyền dùng lệnh này!\n\n{BotConfig.BORDER}"
+        await interaction.response.send_message(embed=discord.Embed(title="⛔ CHẶN QUYỀN", description=err_msg, color=BotConfig.COLOR_RED_DARK), ephemeral=True)
+        return
+        
+    clean_w = word.strip().lower()
+    syl_parts = clean_w.split()
+    
+    # Xử lý tiếng Việt (2 âm tiết)
+    if len(syl_parts) == 2:
+        if clean_w not in COMBINED_VIETNAMESE_DICTIONARY:
+            await interaction.response.send_message(embed=UIUtils.build_warning_embed("Không tồn tại", f"Từ **`{clean_w.upper()}`** không có trong từ điển tiếng Việt!"), ephemeral=True)
+            return
+            
+        # Xóa khỏi các biến trong bộ nhớ
+        COMBINED_VIETNAMESE_DICTIONARY.remove(clean_w)
+        if clean_w in COMBINED_VIETNAMESE_LIST:
+            COMBINED_VIETNAMESE_LIST.remove(clean_w)
+        if clean_w in VIETNAMESE_INDEX_BY_FIRST_SYLLABLE.get(syl_parts[0], []):
+            VIETNAMESE_INDEX_BY_FIRST_SYLLABLE[syl_parts[0]].remove(clean_w)
+            
+        # Ghi đè lại file
+        try:
+            with open(BotConfig.FILE_VIETNAMESE_DICT, "w", encoding="utf-8") as f:
+                f.write("\n".join(COMBINED_VIETNAMESE_DICTIONARY))
+        except Exception as e:
+            logger.error(f"Lỗi ghi đè file xóa từ TV: {e}")
+            
+        await interaction.response.send_message(embed=UIUtils.build_success_embed("Xóa từ thành công", f"Đã xóa TV **`{clean_w.upper()}`** khỏi hệ thống!"))
+        
+    # Xử lý tiếng Anh (1 âm tiết)
+    elif len(syl_parts) == 1 and clean_w.isalpha():
+        if clean_w not in ENGLISH_DICT:
+            await interaction.response.send_message(embed=UIUtils.build_warning_embed("Không tồn tại", f"Word **`{clean_w.upper()}`** không có trong từ điển tiếng Anh!"), ephemeral=True)
+            return
+            
+        # Xóa khỏi các biến trong bộ nhớ
+        ENGLISH_DICT.remove(clean_w)
+        if clean_w in ENGLISH_LIST:
+            ENGLISH_LIST.remove(clean_w)
+        if clean_w in ENGLISH_INDEX_BY_FIRST_LETTER.get(clean_w[0], []):
+            ENGLISH_INDEX_BY_FIRST_LETTER[clean_w[0]].remove(clean_w)
+            
+        # Ghi đè lại file
+        try:
+            with open(BotConfig.FILE_ENGLISH_DICT, "w", encoding="utf-8") as f:
+                f.write("\n".join(ENGLISH_DICT))
+        except Exception as e:
+            logger.error(f"Lỗi ghi đè file xóa từ TA: {e}")
+            
+        await interaction.response.send_message(embed=UIUtils.build_success_embed("Xóa từ thành công", f"Đã xóa TA **`{clean_w.upper()}`** khỏi hệ thống!"))
+        
+    else:
+        await interaction.response.send_message(embed=UIUtils.build_invalid_word_embed("Từ TV phải có 2 tiếng, TA phải có 1 tiếng!"), ephemeral=True)
+
 @bot.tree.command(name="say", description="Bot nói thay bạn (Chỉ bạn thấy thông báo)")
 @app_commands.describe(text="Nội dung bạn muốn bot nói")
 async def slash_say(interaction: discord.Interaction, text: str):
@@ -862,7 +921,6 @@ async def cmd_huyvanchoi(ctx: commands.Context) -> None:
     desc = f"{BotConfig.BORDER}\n\n🛑 Ván chơi hiện tại đã bị hủy bởi {ctx.author.mention}!\n\n{BotConfig.BORDER}"
     await ctx.send(embed=UIUtils.create_embed("🌸 Hủy Ván Chơi", desc, BotConfig.COLOR_BLACK_CHIC))
 
-# LỆNH RESTART MỚI ĐƯỢC THÊM Ở ĐÂY
 @bot.command(name="restart", aliases=["choilai", "reset"])
 async def cmd_restart(ctx: commands.Context) -> None:
     session = global_session_manager.get_session(ctx.channel.id)
