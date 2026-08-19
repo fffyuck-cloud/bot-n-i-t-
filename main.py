@@ -1104,5 +1104,6 @@ if __name__ == "__main__":
     if not TOKEN:
         logger.error("❌ Không tìm thấy DISCORD_TOKEN! Vui lòng set environment variable.")
     else:
-        bot.run(TOKEN)
-```[cite: 2]
+import os
+# ...
+bot.run(os.getenv("DISCORD_TOKEN"))
